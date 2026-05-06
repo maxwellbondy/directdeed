@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
+import LegalTab from "./Legal";
 
 const SUPABASE_URL = "https://hzojqsalrlqrfmgkvsxm.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6b2pxc2FscmxxcmZtZ2t2c3htIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NzQ3OTQsImV4cCI6MjA5MjQ1MDc5NH0.8vvCJ5FqbH2zOdsUEj6lGgBR_lYhxTrIOdT9JRIwdkw";
@@ -551,7 +552,7 @@ function ValuationTab() {
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: "You are a real estate valuation expert. Return ONLY valid JSON, no markdown, no explanation. Property: " + (form.address || "Unknown") + ", Type: " + form.type + ", Beds: " + form.beds + ", Baths: " + form.baths + ", SqFt: " + form.sqft + ", Year: " + form.year + ", Condition: " + form.condition + ". Return: {\"low\":number,\"mid\":number,\"high\":number,\"pricePerSqft\":number,\"summary\":\"2-3 sentences\",\"tips\":[\"tip1\",\"tip2\",\"tip3\"]}" }] })
+        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: "You are a real estate valuation expert. Return ONLY valid JSON, no markdown. Property: " + (form.address || "Unknown") + ", Type: " + form.type + ", Beds: " + form.beds + ", Baths: " + form.baths + ", SqFt: " + form.sqft + ", Year: " + form.year + ", Condition: " + form.condition + ". Return: {\"low\":number,\"mid\":number,\"high\":number,\"pricePerSqft\":number,\"summary\":\"2-3 sentences\",\"tips\":[\"tip1\",\"tip2\",\"tip3\"]}" }] })
       });
       const data = await res.json();
       const text = data.content.map(b => b.text || "").join("");
@@ -565,7 +566,7 @@ function ValuationTab() {
   return (
     <div style={{ maxWidth: 680, margin: "0 auto", padding: "32px 24px" }}>
       <h2 style={{ fontSize: 36, fontWeight: 400, marginBottom: 6 }}>Home Valuation</h2>
-      <p style={{ color: "#888", fontSize: 14, marginBottom: 28 }}>Get an AI-powered estimate — no realtor required.</p>
+      <p style={{ color: "#888", fontSize: 14, marginBottom: 28 }}>Get an AI-powered estimate - no realtor required.</p>
       <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16, padding: "26px", marginBottom: 20 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div><label style={lbl}>Property Address</label><input style={inp} value={form.address} onChange={e => update("address", e.target.value)} placeholder="123 Main St, Austin TX" /></div>
@@ -710,7 +711,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
   const [messageThread, setMessageThread] = useState(null);
-  const NAV_ITEMS = ["Browse", "Sell", "Messages", "Valuation", "Contracts", "Profile"];
+  const NAV_ITEMS = ["Browse", "Sell", "Messages", "Valuation", "Contracts", "Profile", "Privacy", "Terms"];
 
   useEffect(() => {
     sb.auth.getSession().then(({ data: { session } }) => setUser(session?.user || null));
@@ -765,11 +766,15 @@ export default function App() {
       {tab === "Valuation" && <ValuationTab />}
       {tab === "Contracts" && <ContractsTab />}
       {tab === "Profile" && <ProfileTab user={user} onRequireAuth={() => setShowAuth(true)} />}
+      {tab === "Privacy" && <LegalTab section="privacy" />}
+      {tab === "Terms" && <LegalTab section="terms" />}
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} onAuth={setUser} />}
 
       <footer style={{ background: "var(--ink)", color: "rgba(255,255,255,0.35)", textAlign: "center", padding: "22px", fontSize: 11, marginTop: 60 }}>
-        DirectDeed - Not a licensed real estate brokerage - Always consult a real estate attorney
+        DirectDeed - Bondy Technologies LLC - Michigan -
+        <span onClick={() => setTab("Privacy")} style={{ cursor: "pointer", marginLeft: 6, textDecoration: "underline" }}>Privacy Policy</span> -
+        <span onClick={() => setTab("Terms")} style={{ cursor: "pointer", marginLeft: 6, textDecoration: "underline" }}>Terms of Service</span>
       </footer>
     </div>
   );
