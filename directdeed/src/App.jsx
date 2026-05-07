@@ -18,14 +18,6 @@ const styles = `
   @keyframes spin { to { transform: rotate(360deg); } }
 `;
 
-const CONTRACT_TEMPLATES = [
-  { id: 1, name: "Purchase & Sale Agreement", desc: "Standard residential contract with contingencies and earnest money.", pages: 8, icon: "📋" },
-  { id: 2, name: "Property Disclosure Statement", desc: "Seller disclosure of known defects and property condition.", pages: 4, icon: "📝" },
-  { id: 3, name: "Counteroffer Addendum", desc: "Formally counter a buyers offer with modified terms.", pages: 2, icon: "🔄" },
-  { id: 4, name: "Inspection Contingency Waiver", desc: "Buyer waives inspection contingency.", pages: 1, icon: "✅" },
-  { id: 5, name: "Earnest Money Agreement", desc: "Terms for earnest money deposit and release conditions.", pages: 2, icon: "💰" },
-];
-
 function formatPrice(p) { return "$" + Number(p).toLocaleString(); }
 function timeAgo(ts) {
   const s = Math.floor((Date.now() - new Date(ts)) / 1000);
@@ -95,6 +87,7 @@ function AuthModal({ onClose, onAuth }) {
     </div>
   );
 }
+
 function ListingCard({ listing, onClick, onDelete, isOwner }) {
   const [hovered, setHovered] = useState(false);
   const photos = listing.photos || [];
@@ -230,7 +223,6 @@ function BrowseTab({ onMessage }) {
     </div>
   );
 }
-
 function SellTab({ user, onRequireAuth }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ address: "", city: "", state: "", zip: "", price: "", beds: "", baths: "", sqft: "", type: "Single Family", description: "", seller_name: "", seller_email: "", seller_phone: "" });
@@ -387,6 +379,7 @@ function SellTab({ user, onRequireAuth }) {
     </div>
   );
 }
+
 function ProfileTab({ user, onRequireAuth }) {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -621,10 +614,9 @@ function ValuationTab() {
     </div>
   );
 }
-
 function ContractsTab() {
   const [selected, setSelected] = useState(null);
-  const [form, setForm] = useState({ buyer: "", seller: "", address: "", price: "", closeDate: "", earnest: "" });
+  const [form, setForm] = useState({ buyer: "", seller: "", address: "", city: "", state: "", zip: "", price: "", closeDate: "", earnest: "", agentName: "", leaseMonths: "12", monthlyRent: "", deposit: "", leaseStart: "" });
   const [generated, setGenerated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [contractText, setContractText] = useState("");
@@ -632,25 +624,57 @@ function ContractsTab() {
   const inp = { width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "var(--cream)", fontSize: 14, outline: "none" };
   const lbl = { display: "block", fontSize: 11, fontWeight: 500, color: "#888", marginBottom: 5, textTransform: "uppercase" };
 
+  const CONTRACT_TEMPLATES = [
+    { id: 1, name: "Purchase & Sale Agreement", desc: "Comprehensive residential purchase contract including price, contingencies, closing date, and earnest money terms.", icon: "📋" },
+    { id: 2, name: "Property Disclosure Statement", desc: "Seller disclosure of known material defects, systems condition, HOA details, and legal issues.", icon: "📝" },
+    { id: 3, name: "Counteroffer Addendum", desc: "Formal counteroffer modifying the original offer price, terms, or contingencies.", icon: "🔄" },
+    { id: 4, name: "Inspection Contingency Waiver", desc: "Buyer waives the right to a home inspection contingency, accepting the property in its current condition.", icon: "✅" },
+    { id: 5, name: "Earnest Money Agreement", desc: "Defines earnest money amount, holder, deposit deadline, and conditions for return or forfeiture.", icon: "💰" },
+    { id: 6, name: "As-Is Addendum", desc: "Seller sells property in its current condition with no repairs or credits. Buyer accepts all known and unknown defects.", icon: "🏚️" },
+    { id: 7, name: "Lead Paint Disclosure", desc: "Federally required disclosure for homes built before 1978 regarding known lead-based paint hazards.", icon: "⚠️" },
+    { id: 8, name: "Seller Financing Addendum", desc: "Terms for owner financing including loan amount, interest rate, payment schedule, and default provisions.", icon: "🏦" },
+    { id: 9, name: "Residential Lease Agreement", desc: "Fixed-term lease covering rent, deposit, maintenance, and tenant obligations.", icon: "🔑" },
+  ];
+
+  const getPrompt = (template, f) => {
+    const base = "Property: " + f.address + ", " + f.city + ", " + f.state + " " + f.zip + ". Buyer: " + (f.buyer || "_______________") + ". Seller: " + (f.seller || "_______________") + ". Purchase Price: $" + (f.price || "_______________") + ". Closing Date: " + (f.closeDate || "_______________") + ". Earnest Money: $" + (f.earnest || "_______________") + ".";
+    const prompts = {
+      "Purchase & Sale Agreement": "Generate a detailed professionally structured residential Purchase and Sale Agreement for use in the United States. " + base + " Include all of the following numbered sections with proper legal language: 1) Parties and Property Description, 2) Purchase Price and Payment Terms, 3) Earnest Money Deposit, 4) Financing Contingency, 5) Inspection Contingency, 6) Appraisal Contingency, 7) Title and Closing, 8) Possession Date, 9) Included and Excluded Items, 10) Condition of Property, 11) Closing Costs, 12) Default and Remedies, 13) Dispute Resolution, 14) Entire Agreement. End with signature blocks for both parties with date lines. Use clear plain-English legal language suitable for all US states. Do not use markdown.",
+      "Property Disclosure Statement": "Generate a detailed Seller Property Disclosure Statement for US residential real estate. Seller: " + (f.seller || "_______________") + ". Property: " + f.address + ", " + f.city + ", " + f.state + " " + f.zip + ". Include disclosure questions with Yes, No, Unknown response options for: 1) Roof condition and age, 2) Foundation and structural issues, 3) Water intrusion or flooding history, 4) Plumbing systems, 5) Electrical systems, 6) HVAC systems and age, 7) Pest or termite history, 8) Environmental hazards, 9) HOA membership and fees, 10) Legal disputes or liens, 11) Permits and unpermitted work, 12) Neighborhood nuisances, 13) Any other known material defects. Include a seller certification statement and signature block. Use plain-English legal language suitable for all US states. Do not use markdown.",
+      "Counteroffer Addendum": "Generate a formal Counteroffer Addendum for US residential real estate. " + base + " Include: 1) Reference to original offer date, 2) Modified purchase price, 3) Modified closing date, 4) Modified contingency terms, 5) Modified earnest money if applicable, 6) Any additional terms or conditions, 7) Expiration date and time of this counteroffer, 8) Statement that all other terms of original offer remain unchanged, 9) Signature blocks for both parties with date lines. Use plain-English legal language suitable for all US states. Do not use markdown.",
+      "Inspection Contingency Waiver": "Generate a detailed Inspection Contingency Waiver for US residential real estate. " + base + " Include: 1) Clear statement that buyer voluntarily waives right to inspection contingency, 2) Acknowledgment that buyer accepts property in its current as-is condition, 3) Statement that seller makes no warranties about property condition, 4) Acknowledgment of all risks buyer assumes, 5) Statement that this waiver is voluntary and informed, 6) Statement that all other contract terms remain in full effect, 7) Signature blocks for buyer and seller with date lines. Use plain-English legal language suitable for all US states. Do not use markdown.",
+      "Earnest Money Agreement": "Generate a detailed Earnest Money Agreement for US residential real estate. " + base + " Escrow agent: " + (f.agentName || "_______________") + ". Include: 1) Amount of earnest money deposit, 2) Deadline for deposit delivery, 3) Name and address of escrow holder, 4) Conditions under which earnest money is returned to buyer, 5) Conditions under which earnest money is forfeited to seller, 6) Instructions for disbursement in case of dispute, 7) Interest provisions, 8) Signature blocks for buyer, seller, and escrow holder with date lines. Use plain-English legal language suitable for all US states. Do not use markdown.",
+      "As-Is Addendum": "Generate a detailed As-Is Property Addendum for US residential real estate. " + base + " Include: 1) Clear statement that property is sold in its current as-is condition, 2) Seller disclaimer of all warranties express or implied, 3) Buyer acknowledgment of property condition, 4) Statement that seller will make no repairs or provide any credits, 5) Buyer right to inspect but waiver of repair requests, 6) Acknowledgment that purchase price reflects as-is condition, 7) Survivability of this addendum through closing, 8) Signature blocks for both parties with date lines. Use plain-English legal language suitable for all US states. Do not use markdown.",
+      "Lead Paint Disclosure": "Generate a Lead-Based Paint Disclosure form as required by federal law 42 USC 4852d for US residential real estate built before 1978. Property: " + f.address + ", " + f.city + ", " + f.state + " " + f.zip + ". Seller: " + (f.seller || "_______________") + ". Buyer: " + (f.buyer || "_______________") + ". Include: 1) Federal law disclosure statement explaining the requirement, 2) Seller disclosure of known lead-based paint hazards with checkbox options for known hazards, no known hazards, and unknown, 3) List of any records or reports available to seller, 4) Buyer acknowledgment of receiving EPA pamphlet Protect Your Family from Lead in Your Home, 5) Buyer 10-day inspection opportunity notice, 6) Agent certification if applicable, 7) Signature blocks for seller and buyer with dates. Use the standard federally required format. Do not use markdown.",
+      "Seller Financing Addendum": "Generate a detailed Seller Financing Addendum for US residential real estate. " + base + " Include: 1) Principal loan amount, 2) Annual interest rate, 3) Term of loan in months and years, 4) Monthly payment amount including principal and interest, 5) Payment due date each month and grace period, 6) Late payment penalty amount and trigger, 7) Balloon payment terms if applicable, 8) Prepayment rights and any penalty, 9) Security interest and promissory note provisions, 10) Default definition and cure period, 11) Acceleration clause on default, 12) Due-on-sale clause, 13) Required insurance and property tax obligations, 14) Signature blocks for both parties with date lines. Use plain-English legal language suitable for all US states. Do not use markdown.",
+      "Residential Lease Agreement": "Generate a detailed Residential Lease Agreement for use in the United States. Landlord: " + (f.seller || "_______________") + ". Tenant: " + (f.buyer || "_______________") + ". Property: " + f.address + ", " + f.city + ", " + f.state + " " + f.zip + ". Monthly Rent: $" + (f.monthlyRent || "_______________") + ". Security Deposit: $" + (f.deposit || "_______________") + ". Lease Start Date: " + (f.leaseStart || "_______________") + ". Lease Term: " + (f.leaseMonths || "12") + " months. Include all of the following numbered sections: 1) Parties and Property, 2) Lease Term and Renewal, 3) Rent Amount and Due Date, 4) Late Fees, 5) Security Deposit Terms and Return, 6) Utilities and Services, 7) Maintenance and Repairs, 8) Alterations and Improvements, 9) Pets Policy, 10) Smoking Policy, 11) Landlord Entry Rights, 12) Subletting Policy, 13) Termination and Notice Requirements, 14) Default and Remedies, 15) Governing Law, 16) Signature blocks for landlord and tenant with date lines. Use plain-English legal language suitable for all US states. Do not use markdown.",
+    };
+    return prompts[template.name] || "Generate a professional " + template.name + " for US residential real estate. " + base + " Use plain-English legal language suitable for all US states. Do not use markdown.";
+  };
+
   const generate = async () => {
     setLoading(true);
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: "Generate a brief professional real estate " + selected.name + " for: Buyer: " + (form.buyer || "Buyer") + ", Seller: " + (form.seller || "Seller") + ", Property: " + form.address + ", Price: $" + form.price + ", Closing: " + (form.closeDate || "TBD") + ", Earnest: $" + (form.earnest || "0") + ". Concise plain-English, key terms and clauses, under 400 words, no markdown." }] })
+        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 2000, messages: [{ role: "user", content: getPrompt(selected, form) }] })
       });
       const data = await res.json();
       setContractText(data.content[0].text);
     } catch {
-      setContractText(selected.name + "\n\nBuyer: " + (form.buyer || "Buyer") + "\nSeller: " + (form.seller || "Seller") + "\nProperty: " + form.address + "\nPrice: $" + form.price + "\nClosing: " + (form.closeDate || "TBD") + "\n\nAll parties agree to the terms herein.\n\n___________________     ___________________\nBuyer Signature           Seller Signature");
+      setContractText("Unable to generate document. Please try again.");
     }
     setGenerated(true); setLoading(false);
   };
 
+  const isLease = selected?.name === "Residential Lease Agreement";
+  const isLeadPaint = selected?.name === "Lead Paint Disclosure";
+  const isEarnest = selected?.name === "Earnest Money Agreement";
+
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: "32px 24px" }}>
       <h2 style={{ fontSize: 36, fontWeight: 400, marginBottom: 6 }}>Document Center</h2>
-      <p style={{ color: "#888", fontSize: 14, marginBottom: 28 }}>Generate real estate contracts without a lawyer or realtor.</p>
+      <p style={{ color: "#888", fontSize: 14, marginBottom: 28 }}>AI-generated starting points for US real estate transactions. Always have a licensed attorney review before signing.</p>
       {!selected ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px,1fr))", gap: 14 }}>
           {CONTRACT_TEMPLATES.map(c => (
@@ -660,17 +684,20 @@ function ContractsTab() {
               <div style={{ fontSize: 34, marginBottom: 10 }}>{c.icon}</div>
               <div style={{ fontSize: 19, fontWeight: 500, marginBottom: 6 }}>{c.name}</div>
               <div style={{ fontSize: 13, color: "#888", lineHeight: 1.6, marginBottom: 10 }}>{c.desc}</div>
-              <div style={{ fontSize: 12, color: "var(--gold)", fontWeight: 500 }}>{c.pages}p - Generate free</div>
+              <div style={{ fontSize: 12, color: "var(--gold)", fontWeight: 500 }}>Generate free</div>
             </div>
           ))}
         </div>
       ) : generated ? (
         <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16, padding: "28px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <h3 style={{ fontSize: 22 }}>{selected.name}</h3>
             <span style={{ background: "var(--sage)", color: "#fff", fontSize: 11, padding: "3px 10px", borderRadius: 16 }}>Generated</span>
           </div>
-          <div style={{ background: "var(--cream)", borderRadius: 10, padding: "20px", fontSize: 14, lineHeight: 1.9, color: "#444", whiteSpace: "pre-wrap", fontFamily: "Georgia, serif", marginBottom: 20 }}>{contractText}</div>
+          <div style={{ background: "#fffbf0", border: "1px solid var(--warm)", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "var(--rust)", marginBottom: 16 }}>
+            This is an AI-generated draft for informational purposes only. Have a licensed real estate attorney review before signing.
+          </div>
+          <div style={{ background: "var(--cream)", borderRadius: 10, padding: "20px", fontSize: 13, lineHeight: 2, color: "#444", whiteSpace: "pre-wrap", fontFamily: "Georgia, serif", marginBottom: 20, maxHeight: 500, overflow: "auto" }}>{contractText}</div>
           <div style={{ display: "flex", gap: 10 }}>
             <button onClick={() => { setGenerated(false); setSelected(null); setContractText(""); }} style={{ flex: 1, background: "none", border: "1.5px solid var(--warm)", borderRadius: 12, padding: "12px", fontSize: 14, cursor: "pointer" }}>Back</button>
             <button onClick={() => { const b = new Blob([contractText], { type: "text/plain" }); const u = URL.createObjectURL(b); const a = document.createElement("a"); a.href = u; a.download = selected.name.replace(/\s/g, "_") + ".txt"; a.click(); }} style={{ flex: 2, background: "var(--gold)", color: "#fff", border: "none", borderRadius: 12, padding: "12px", fontSize: 14, cursor: "pointer" }}>Download</button>
@@ -686,14 +713,37 @@ function ContractsTab() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div><label style={lbl}>Buyer Name</label><input style={inp} value={form.buyer} onChange={e => update("buyer", e.target.value)} placeholder="John Smith" /></div>
-                <div><label style={lbl}>Seller Name</label><input style={inp} value={form.seller} onChange={e => update("seller", e.target.value)} placeholder="Jane Doe" /></div>
+                <div><label style={lbl}>{isLease ? "Tenant Name" : "Buyer Name"}</label><input style={inp} value={form.buyer} onChange={e => update("buyer", e.target.value)} placeholder="John Smith" /></div>
+                <div><label style={lbl}>{isLease ? "Landlord Name" : "Seller Name"}</label><input style={inp} value={form.seller} onChange={e => update("seller", e.target.value)} placeholder="Jane Doe" /></div>
               </div>
-              <div><label style={lbl}>Property Address</label><input style={inp} value={form.address} onChange={e => update("address", e.target.value)} placeholder="123 Main Street, Austin TX" /></div>
+              <div><label style={lbl}>Property Address</label><input style={inp} value={form.address} onChange={e => update("address", e.target.value)} placeholder="123 Main Street" /></div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-                <div><label style={lbl}>Purchase Price</label><input style={inp} value={form.price} onChange={e => update("price", e.target.value)} placeholder="485000" /></div>
-                <div><label style={lbl}>Earnest Money</label><input style={inp} value={form.earnest} onChange={e => update("earnest", e.target.value)} placeholder="5000" /></div>
-                <div><label style={lbl}>Closing Date</label><input style={inp} type="date" value={form.closeDate} onChange={e => update("closeDate", e.target.value)} /></div>
+                <div><label style={lbl}>City</label><input style={inp} value={form.city} onChange={e => update("city", e.target.value)} placeholder="Austin" /></div>
+                <div><label style={lbl}>State</label><input style={inp} value={form.state} onChange={e => update("state", e.target.value)} placeholder="TX" /></div>
+                <div><label style={lbl}>ZIP</label><input style={inp} value={form.zip} onChange={e => update("zip", e.target.value)} placeholder="78701" /></div>
+              </div>
+              {!isLease && !isLeadPaint && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                  <div><label style={lbl}>Purchase Price</label><input style={inp} value={form.price} onChange={e => update("price", e.target.value)} placeholder="485000" /></div>
+                  <div><label style={lbl}>Earnest Money</label><input style={inp} value={form.earnest} onChange={e => update("earnest", e.target.value)} placeholder="5000" /></div>
+                  <div><label style={lbl}>Closing Date</label><input style={inp} type="date" value={form.closeDate} onChange={e => update("closeDate", e.target.value)} /></div>
+                </div>
+              )}
+              {isEarnest && (
+                <div><label style={lbl}>Escrow Agent Name</label><input style={inp} value={form.agentName} onChange={e => update("agentName", e.target.value)} placeholder="First American Title Co." /></div>
+              )}
+              {isLease && (
+                <>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                    <div><label style={lbl}>Monthly Rent</label><input style={inp} value={form.monthlyRent} onChange={e => update("monthlyRent", e.target.value)} placeholder="2500" /></div>
+                    <div><label style={lbl}>Security Deposit</label><input style={inp} value={form.deposit} onChange={e => update("deposit", e.target.value)} placeholder="2500" /></div>
+                    <div><label style={lbl}>Lease Term (months)</label><input style={inp} type="number" value={form.leaseMonths} onChange={e => update("leaseMonths", e.target.value)} placeholder="12" /></div>
+                  </div>
+                  <div><label style={lbl}>Lease Start Date</label><input style={inp} type="date" value={form.leaseStart} onChange={e => update("leaseStart", e.target.value)} /></div>
+                </>
+              )}
+              <div style={{ background: "var(--warm)", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "#666" }}>
+                This document is generated for use across the United States. Always consult a licensed real estate attorney before signing.
               </div>
               <button onClick={generate} disabled={loading} style={{ background: loading ? "#aaa" : "var(--ink)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 15, cursor: loading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
                 {loading ? <Spinner /> : "Generate Document"}
