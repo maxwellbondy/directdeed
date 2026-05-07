@@ -18,6 +18,18 @@ const styles = `
   @keyframes spin { to { transform: rotate(360deg); } }
 `;
 
+const TRANSACTION_STEPS = [
+  { id: 1, key: "offer", label: "Offer Made", desc: "Buyer has submitted an offer", icon: "📋" },
+  { id: 2, key: "accepted", label: "Offer Accepted", desc: "Seller has accepted the offer", icon: "✅" },
+  { id: 3, key: "earnest", label: "Earnest Money", desc: "Earnest money deposited in escrow", icon: "💰" },
+  { id: 4, key: "inspection", label: "Inspection", desc: "Home inspection completed", icon: "🔍" },
+  { id: 5, key: "appraisal", label: "Appraisal", desc: "Property appraisal completed", icon: "📊" },
+  { id: 6, key: "financing", label: "Financing", desc: "Loan approved by lender", icon: "🏦" },
+  { id: 7, key: "title", label: "Title Search", desc: "Title search and insurance complete", icon: "📜" },
+  { id: 8, key: "walkthrough", label: "Final Walkthrough", desc: "Buyer final walkthrough complete", icon: "🚶" },
+  { id: 9, key: "closing", label: "Closing", desc: "Transaction closed successfully", icon: "🎉" },
+];
+
 function formatPrice(p) { return "$" + Number(p).toLocaleString(); }
 function timeAgo(ts) {
   const s = Math.floor((Date.now() - new Date(ts)) / 1000);
@@ -122,7 +134,7 @@ function ListingCard({ listing, onClick, onDelete, isOwner }) {
   );
 }
 
-function ListingModal({ listing, onClose, onMessage }) {
+function ListingModal({ listing, onClose, onMessage, onOffer, user }) {
   const [photoIdx, setPhotoIdx] = useState(0);
   if (!listing) return null;
   const photos = listing.photos || [];
@@ -157,16 +169,21 @@ function ListingModal({ listing, onClose, onMessage }) {
               <div style={{ fontSize: 12, color: "#888" }}>Owner - No realtor commission</div>
             </div>
           </div>
-          <button onClick={() => { onMessage(listing); onClose(); }} style={{ width: "100%", background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "14px", fontSize: 15, fontWeight: 500, cursor: "pointer" }}>
-            Message Seller Directly
-          </button>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => { onMessage(listing); onClose(); }} style={{ flex: 1, background: "var(--warm)", color: "var(--ink)", border: "none", borderRadius: 12, padding: "14px", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
+              Message Seller
+            </button>
+            <button onClick={() => { onOffer(listing); onClose(); }} style={{ flex: 2, background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "14px", fontSize: 15, fontWeight: 500, cursor: "pointer" }}>
+              Make an Offer
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function BrowseTab({ onMessage }) {
+function BrowseTab({ onMessage, onOffer, user }) {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -219,7 +236,382 @@ function BrowseTab({ onMessage }) {
           )}
         </>
       )}
-      <ListingModal listing={selected} onClose={() => setSelected(null)} onMessage={onMessage} />
+      <ListingModal listing={selected} onClose={() => setSelected(null)} onMessage={onMessage} onOffer={onOffer} user={user} />
+    </div>
+  );
+}
+function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
+  const [step, setStep] = useState(1);
+  const [form, setForm] = useState({
+    offer_price: listing?.price || "",
+    earnest_money: "",
+    closing_date: "",
+    financing_contingency: true,
+    inspection_contingency: true,
+    appraisal_contingency: true,
+    message: "",
+    buyer_name: user?.user_metadata?.full_name || "",
+    buyer_email: user?.email || "",
+    buyer_phone: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState(null);
+  const update = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const inp = { width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "var(--cream)", fontSize: 14, outline: "none" };
+  const lbl = { display: "block", fontSize: 11, fontWeight: 500, color: "#888", marginBottom: 5, textTransform: "uppercase" };
+
+  if (!user) return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(26,18,8,0.55)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
+      <div style={{ background: "var(--card)", borderRadius: 20, maxWidth: 420, width: "100%", padding: "36px 32px" }} onClick={e => e.stopPropagation()}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
+          <h2 style={{ fontSize: 28, marginBottom: 12 }}>Sign in to make an offer</h2>
+          <p style={{ color: "#888", marginBottom: 24, lineHeight: 1.7 }}>Create a free account to submit and track your offers.</p>
+          <button onClick={() => { onClose(); onRequireAuth(); }} style={{ background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "14px 32px", fontSize: 15, cursor: "pointer" }}>Sign Up Free</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const submit = async () => {
+    setSubmitting(true); setError(null);
+    try {
+      const { error: insertErr } = await sb.from("offers").insert([{
+        listing_id: listing.id,
+        buyer_id: user.id,
+        seller_id: listing.user_id,
+        buyer_name: form.buyer_name,
+        buyer_email: form.buyer_email,
+        buyer_phone: form.buyer_phone,
+        offer_price: Number(form.offer_price),
+        earnest_money: Number(form.earnest_money),
+        closing_date: form.closing_date,
+        financing_contingency: form.financing_contingency,
+        inspection_contingency: form.inspection_contingency,
+        appraisal_contingency: form.appraisal_contingency,
+        message: form.message,
+        status: "pending",
+        step: "offer",
+        step_index: 1,
+      }]);
+      if (insertErr) throw new Error(insertErr.message);
+      setSubmitted(true);
+    } catch (e) { setError(e.message); }
+    setSubmitting(false);
+  };
+
+  if (submitted) return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(26,18,8,0.55)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
+      <div style={{ background: "var(--card)", borderRadius: 20, maxWidth: 460, width: "100%", padding: "40px 36px", textAlign: "center" }} onClick={e => e.stopPropagation()}>
+        <div style={{ fontSize: 56, marginBottom: 16 }}>🎉</div>
+        <h2 style={{ fontSize: 30, marginBottom: 12 }}>Offer Submitted!</h2>
+        <p style={{ color: "#666", lineHeight: 1.8, marginBottom: 12 }}>Your offer of {formatPrice(form.offer_price)} on {listing.address} has been sent to the seller.</p>
+        <p style={{ color: "#888", fontSize: 13, marginBottom: 28 }}>Track your offer status in the Offers tab. The seller will be notified and can accept, counter, or decline.</p>
+        <button onClick={onClose} style={{ background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "14px 32px", fontSize: 15, cursor: "pointer" }}>Done</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(26,18,8,0.55)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
+      <div style={{ background: "var(--card)", borderRadius: 20, maxWidth: 560, width: "100%", maxHeight: "90vh", overflow: "auto", boxShadow: "0 24px 80px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
+        <div style={{ padding: "28px 32px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            <h2 style={{ fontSize: 26, fontWeight: 500 }}>Make an Offer</h2>
+            <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#bbb" }}>x</button>
+          </div>
+          <div style={{ fontSize: 13, color: "#888", marginBottom: 24 }}>{listing.address} - Listed at {formatPrice(listing.price)}</div>
+
+          <div style={{ display: "flex", gap: 6, marginBottom: 28 }}>
+            {["Offer Terms", "Contingencies", "Your Info"].map((s, i) => (
+              <div key={i} style={{ flex: 1, textAlign: "center" }}>
+                <div style={{ width: 24, height: 24, borderRadius: "50%", background: step > i + 1 ? "var(--sage)" : step === i + 1 ? "var(--gold)" : "var(--warm)", color: step >= i + 1 ? "#fff" : "#aaa", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 4px", fontSize: 11, fontWeight: 600 }}>{step > i + 1 ? "v" : i + 1}</div>
+                <div style={{ fontSize: 10, color: step === i + 1 ? "var(--gold)" : "#aaa" }}>{s}</div>
+              </div>
+            ))}
+          </div>
+
+          {step === 1 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div><label style={lbl}>Your Offer Price</label>
+                <input style={inp} type="number" value={form.offer_price} onChange={e => update("offer_price", e.target.value)} placeholder="480000" />
+                {listing.price && Number(form.offer_price) < Number(listing.price) && (
+                  <div style={{ fontSize: 12, color: "var(--rust)", marginTop: 4 }}>
+                    {Math.round((1 - Number(form.offer_price) / Number(listing.price)) * 100)}% below asking price
+                  </div>
+                )}
+                {listing.price && Number(form.offer_price) > Number(listing.price) && (
+                  <div style={{ fontSize: 12, color: "var(--sage)", marginTop: 4 }}>
+                    {Math.round((Number(form.offer_price) / Number(listing.price) - 1) * 100)}% above asking price
+                  </div>
+                )}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div><label style={lbl}>Earnest Money</label><input style={inp} type="number" value={form.earnest_money} onChange={e => update("earnest_money", e.target.value)} placeholder="5000" /></div>
+                <div><label style={lbl}>Proposed Closing Date</label><input style={inp} type="date" value={form.closing_date} onChange={e => update("closing_date", e.target.value)} /></div>
+              </div>
+              <div><label style={lbl}>Message to Seller (optional)</label>
+                <textarea style={{ ...inp, minHeight: 80, resize: "vertical" }} value={form.message} onChange={e => update("message", e.target.value)} placeholder="Tell the seller a bit about yourself and why you love the home..." />
+              </div>
+              <button onClick={() => setStep(2)} style={{ background: "var(--gold)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 15, cursor: "pointer" }}>Continue</button>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <p style={{ fontSize: 14, color: "#666", lineHeight: 1.7 }}>Contingencies protect you as a buyer. Keeping them gives you an exit if something goes wrong. Waiving them makes your offer more attractive but carries risk.</p>
+              {[
+                { key: "financing_contingency", label: "Financing Contingency", desc: "Protects you if your loan falls through. Recommended if you need a mortgage." },
+                { key: "inspection_contingency", label: "Inspection Contingency", desc: "Allows you to negotiate repairs or cancel after a home inspection." },
+                { key: "appraisal_contingency", label: "Appraisal Contingency", desc: "Protects you if the home appraises below your offer price." },
+              ].map(c => (
+                <div key={c.key} style={{ background: form[c.key] ? "#f0fff4" : "#fff5f5", border: "1px solid " + (form[c.key] ? "#9ae6b4" : "#fcc"), borderRadius: 12, padding: "16px 18px", display: "flex", alignItems: "flex-start", gap: 14, cursor: "pointer" }} onClick={() => update(c.key, !form[c.key])}>
+                  <div style={{ width: 22, height: 22, borderRadius: 6, background: form[c.key] ? "var(--sage)" : "#ddd", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
+                    {form[c.key] && <span style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>v</span>}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 500, fontSize: 14, marginBottom: 3 }}>{c.label}</div>
+                    <div style={{ fontSize: 12, color: "#777", lineHeight: 1.5 }}>{c.desc}</div>
+                  </div>
+                </div>
+              ))}
+              <div style={{ display: "flex", gap: 10 }}>
+                <button onClick={() => setStep(1)} style={{ flex: 1, background: "none", border: "1.5px solid var(--warm)", borderRadius: 12, padding: "13px", fontSize: 14, cursor: "pointer" }}>Back</button>
+                <button onClick={() => setStep(3)} style={{ flex: 2, background: "var(--gold)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 14, cursor: "pointer" }}>Continue</button>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div><label style={lbl}>Your Full Name</label><input style={inp} value={form.buyer_name} onChange={e => update("buyer_name", e.target.value)} placeholder="John Smith" /></div>
+              <div><label style={lbl}>Email Address</label><input style={inp} type="email" value={form.buyer_email} onChange={e => update("buyer_email", e.target.value)} placeholder="john@email.com" /></div>
+              <div><label style={lbl}>Phone Number</label><input style={inp} type="tel" value={form.buyer_phone} onChange={e => update("buyer_phone", e.target.value)} placeholder="(555) 123-4567" /></div>
+              <div style={{ background: "var(--warm)", borderRadius: 10, padding: "14px 16px", fontSize: 13, lineHeight: 1.7 }}>
+                <strong>Offer Summary</strong><br />
+                Price: {formatPrice(form.offer_price)} | Earnest: {formatPrice(form.earnest_money)} | Closing: {form.closing_date || "TBD"}<br />
+                Contingencies: {[form.financing_contingency && "Financing", form.inspection_contingency && "Inspection", form.appraisal_contingency && "Appraisal"].filter(Boolean).join(", ") || "None"}
+              </div>
+              {error && <div style={{ background: "#fff5f5", border: "1px solid #fcc", borderRadius: 10, padding: "12px 16px", color: "var(--rust)", fontSize: 13 }}>{error}</div>}
+              <div style={{ display: "flex", gap: 10 }}>
+                <button onClick={() => setStep(2)} style={{ flex: 1, background: "none", border: "1.5px solid var(--warm)", borderRadius: 12, padding: "13px", fontSize: 14, cursor: "pointer" }}>Back</button>
+                <button onClick={submit} disabled={submitting} style={{ flex: 2, background: submitting ? "#aaa" : "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 14, cursor: submitting ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+                  {submitting ? <Spinner /> : "Submit Offer"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TransactionDashboard({ offer, onUpdate, user }) {
+  const [loading, setLoading] = useState(false);
+  const [counterForm, setCounterForm] = useState({ counter_price: "", counter_closing_date: "", counter_message: "" });
+  const [showCounter, setShowCounter] = useState(false);
+  const isSeller = user?.id === offer.seller_id;
+  const isBuyer = user?.id === offer.buyer_id;
+  const currentStep = TRANSACTION_STEPS.find(s => s.key === offer.step) || TRANSACTION_STEPS[0];
+
+  const advanceStep = async () => {
+    setLoading(true);
+    const nextIndex = offer.step_index + 1;
+    const nextStep = TRANSACTION_STEPS[nextIndex - 1];
+    if (!nextStep) return;
+    const { error } = await sb.from("offers").update({ step: nextStep.key, step_index: nextIndex }).eq("id", offer.id);
+    if (!error) onUpdate({ ...offer, step: nextStep.key, step_index: nextIndex });
+    setLoading(false);
+  };
+
+  const respondToOffer = async (status) => {
+    setLoading(true);
+    const updates = { status };
+    if (status === "accepted") { updates.step = "accepted"; updates.step_index = 2; }
+    const { error } = await sb.from("offers").update(updates).eq("id", offer.id);
+    if (!error) onUpdate({ ...offer, ...updates });
+    setLoading(false);
+  };
+
+  const submitCounter = async () => {
+    setLoading(true);
+    const { error } = await sb.from("offers").update({ status: "countered", counter_price: Number(counterForm.counter_price), counter_closing_date: counterForm.counter_closing_date, counter_message: counterForm.counter_message }).eq("id", offer.id);
+    if (!error) { onUpdate({ ...offer, status: "countered", ...counterForm }); setShowCounter(false); }
+    setLoading(false);
+  };
+
+  const acceptCounter = async () => {
+    setLoading(true);
+    const { error } = await sb.from("offers").update({ status: "accepted", offer_price: offer.counter_price || offer.offer_price, closing_date: offer.counter_closing_date || offer.closing_date, step: "accepted", step_index: 2 }).eq("id", offer.id);
+    if (!error) onUpdate({ ...offer, status: "accepted", step: "accepted", step_index: 2 });
+    setLoading(false);
+  };
+
+  const statusColor = { pending: "var(--gold)", accepted: "var(--sage)", countered: "var(--rust)", declined: "#aaa", closed: "var(--sage)" };
+
+  return (
+    <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16, padding: "24px 28px", marginBottom: 20 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 500, marginBottom: 4 }}>{offer.listings?.address || "Property"}</div>
+          <div style={{ fontSize: 13, color: "#888" }}>{isSeller ? "Buyer: " + offer.buyer_name : "Seller: " + (offer.listings?.seller_name || "Seller")}</div>
+        </div>
+        <span style={{ background: statusColor[offer.status] || "var(--warm)", color: "#fff", fontSize: 11, fontWeight: 600, padding: "4px 12px", borderRadius: 20, textTransform: "uppercase" }}>{offer.status}</span>
+      </div>
+
+      <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
+        <div style={{ background: "var(--warm)", borderRadius: 10, padding: "12px 16px", flex: 1, minWidth: 120 }}>
+          <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>OFFER PRICE</div>
+          <div style={{ fontSize: 20, fontWeight: 600, color: "var(--gold)" }}>{formatPrice(offer.offer_price)}</div>
+        </div>
+        <div style={{ background: "var(--warm)", borderRadius: 10, padding: "12px 16px", flex: 1, minWidth: 120 }}>
+          <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>EARNEST MONEY</div>
+          <div style={{ fontSize: 20, fontWeight: 600 }}>{formatPrice(offer.earnest_money)}</div>
+        </div>
+        <div style={{ background: "var(--warm)", borderRadius: 10, padding: "12px 16px", flex: 1, minWidth: 120 }}>
+          <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>CLOSING DATE</div>
+          <div style={{ fontSize: 16, fontWeight: 600 }}>{offer.closing_date || "TBD"}</div>
+        </div>
+      </div>
+
+      {offer.status === "countered" && (
+        <div style={{ background: "#fff8f0", border: "1px solid #fcd", borderRadius: 12, padding: "16px 18px", marginBottom: 20 }}>
+          <div style={{ fontWeight: 600, marginBottom: 8, color: "var(--rust)" }}>Counteroffer Received</div>
+          {offer.counter_price && <div style={{ fontSize: 14, marginBottom: 4 }}>Counter Price: {formatPrice(offer.counter_price)}</div>}
+          {offer.counter_closing_date && <div style={{ fontSize: 14, marginBottom: 4 }}>Counter Closing: {offer.counter_closing_date}</div>}
+          {offer.counter_message && <div style={{ fontSize: 14, color: "#666" }}>{offer.counter_message}</div>}
+          {isBuyer && (
+            <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+              <button onClick={acceptCounter} disabled={loading} style={{ flex: 1, background: "var(--sage)", color: "#fff", border: "none", borderRadius: 10, padding: "10px", fontSize: 13, cursor: "pointer" }}>Accept Counter</button>
+              <button onClick={() => respondToOffer("declined")} disabled={loading} style={{ flex: 1, background: "#fff5f5", color: "var(--rust)", border: "1px solid #fcc", borderRadius: 10, padding: "10px", fontSize: 13, cursor: "pointer" }}>Decline</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {offer.status === "accepted" && (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 13, fontWeight: 500, color: "#666", marginBottom: 14 }}>Transaction Progress</div>
+          <div style={{ display: "flex", gap: 0, overflowX: "auto", paddingBottom: 8 }}>
+            {TRANSACTION_STEPS.map((s, i) => (
+              <div key={s.id} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+                <div style={{ textAlign: "center", width: 70 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: offer.step_index > s.id ? "var(--sage)" : offer.step_index === s.id ? "var(--gold)" : "var(--warm)", color: offer.step_index >= s.id ? "#fff" : "#aaa", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 4px", fontSize: 14 }}>
+                    {offer.step_index > s.id ? "v" : s.icon}
+                  </div>
+                  <div style={{ fontSize: 9, color: offer.step_index === s.id ? "var(--gold)" : "#aaa", lineHeight: 1.3 }}>{s.label}</div>
+                </div>
+                {i < TRANSACTION_STEPS.length - 1 && <div style={{ width: 20, height: 2, background: offer.step_index > s.id ? "var(--sage)" : "var(--warm)", flexShrink: 0, marginBottom: 20 }} />}
+              </div>
+            ))}
+          </div>
+          <div style={{ background: "var(--warm)", borderRadius: 10, padding: "14px 16px", marginTop: 12 }}>
+            <div style={{ fontWeight: 500, marginBottom: 4 }}>Current Step: {currentStep.label}</div>
+            <div style={{ fontSize: 13, color: "#666" }}>{currentStep.desc}</div>
+          </div>
+          {offer.step !== "closing" && (
+            <button onClick={advanceStep} disabled={loading} style={{ marginTop: 12, width: "100%", background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "12px", fontSize: 14, cursor: loading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              {loading ? <Spinner /> : "Mark " + currentStep.label + " Complete"}
+            </button>
+          )}
+          {offer.step === "closing" && (
+            <div style={{ marginTop: 12, background: "var(--sage)", color: "#fff", borderRadius: 12, padding: "16px", textAlign: "center", fontSize: 15, fontWeight: 500 }}>
+              🎉 Transaction Complete! Congratulations!
+            </div>
+          )}
+        </div>
+      )}
+
+      {offer.status === "pending" && isSeller && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {offer.message && <div style={{ background: "var(--warm)", borderRadius: 10, padding: "14px 16px", fontSize: 14, color: "#555", lineHeight: 1.6, marginBottom: 4 }}>"{offer.message}"</div>}
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => respondToOffer("accepted")} disabled={loading} style={{ flex: 2, background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "12px", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              {loading ? <Spinner /> : "Accept Offer"}
+            </button>
+            <button onClick={() => setShowCounter(true)} style={{ flex: 1, background: "var(--warm)", color: "var(--ink)", border: "none", borderRadius: 12, padding: "12px", fontSize: 14, cursor: "pointer" }}>Counter</button>
+            <button onClick={() => respondToOffer("declined")} disabled={loading} style={{ flex: 1, background: "#fff5f5", color: "var(--rust)", border: "1px solid #fcc", borderRadius: 12, padding: "12px", fontSize: 13, cursor: "pointer" }}>Decline</button>
+          </div>
+          {showCounter && (
+            <div style={{ background: "var(--cream)", borderRadius: 12, padding: "18px", border: "1px solid var(--warm)" }}>
+              <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 14 }}>Your Counteroffer</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div><label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 4 }}>COUNTER PRICE</label><input style={{ ...{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "#fff", fontSize: 14, outline: "none" } }} type="number" value={counterForm.counter_price} onChange={e => setCounterForm(f => ({ ...f, counter_price: e.target.value }))} placeholder="490000" /></div>
+                <div><label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 4 }}>COUNTER CLOSING DATE</label><input style={{ ...{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "#fff", fontSize: 14, outline: "none" } }} type="date" value={counterForm.counter_closing_date} onChange={e => setCounterForm(f => ({ ...f, counter_closing_date: e.target.value }))} /></div>
+                <div><label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 4 }}>MESSAGE TO BUYER</label><textarea style={{ ...{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "#fff", fontSize: 14, outline: "none" }, minHeight: 70, resize: "vertical" }} value={counterForm.counter_message} onChange={e => setCounterForm(f => ({ ...f, counter_message: e.target.value }))} placeholder="Explain your counteroffer..." /></div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button onClick={() => setShowCounter(false)} style={{ flex: 1, background: "none", border: "1.5px solid var(--warm)", borderRadius: 10, padding: "10px", fontSize: 13, cursor: "pointer" }}>Cancel</button>
+                  <button onClick={submitCounter} disabled={loading} style={{ flex: 2, background: "var(--rust)", color: "#fff", border: "none", borderRadius: 10, padding: "10px", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                    {loading ? <Spinner /> : "Send Counteroffer"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      {offer.status === "declined" && (
+        <div style={{ background: "#fff5f5", borderRadius: 10, padding: "14px 16px", fontSize: 14, color: "var(--rust)", textAlign: "center" }}>This offer was declined.</div>
+      )}
+    </div>
+  );
+}
+
+function OffersTab({ user, onRequireAuth }) {
+  const [offers, setOffers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) { setLoading(false); return; }
+    async function load() {
+      const { data } = await sb.from("offers").select("*, listings(address, city, state, seller_name, price)").or("buyer_id.eq." + user.id + ",seller_id.eq." + user.id).order("created_at", { ascending: false });
+      setOffers(data || []);
+      setLoading(false);
+    }
+    load();
+  }, [user]);
+
+  const updateOffer = (updated) => setOffers(prev => prev.map(o => o.id === updated.id ? { ...o, ...updated } : o));
+
+  if (!user) return (
+    <div style={{ maxWidth: 480, margin: "80px auto", textAlign: "center", padding: "0 24px" }}>
+      <div style={{ fontSize: 48, marginBottom: 16 }}>📋</div>
+      <h2 style={{ fontSize: 32, marginBottom: 12 }}>Your Offers</h2>
+      <p style={{ color: "#888", lineHeight: 1.7, marginBottom: 28 }}>Sign in to view and manage your offers.</p>
+      <button onClick={onRequireAuth} style={{ background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "14px 32px", fontSize: 15, cursor: "pointer" }}>Sign In</button>
+    </div>
+  );
+
+  const buyerOffers = offers.filter(o => o.buyer_id === user.id);
+  const sellerOffers = offers.filter(o => o.seller_id === user.id);
+
+  return (
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
+      <h2 style={{ fontSize: 36, fontWeight: 400, marginBottom: 6 }}>Offers</h2>
+      <p style={{ color: "#888", fontSize: 14, marginBottom: 32 }}>Track every offer and transaction step by step.</p>
+      {loading && <div style={{ textAlign: "center", padding: "40px", color: "#aaa" }}>Loading...</div>}
+      {!loading && offers.length === 0 && (
+        <div style={{ textAlign: "center", padding: "60px", color: "#aaa", background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16 }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>📋</div>
+          <div style={{ fontSize: 22, marginBottom: 8 }}>No offers yet</div>
+          <div style={{ fontSize: 14 }}>Browse homes and make an offer to get started.</div>
+        </div>
+      )}
+      {sellerOffers.length > 0 && (
+        <div style={{ marginBottom: 40 }}>
+          <h3 style={{ fontSize: 22, fontWeight: 400, marginBottom: 20 }}>Offers on My Listings</h3>
+          {sellerOffers.map(o => <TransactionDashboard key={o.id} offer={o} onUpdate={updateOffer} user={user} />)}
+        </div>
+      )}
+      {buyerOffers.length > 0 && (
+        <div>
+          <h3 style={{ fontSize: 22, fontWeight: 400, marginBottom: 20 }}>My Offers</h3>
+          {buyerOffers.map(o => <TransactionDashboard key={o.id} offer={o} onUpdate={updateOffer} user={user} />)}
+        </div>
+      )}
     </div>
   );
 }
@@ -429,7 +821,7 @@ function ProfileTab({ user, onRequireAuth }) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
         {listings.map(l => <ListingCard key={l.id} listing={l} onClick={setSelected} onDelete={deleteListing} isOwner={true} />)}
       </div>
-      <ListingModal listing={selected} onClose={() => setSelected(null)} onMessage={() => {}} />
+      <ListingModal listing={selected} onClose={() => setSelected(null)} onMessage={() => {}} onOffer={() => {}} user={user} />
     </div>
   );
 }
@@ -544,10 +936,12 @@ function ValuationTab() {
     setLoading(true); setResult(null);
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json", "anthropic-version": "2023-06-01", "anthropic-dangerous-allow-browser": "true" },
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: "You are a real estate valuation expert. Return ONLY valid JSON, no markdown. Property: " + (form.address || "Unknown") + ", Type: " + form.type + ", Beds: " + form.beds + ", Baths: " + form.baths + ", SqFt: " + form.sqft + ", Year: " + form.year + ", Condition: " + form.condition + ". Return: {\"low\":number,\"mid\":number,\"high\":number,\"pricePerSqft\":number,\"summary\":\"2-3 sentences\",\"tips\":[\"tip1\",\"tip2\",\"tip3\"]}" }] })
       });
       const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
       const text = data.content.map(b => b.text || "").join("");
       setResult(JSON.parse(text.replace(/```json|```/g, "").trim()));
     } catch {
@@ -614,6 +1008,7 @@ function ValuationTab() {
     </div>
   );
 }
+
 function ContractsTab() {
   const [selected, setSelected] = useState(null);
   const [form, setForm] = useState({ buyer: "", seller: "", address: "", city: "", state: "", zip: "", price: "", closeDate: "", earnest: "", agentName: "", leaseMonths: "12", monthlyRent: "", deposit: "", leaseStart: "" });
@@ -656,13 +1051,15 @@ function ContractsTab() {
     setLoading(true);
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json", "anthropic-version": "2023-06-01", "anthropic-dangerous-allow-browser": "true" },
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 2000, messages: [{ role: "user", content: getPrompt(selected, form) }] })
       });
       const data = await res.json();
+      if (data.error) throw new Error(data.error.message);
       setContractText(data.content[0].text);
-    } catch {
-      setContractText("Unable to generate document. Please try again.");
+    } catch (e) {
+      setContractText("Error generating document: " + e.message + ". Please try again.");
     }
     setGenerated(true); setLoading(false);
   };
@@ -695,7 +1092,7 @@ function ContractsTab() {
             <span style={{ background: "var(--sage)", color: "#fff", fontSize: 11, padding: "3px 10px", borderRadius: 16 }}>Generated</span>
           </div>
           <div style={{ background: "#fffbf0", border: "1px solid var(--warm)", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "var(--rust)", marginBottom: 16 }}>
-            This is an AI-generated draft for informational purposes only. Have a licensed real estate attorney review before signing.
+            AI-generated draft for informational purposes only. Have a licensed real estate attorney review before signing.
           </div>
           <div style={{ background: "var(--cream)", borderRadius: 10, padding: "20px", fontSize: 13, lineHeight: 2, color: "#444", whiteSpace: "pre-wrap", fontFamily: "Georgia, serif", marginBottom: 20, maxHeight: 500, overflow: "auto" }}>{contractText}</div>
           <div style={{ display: "flex", gap: 10 }}>
@@ -729,9 +1126,7 @@ function ContractsTab() {
                   <div><label style={lbl}>Closing Date</label><input style={inp} type="date" value={form.closeDate} onChange={e => update("closeDate", e.target.value)} /></div>
                 </div>
               )}
-              {isEarnest && (
-                <div><label style={lbl}>Escrow Agent Name</label><input style={inp} value={form.agentName} onChange={e => update("agentName", e.target.value)} placeholder="First American Title Co." /></div>
-              )}
+              {isEarnest && <div><label style={lbl}>Escrow Agent Name</label><input style={inp} value={form.agentName} onChange={e => update("agentName", e.target.value)} placeholder="First American Title Co." /></div>}
               {isLease && (
                 <>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
@@ -743,7 +1138,7 @@ function ContractsTab() {
                 </>
               )}
               <div style={{ background: "var(--warm)", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "#666" }}>
-                This document is generated for use across the United States. Always consult a licensed real estate attorney before signing.
+                Generated for use across the United States. Always consult a licensed real estate attorney before signing.
               </div>
               <button onClick={generate} disabled={loading} style={{ background: loading ? "#aaa" : "var(--ink)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 15, cursor: loading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
                 {loading ? <Spinner /> : "Generate Document"}
@@ -761,7 +1156,8 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [showAuth, setShowAuth] = useState(false);
   const [messageThread, setMessageThread] = useState(null);
-  const NAV_ITEMS = ["Browse", "Sell", "Messages", "Valuation", "Contracts", "Profile", "Privacy", "Terms"];
+  const [offerListing, setOfferListing] = useState(null);
+  const NAV_ITEMS = ["Browse", "Sell", "Offers", "Messages", "Valuation", "Contracts", "Profile", "Privacy", "Terms"];
 
   useEffect(() => {
     sb.auth.getSession().then(({ data: { session } }) => setUser(session?.user || null));
@@ -770,6 +1166,7 @@ export default function App() {
   }, []);
 
   const handleMessage = (listing) => { setMessageThread(listing); setTab("Messages"); };
+  const handleOffer = (listing) => { setOfferListing(listing); };
   const handleLogout = async () => { await sb.auth.signOut(); setUser(null); setTab("Browse"); };
 
   return (
@@ -810,8 +1207,9 @@ export default function App() {
         </div>
       )}
 
-      {tab === "Browse" && <BrowseTab onMessage={handleMessage} />}
+      {tab === "Browse" && <BrowseTab onMessage={handleMessage} onOffer={handleOffer} user={user} />}
       {tab === "Sell" && <SellTab user={user} onRequireAuth={() => setShowAuth(true)} />}
+      {tab === "Offers" && <OffersTab user={user} onRequireAuth={() => setShowAuth(true)} />}
       {tab === "Messages" && <MessagesTab newThread={messageThread} user={user} />}
       {tab === "Valuation" && <ValuationTab />}
       {tab === "Contracts" && <ContractsTab />}
@@ -820,6 +1218,7 @@ export default function App() {
       {tab === "Terms" && <LegalTab section="terms" />}
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} onAuth={setUser} />}
+      {offerListing && <MakeOfferModal listing={offerListing} user={user} onClose={() => setOfferListing(null)} onRequireAuth={() => { setOfferListing(null); setShowAuth(true); }} />}
 
       <footer style={{ background: "var(--ink)", color: "rgba(255,255,255,0.35)", textAlign: "center", padding: "22px", fontSize: 11, marginTop: 60 }}>
         DirectDeed - Bondy Technologies LLC - Michigan -
