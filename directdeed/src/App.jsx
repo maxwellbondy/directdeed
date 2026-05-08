@@ -1221,9 +1221,9 @@ export default function App() {
       {offerListing && <MakeOfferModal listing={offerListing} user={user} onClose={() => setOfferListing(null)} onRequireAuth={() => { setOfferListing(null); setShowAuth(true); }} />}
 
       <footer style={{ background: "var(--ink)", color: "rgba(255,255,255,0.35)", textAlign: "center", padding: "22px", fontSize: 11, marginTop: 60 }}>
-        DirectDeed - Bondy Technologies LLC - Michigan -
-        <span onClick={() => setTab("Privacy")} style={{ cursor: "pointer", marginLeft: 6, textDecoration: "underline" }}>Privacy Policy</span> -
-        <span onClick={() => setTab("Terms")} style={{ cursor: "pointer", marginLeft: 6, textDecoration: "underline" }}>Terms of Service</span>
+       © 2026 Bondy Technologies LLC. All rights reserved. DirectDeed is not a licensed real estate brokerage. -
+      <span onClick={() => setTab("Privacy")} style={{ cursor: "pointer", marginLeft: 6, textDecoration: "underline" }}>Privacy Policy</span> -
+      <span onClick={() => setTab("Terms")} style={{ cursor: "pointer", marginLeft: 6, textDecoration: "underline" }}>Terms of Service</span>
       </footer>
     </div>
   );
