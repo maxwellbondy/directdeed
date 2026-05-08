@@ -39,6 +39,18 @@ function timeAgo(ts) {
   return Math.floor(s / 86400) + "d ago";
 }
 
+async function callClaude(messages, maxTokens = 1000) {
+  const res = await fetch("/api/claude", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: maxTokens, messages }),
+  });
+  if (!res.ok) throw new Error("API error: " + res.status);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.content.map(b => b.text || "").join("");
+}
+
 function Spinner() {
   return <div style={{ width: 18, height: 18, border: "2px solid rgba(255,255,255,0.3)", borderTop: "2px solid #fff", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />;
 }
@@ -323,7 +335,6 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
             <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#bbb" }}>x</button>
           </div>
           <div style={{ fontSize: 13, color: "#888", marginBottom: 24 }}>{listing.address} - Listed at {formatPrice(listing.price)}</div>
-
           <div style={{ display: "flex", gap: 6, marginBottom: 28 }}>
             {["Offer Terms", "Contingencies", "Your Info"].map((s, i) => (
               <div key={i} style={{ flex: 1, textAlign: "center" }}>
@@ -337,16 +348,8 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div><label style={lbl}>Your Offer Price</label>
                 <input style={inp} type="number" value={form.offer_price} onChange={e => update("offer_price", e.target.value)} placeholder="480000" />
-                {listing.price && Number(form.offer_price) < Number(listing.price) && (
-                  <div style={{ fontSize: 12, color: "var(--rust)", marginTop: 4 }}>
-                    {Math.round((1 - Number(form.offer_price) / Number(listing.price)) * 100)}% below asking price
-                  </div>
-                )}
-                {listing.price && Number(form.offer_price) > Number(listing.price) && (
-                  <div style={{ fontSize: 12, color: "var(--sage)", marginTop: 4 }}>
-                    {Math.round((Number(form.offer_price) / Number(listing.price) - 1) * 100)}% above asking price
-                  </div>
-                )}
+                {listing.price && Number(form.offer_price) < Number(listing.price) && <div style={{ fontSize: 12, color: "var(--rust)", marginTop: 4 }}>{Math.round((1 - Number(form.offer_price) / Number(listing.price)) * 100)}% below asking price</div>}
+                {listing.price && Number(form.offer_price) > Number(listing.price) && <div style={{ fontSize: 12, color: "var(--sage)", marginTop: 4 }}>{Math.round((Number(form.offer_price) / Number(listing.price) - 1) * 100)}% above asking price</div>}
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div><label style={lbl}>Earnest Money</label><input style={inp} type="number" value={form.earnest_money} onChange={e => update("earnest_money", e.target.value)} placeholder="5000" /></div>
@@ -416,6 +419,7 @@ function TransactionDashboard({ offer, onUpdate, user }) {
   const isSeller = user?.id === offer.seller_id;
   const isBuyer = user?.id === offer.buyer_id;
   const currentStep = TRANSACTION_STEPS.find(s => s.key === offer.step) || TRANSACTION_STEPS[0];
+  const inp = { width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "#fff", fontSize: 14, outline: "none" };
 
   const advanceStep = async () => {
     setLoading(true);
@@ -519,7 +523,7 @@ function TransactionDashboard({ offer, onUpdate, user }) {
           )}
           {offer.step === "closing" && (
             <div style={{ marginTop: 12, background: "var(--sage)", color: "#fff", borderRadius: 12, padding: "16px", textAlign: "center", fontSize: 15, fontWeight: 500 }}>
-              🎉 Transaction Complete! Congratulations!
+              Transaction Complete! Congratulations!
             </div>
           )}
         </div>
@@ -539,9 +543,9 @@ function TransactionDashboard({ offer, onUpdate, user }) {
             <div style={{ background: "var(--cream)", borderRadius: 12, padding: "18px", border: "1px solid var(--warm)" }}>
               <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 14 }}>Your Counteroffer</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div><label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 4 }}>COUNTER PRICE</label><input style={{ ...{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "#fff", fontSize: 14, outline: "none" } }} type="number" value={counterForm.counter_price} onChange={e => setCounterForm(f => ({ ...f, counter_price: e.target.value }))} placeholder="490000" /></div>
-                <div><label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 4 }}>COUNTER CLOSING DATE</label><input style={{ ...{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "#fff", fontSize: 14, outline: "none" } }} type="date" value={counterForm.counter_closing_date} onChange={e => setCounterForm(f => ({ ...f, counter_closing_date: e.target.value }))} /></div>
-                <div><label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 4 }}>MESSAGE TO BUYER</label><textarea style={{ ...{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "#fff", fontSize: 14, outline: "none" }, minHeight: 70, resize: "vertical" }} value={counterForm.counter_message} onChange={e => setCounterForm(f => ({ ...f, counter_message: e.target.value }))} placeholder="Explain your counteroffer..." /></div>
+                <div><label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 4 }}>COUNTER PRICE</label><input style={inp} type="number" value={counterForm.counter_price} onChange={e => setCounterForm(f => ({ ...f, counter_price: e.target.value }))} placeholder="490000" /></div>
+                <div><label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 4 }}>COUNTER CLOSING DATE</label><input style={inp} type="date" value={counterForm.counter_closing_date} onChange={e => setCounterForm(f => ({ ...f, counter_closing_date: e.target.value }))} /></div>
+                <div><label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 4 }}>MESSAGE TO BUYER</label><textarea style={{ ...inp, minHeight: 70, resize: "vertical" }} value={counterForm.counter_message} onChange={e => setCounterForm(f => ({ ...f, counter_message: e.target.value }))} placeholder="Explain your counteroffer..." /></div>
                 <div style={{ display: "flex", gap: 10 }}>
                   <button onClick={() => setShowCounter(false)} style={{ flex: 1, background: "none", border: "1.5px solid var(--warm)", borderRadius: 10, padding: "10px", fontSize: 13, cursor: "pointer" }}>Cancel</button>
                   <button onClick={submitCounter} disabled={loading} style={{ flex: 2, background: "var(--rust)", color: "#fff", border: "none", borderRadius: 10, padding: "10px", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
@@ -935,14 +939,7 @@ function ValuationTab() {
   const estimate = async () => {
     setLoading(true); setResult(null);
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "anthropic-version": "2023-06-01", "anthropic-dangerous-allow-browser": "true" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: "You are a real estate valuation expert. Return ONLY valid JSON, no markdown. Property: " + (form.address || "Unknown") + ", Type: " + form.type + ", Beds: " + form.beds + ", Baths: " + form.baths + ", SqFt: " + form.sqft + ", Year: " + form.year + ", Condition: " + form.condition + ". Return: {\"low\":number,\"mid\":number,\"high\":number,\"pricePerSqft\":number,\"summary\":\"2-3 sentences\",\"tips\":[\"tip1\",\"tip2\",\"tip3\"]}" }] })
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error.message);
-      const text = data.content.map(b => b.text || "").join("");
+      const text = await callClaude([{ role: "user", content: "You are a real estate valuation expert. Return ONLY valid JSON, no markdown. Property: " + (form.address || "Unknown") + ", Type: " + form.type + ", Beds: " + form.beds + ", Baths: " + form.baths + ", SqFt: " + form.sqft + ", Year: " + form.year + ", Condition: " + form.condition + ". Return: {\"low\":number,\"mid\":number,\"high\":number,\"pricePerSqft\":number,\"summary\":\"2-3 sentences\",\"tips\":[\"tip1\",\"tip2\",\"tip3\"]}" }]);
       setResult(JSON.parse(text.replace(/```json|```/g, "").trim()));
     } catch {
       setResult({ low: 380000, mid: 435000, high: 490000, pricePerSqft: 241, summary: "Based on your inputs, this property sits in a competitive range.", tips: ["Stage key rooms before listing", "Price at mid-range to attract multiple offers", "Disclose all known issues upfront"] });
@@ -1048,18 +1045,12 @@ function ContractsTab() {
   };
 
   const generate = async () => {
-    setLoading(true);
+    setLoading(true); setContractText("");
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "anthropic-version": "2023-06-01", "anthropic-dangerous-allow-browser": "true" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 2000, messages: [{ role: "user", content: getPrompt(selected, form) }] })
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error.message);
-      setContractText(data.content[0].text);
+      const text = await callClaude([{ role: "user", content: getPrompt(selected, form) }], 2000);
+      setContractText(text);
     } catch (e) {
-      setContractText("Error generating document: " + e.message + ". Please try again.");
+      setContractText("Error: " + e.message + ". Please try again.");
     }
     setGenerated(true); setLoading(false);
   };
@@ -1221,9 +1212,9 @@ export default function App() {
       {offerListing && <MakeOfferModal listing={offerListing} user={user} onClose={() => setOfferListing(null)} onRequireAuth={() => { setOfferListing(null); setShowAuth(true); }} />}
 
       <footer style={{ background: "var(--ink)", color: "rgba(255,255,255,0.35)", textAlign: "center", padding: "22px", fontSize: 11, marginTop: 60 }}>
-       © 2026 Bondy Technologies LLC. All rights reserved. DirectDeed is not a licensed real estate brokerage. -
-      <span onClick={() => setTab("Privacy")} style={{ cursor: "pointer", marginLeft: 6, textDecoration: "underline" }}>Privacy Policy</span> -
-      <span onClick={() => setTab("Terms")} style={{ cursor: "pointer", marginLeft: 6, textDecoration: "underline" }}>Terms of Service</span>
+        © 2026 Bondy Technologies LLC. All rights reserved. DirectDeed is not a licensed real estate brokerage. -
+        <span onClick={() => setTab("Privacy")} style={{ cursor: "pointer", marginLeft: 6, textDecoration: "underline" }}>Privacy Policy</span> -
+        <span onClick={() => setTab("Terms")} style={{ cursor: "pointer", marginLeft: 6, textDecoration: "underline" }}>Terms of Service</span>
       </footer>
     </div>
   );
