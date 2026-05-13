@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 import LegalTab from "./Legal";
 
@@ -16,18 +16,20 @@ const styles = `
   }
   body { font-family: sans-serif; background: var(--cream); color: var(--ink); }
   @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
 `;
 
 const TRANSACTION_STEPS = [
-  { id: 1, key: "offer", label: "Offer Made", desc: "Buyer has submitted an offer", icon: "📋" },
-  { id: 2, key: "accepted", label: "Offer Accepted", desc: "Seller has accepted the offer", icon: "✅" },
-  { id: 3, key: "earnest", label: "Earnest Money", desc: "Earnest money deposited in escrow", icon: "💰" },
-  { id: 4, key: "inspection", label: "Inspection", desc: "Home inspection completed", icon: "🔍" },
-  { id: 5, key: "appraisal", label: "Appraisal", desc: "Property appraisal completed", icon: "📊" },
-  { id: 6, key: "financing", label: "Financing", desc: "Loan approved by lender", icon: "🏦" },
-  { id: 7, key: "title", label: "Title Search", desc: "Title search and insurance complete", icon: "📜" },
-  { id: 8, key: "walkthrough", label: "Final Walkthrough", desc: "Buyer final walkthrough complete", icon: "🚶" },
-  { id: 9, key: "closing", label: "Closing", desc: "Transaction closed successfully", icon: "🎉" },
+  { id: 1, key: "offer", label: "Offer", desc: "Review and respond to the offer", buyerAction: "Wait for seller response", sellerAction: "Accept, counter, or decline the offer", icon: "📋" },
+  { id: 2, key: "earnest", label: "Earnest Money", desc: "Deposit earnest money into escrow", buyerAction: "Deposit earnest money and upload confirmation", sellerAction: "Confirm earnest money received", icon: "💰" },
+  { id: 3, key: "inspection", label: "Inspection", desc: "Complete home inspection", buyerAction: "Schedule and complete inspection. Upload report and submit any repair requests.", sellerAction: "Review inspection report and repair requests", icon: "🔍" },
+  { id: 4, key: "inspection_response", label: "Repair Response", desc: "Seller responds to repair requests", buyerAction: "Review seller response to repair requests", sellerAction: "Agree to repairs, offer credit, or decline", icon: "🔨" },
+  { id: 5, key: "appraisal", label: "Appraisal", desc: "Property appraisal completed", buyerAction: "Upload appraisal report and confirm value meets contract price", sellerAction: "Review appraisal results", icon: "📊" },
+  { id: 6, key: "financing", label: "Financing", desc: "Loan approval confirmed", buyerAction: "Upload loan commitment letter from lender", sellerAction: "Confirm financing approval received", icon: "🏦" },
+  { id: 7, key: "title", label: "Title Search", desc: "Title search and insurance", buyerAction: "Confirm title search is ordered and review results", sellerAction: "Resolve any title issues", icon: "📜" },
+  { id: 8, key: "walkthrough", label: "Final Walkthrough", desc: "Final walkthrough of property", buyerAction: "Complete final walkthrough and confirm property condition", sellerAction: "Ensure property is ready for walkthrough", icon: "🚶" },
+  { id: 9, key: "closing", label: "Closing", desc: "Sign closing documents and transfer ownership", buyerAction: "Sign all closing documents and transfer funds", sellerAction: "Sign closing documents and transfer keys", icon: "🎉" },
 ];
 
 function formatPrice(p) { return "$" + Number(p).toLocaleString(); }
@@ -51,8 +53,67 @@ async function callClaude(messages, maxTokens = 1000) {
   return data.content.map(b => b.text || "").join("");
 }
 
-function Spinner() {
-  return <div style={{ width: 18, height: 18, border: "2px solid rgba(255,255,255,0.3)", borderTop: "2px solid #fff", borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />;
+async function sendNotification(userId, message, link) {
+  if (!userId) return;
+  await sb.from("notifications").insert([{ user_id: userId, message, link }]);
+}
+
+function Spinner({ dark }) {
+  return <div style={{ width: 18, height: 18, border: `2px solid ${dark ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.3)"}`, borderTop: `2px solid ${dark ? "var(--ink)" : "#fff"}`, borderRadius: "50%", animation: "spin 0.7s linear infinite", display: "inline-block" }} />;
+}
+
+function NotificationBell({ user }) {
+  const [notifications, setNotifications] = useState([]);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    sb.from("notifications").select("*").eq("user_id", user.id).eq("read", false).order("created_at", { ascending: false })
+      .then(({ data }) => setNotifications(data || []));
+    const sub = sb.channel("notifs-" + user.id)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: "user_id=eq." + user.id },
+        payload => setNotifications(prev => [payload.new, ...prev]))
+      .subscribe();
+    return () => sb.removeChannel(sub);
+  }, [user?.id]);
+
+  const markAllRead = async () => {
+    await sb.from("notifications").update({ read: true }).eq("user_id", user.id).eq("read", false);
+    setNotifications([]);
+    setOpen(false);
+  };
+
+  if (!user) return null;
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button onClick={() => setOpen(!open)} style={{ background: "none", border: "none", cursor: "pointer", color: "#fff", fontSize: 18, position: "relative", padding: "4px 8px" }}>
+        🔔
+        {notifications.length > 0 && (
+          <span style={{ position: "absolute", top: 0, right: 0, background: "var(--rust)", color: "#fff", borderRadius: "50%", width: 16, height: 16, fontSize: 10, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>
+            {notifications.length > 9 ? "9+" : notifications.length}
+          </span>
+        )}
+      </button>
+      {open && (
+        <div style={{ position: "absolute", right: 0, top: 40, background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 14, width: 320, boxShadow: "0 8px 32px var(--shadow)", zIndex: 300, animation: "fadeIn 0.2s ease" }}>
+          <div style={{ padding: "14px 18px", borderBottom: "1px solid var(--warm)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontWeight: 600, fontSize: 14 }}>Notifications</div>
+            {notifications.length > 0 && <button onClick={markAllRead} style={{ background: "none", border: "none", color: "var(--gold)", fontSize: 12, cursor: "pointer" }}>Mark all read</button>}
+          </div>
+          <div style={{ maxHeight: 300, overflow: "auto" }}>
+            {notifications.length === 0 && <div style={{ padding: "24px", textAlign: "center", color: "#aaa", fontSize: 13 }}>No new notifications</div>}
+            {notifications.map(n => (
+              <div key={n.id} style={{ padding: "12px 18px", borderBottom: "1px solid var(--warm)", background: "var(--cream)", fontSize: 13, lineHeight: 1.5 }}>
+                <div>{n.message}</div>
+                <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>{timeAgo(n.created_at)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function AuthModal({ onClose, onAuth }) {
@@ -63,7 +124,6 @@ function AuthModal({ onClose, onAuth }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-
   const inp = { width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "var(--cream)", fontSize: 14, outline: "none" };
   const lbl = { display: "block", fontSize: 11, fontWeight: 500, color: "#888", marginBottom: 5, textTransform: "uppercase" };
 
@@ -77,8 +137,7 @@ function AuthModal({ onClose, onAuth }) {
       } else {
         const { data, error } = await sb.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        onAuth(data.user);
-        onClose();
+        onAuth(data.user); onClose();
       }
     } catch (e) { setError(e.message); }
     setLoading(false);
@@ -137,9 +196,7 @@ function ListingCard({ listing, onClick, onDelete, isOwner }) {
       </div>
       {isOwner && (
         <div style={{ padding: "0 18px 16px" }}>
-          <button onClick={() => onDelete(listing.id)} style={{ width: "100%", background: "#fff5f5", color: "var(--rust)", border: "1px solid #fcc", borderRadius: 8, padding: "7px", fontSize: 12, cursor: "pointer" }}>
-            Delete Listing
-          </button>
+          <button onClick={() => onDelete(listing.id)} style={{ width: "100%", background: "#fff5f5", color: "var(--rust)", border: "1px solid #fcc", borderRadius: 8, padding: "7px", fontSize: 12, cursor: "pointer" }}>Delete Listing</button>
         </div>
       )}
     </div>
@@ -182,12 +239,8 @@ function ListingModal({ listing, onClose, onMessage, onOffer, user }) {
             </div>
           </div>
           <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={() => { onMessage(listing); onClose(); }} style={{ flex: 1, background: "var(--warm)", color: "var(--ink)", border: "none", borderRadius: 12, padding: "14px", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
-              Message Seller
-            </button>
-            <button onClick={() => { onOffer(listing); onClose(); }} style={{ flex: 2, background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "14px", fontSize: 15, fontWeight: 500, cursor: "pointer" }}>
-              Make an Offer
-            </button>
+            <button onClick={() => { onMessage(listing); onClose(); }} style={{ flex: 1, background: "var(--warm)", color: "var(--ink)", border: "none", borderRadius: 12, padding: "14px", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>Message Seller</button>
+            <button onClick={() => { onOffer(listing); onClose(); }} style={{ flex: 2, background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "14px", fontSize: 15, fontWeight: 500, cursor: "pointer" }}>Make an Offer</button>
           </div>
         </div>
       </div>
@@ -270,7 +323,6 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(null);
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
   const inp = { width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "var(--cream)", fontSize: 14, outline: "none" };
   const lbl = { display: "block", fontSize: 11, fontWeight: 500, color: "#888", marginBottom: 5, textTransform: "uppercase" };
 
@@ -309,6 +361,7 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
         step_index: 1,
       }]);
       if (insertErr) throw new Error(insertErr.message);
+      await sendNotification(listing.user_id, "You have a new offer of " + formatPrice(form.offer_price) + " on " + listing.address, "offers");
       setSubmitted(true);
     } catch (e) { setError(e.message); }
     setSubmitting(false);
@@ -320,7 +373,7 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
         <div style={{ fontSize: 56, marginBottom: 16 }}>🎉</div>
         <h2 style={{ fontSize: 30, marginBottom: 12 }}>Offer Submitted!</h2>
         <p style={{ color: "#666", lineHeight: 1.8, marginBottom: 12 }}>Your offer of {formatPrice(form.offer_price)} on {listing.address} has been sent to the seller.</p>
-        <p style={{ color: "#888", fontSize: 13, marginBottom: 28 }}>Track your offer status in the Offers tab. The seller will be notified and can accept, counter, or decline.</p>
+        <p style={{ color: "#888", fontSize: 13, marginBottom: 28 }}>Track your offer in the Offers tab. The seller will be notified.</p>
         <button onClick={onClose} style={{ background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "14px 32px", fontSize: 15, cursor: "pointer" }}>Done</button>
       </div>
     </div>
@@ -348,7 +401,7 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div><label style={lbl}>Your Offer Price</label>
                 <input style={inp} type="number" value={form.offer_price} onChange={e => update("offer_price", e.target.value)} placeholder="480000" />
-                {listing.price && Number(form.offer_price) < Number(listing.price) && <div style={{ fontSize: 12, color: "var(--rust)", marginTop: 4 }}>{Math.round((1 - Number(form.offer_price) / Number(listing.price)) * 100)}% below asking price</div>}
+                {listing.price && Number(form.offer_price) > 0 && Number(form.offer_price) < Number(listing.price) && <div style={{ fontSize: 12, color: "var(--rust)", marginTop: 4 }}>{Math.round((1 - Number(form.offer_price) / Number(listing.price)) * 100)}% below asking price</div>}
                 {listing.price && Number(form.offer_price) > Number(listing.price) && <div style={{ fontSize: 12, color: "var(--sage)", marginTop: 4 }}>{Math.round((Number(form.offer_price) / Number(listing.price) - 1) * 100)}% above asking price</div>}
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -356,7 +409,7 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
                 <div><label style={lbl}>Proposed Closing Date</label><input style={inp} type="date" value={form.closing_date} onChange={e => update("closing_date", e.target.value)} /></div>
               </div>
               <div><label style={lbl}>Message to Seller (optional)</label>
-                <textarea style={{ ...inp, minHeight: 80, resize: "vertical" }} value={form.message} onChange={e => update("message", e.target.value)} placeholder="Tell the seller a bit about yourself and why you love the home..." />
+                <textarea style={{ ...inp, minHeight: 80, resize: "vertical" }} value={form.message} onChange={e => update("message", e.target.value)} placeholder="Tell the seller about yourself and why you love the home..." />
               </div>
               <button onClick={() => setStep(2)} style={{ background: "var(--gold)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 15, cursor: "pointer" }}>Continue</button>
             </div>
@@ -364,10 +417,10 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
 
           {step === 2 && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <p style={{ fontSize: 14, color: "#666", lineHeight: 1.7 }}>Contingencies protect you as a buyer. Keeping them gives you an exit if something goes wrong. Waiving them makes your offer more attractive but carries risk.</p>
+              <p style={{ fontSize: 14, color: "#666", lineHeight: 1.7, background: "var(--warm)", padding: "14px 16px", borderRadius: 10 }}>Contingencies protect you as a buyer. Keeping them gives you an exit if something goes wrong. Waiving them makes your offer more competitive but carries more risk.</p>
               {[
                 { key: "financing_contingency", label: "Financing Contingency", desc: "Protects you if your loan falls through. Recommended if you need a mortgage." },
-                { key: "inspection_contingency", label: "Inspection Contingency", desc: "Allows you to negotiate repairs or cancel after a home inspection." },
+                { key: "inspection_contingency", label: "Inspection Contingency", desc: "Allows you to negotiate repairs or walk away after a home inspection." },
                 { key: "appraisal_contingency", label: "Appraisal Contingency", desc: "Protects you if the home appraises below your offer price." },
               ].map(c => (
                 <div key={c.key} style={{ background: form[c.key] ? "#f0fff4" : "#fff5f5", border: "1px solid " + (form[c.key] ? "#9ae6b4" : "#fcc"), borderRadius: 12, padding: "16px 18px", display: "flex", alignItems: "flex-start", gap: 14, cursor: "pointer" }} onClick={() => update(c.key, !form[c.key])}>
@@ -392,7 +445,7 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
               <div><label style={lbl}>Your Full Name</label><input style={inp} value={form.buyer_name} onChange={e => update("buyer_name", e.target.value)} placeholder="John Smith" /></div>
               <div><label style={lbl}>Email Address</label><input style={inp} type="email" value={form.buyer_email} onChange={e => update("buyer_email", e.target.value)} placeholder="john@email.com" /></div>
               <div><label style={lbl}>Phone Number</label><input style={inp} type="tel" value={form.buyer_phone} onChange={e => update("buyer_phone", e.target.value)} placeholder="(555) 123-4567" /></div>
-              <div style={{ background: "var(--warm)", borderRadius: 10, padding: "14px 16px", fontSize: 13, lineHeight: 1.7 }}>
+              <div style={{ background: "var(--warm)", borderRadius: 10, padding: "14px 16px", fontSize: 13, lineHeight: 1.8 }}>
                 <strong>Offer Summary</strong><br />
                 Price: {formatPrice(form.offer_price)} | Earnest: {formatPrice(form.earnest_money)} | Closing: {form.closing_date || "TBD"}<br />
                 Contingencies: {[form.financing_contingency && "Financing", form.inspection_contingency && "Inspection", form.appraisal_contingency && "Appraisal"].filter(Boolean).join(", ") || "None"}
@@ -412,153 +465,235 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
   );
 }
 
-function TransactionDashboard({ offer, onUpdate, user }) {
-  const [loading, setLoading] = useState(false);
-  const [counterForm, setCounterForm] = useState({ counter_price: "", counter_closing_date: "", counter_message: "" });
-  const [showCounter, setShowCounter] = useState(false);
+function SignaturePad({ onSign }) {
+  const canvasRef = useRef(null);
+  const [drawing, setDrawing] = useState(false);
+  const [signed, setSigned] = useState(false);
+
+  const getPos = (e, canvas) => {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  };
+
+  const start = (e) => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const pos = getPos(e, canvas);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    setDrawing(true);
+  };
+
+  const draw = (e) => {
+    if (!drawing) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const pos = getPos(e, canvas);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.strokeStyle = "var(--ink)";
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.stroke();
+    setSigned(true);
+  };
+
+  const stop = () => setDrawing(false);
+
+  const clear = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setSigned(false);
+  };
+
+  const save = () => {
+    if (!signed) return;
+    const canvas = canvasRef.current;
+    onSign(canvas.toDataURL());
+  };
+
+  return (
+    <div>
+      <div style={{ border: "1.5px solid var(--warm)", borderRadius: 10, background: "#fff", marginBottom: 8 }}>
+        <canvas ref={canvasRef} width={460} height={120} style={{ display: "block", cursor: "crosshair", width: "100%", height: 120 }}
+          onMouseDown={start} onMouseMove={draw} onMouseUp={stop} onMouseLeave={stop}
+          onTouchStart={start} onTouchMove={draw} onTouchEnd={stop} />
+      </div>
+      <div style={{ fontSize: 11, color: "#aaa", marginBottom: 10 }}>Sign above using your mouse or touchscreen</div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={clear} style={{ flex: 1, background: "none", border: "1.5px solid var(--warm)", borderRadius: 8, padding: "8px", fontSize: 13, cursor: "pointer" }}>Clear</button>
+        <button onClick={save} disabled={!signed} style={{ flex: 2, background: signed ? "var(--sage)" : "#ccc", color: "#fff", border: "none", borderRadius: 8, padding: "8px", fontSize: 13, cursor: signed ? "pointer" : "default" }}>Apply Signature</button>
+      </div>
+    </div>
+  );
+}
+
+function StepCard({ step, offer, user, onUpdate }) {
   const isSeller = user?.id === offer.seller_id;
   const isBuyer = user?.id === offer.buyer_id;
-  const currentStep = TRANSACTION_STEPS.find(s => s.key === offer.step) || TRANSACTION_STEPS[0];
-  const inp = { width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "#fff", fontSize: 14, outline: "none" };
+  const isCurrentStep = offer.step_index === step.id;
+  const isCompleted = offer.step_index > step.id;
+  const isLocked = offer.step_index < step.id;
+  const [loading, setLoading] = useState(false);
+  const [note, setNote] = useState("");
+  const [showSign, setShowSign] = useState(false);
+  const [signed, setSigned] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const inp = { width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "var(--cream)", fontSize: 14, outline: "none" };
 
-  const advanceStep = async () => {
+  const uploadDoc = async (file) => {
+    setUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = "offers/" + offer.id + "/" + step.key + "-" + Date.now() + "." + ext;
+    const { error } = await sb.storage.from("property-photos").upload(path, file, { contentType: file.type });
+    if (!error) {
+      const { data: { publicUrl } } = sb.storage.from("property-photos").getPublicUrl(path);
+      setUploadedFile(publicUrl);
+    }
+    setUploading(false);
+  };
+
+  const advance = async (newStatus) => {
     setLoading(true);
     const nextIndex = offer.step_index + 1;
     const nextStep = TRANSACTION_STEPS[nextIndex - 1];
-    if (!nextStep) return;
-    const { error } = await sb.from("offers").update({ step: nextStep.key, step_index: nextIndex }).eq("id", offer.id);
-    if (!error) onUpdate({ ...offer, step: nextStep.key, step_index: nextIndex });
+    const updates = { step_index: nextIndex, step: nextStep?.key || "closing" };
+    if (newStatus) updates.status = newStatus;
+    if (uploadedFile) updates["step_" + step.key + "_doc"] = uploadedFile;
+    const { error } = await sb.from("offers").update(updates).eq("id", offer.id);
+    if (!error) {
+      const otherPartyId = isSeller ? offer.buyer_id : offer.seller_id;
+      await sendNotification(otherPartyId, step.label + " step completed. Action required on your end.", "offers");
+      onUpdate({ ...offer, ...updates });
+    }
     setLoading(false);
   };
 
   const respondToOffer = async (status) => {
     setLoading(true);
     const updates = { status };
-    if (status === "accepted") { updates.step = "accepted"; updates.step_index = 2; }
+    if (status === "accepted") { updates.step = "earnest"; updates.step_index = 2; }
     const { error } = await sb.from("offers").update(updates).eq("id", offer.id);
-    if (!error) onUpdate({ ...offer, ...updates });
+    if (!error) {
+      const otherPartyId = isSeller ? offer.buyer_id : offer.seller_id;
+      await sendNotification(otherPartyId, status === "accepted" ? "Your offer was accepted! Next step: Earnest Money deposit." : "Your offer was " + status + ".", "offers");
+      onUpdate({ ...offer, ...updates });
+    }
     setLoading(false);
   };
 
-  const submitCounter = async () => {
-    setLoading(true);
-    const { error } = await sb.from("offers").update({ status: "countered", counter_price: Number(counterForm.counter_price), counter_closing_date: counterForm.counter_closing_date, counter_message: counterForm.counter_message }).eq("id", offer.id);
-    if (!error) { onUpdate({ ...offer, status: "countered", ...counterForm }); setShowCounter(false); }
-    setLoading(false);
-  };
+  if (isLocked) return (
+    <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 14, padding: "18px 22px", marginBottom: 12, opacity: 0.5 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ fontSize: 24 }}>{step.icon}</span>
+        <div>
+          <div style={{ fontWeight: 500, fontSize: 15 }}>Step {step.id}: {step.label}</div>
+          <div style={{ fontSize: 12, color: "#aaa" }}>Locked - complete previous steps first</div>
+        </div>
+        <span style={{ marginLeft: "auto", fontSize: 18 }}>🔒</span>
+      </div>
+    </div>
+  );
 
-  const acceptCounter = async () => {
-    setLoading(true);
-    const { error } = await sb.from("offers").update({ status: "accepted", offer_price: offer.counter_price || offer.offer_price, closing_date: offer.counter_closing_date || offer.closing_date, step: "accepted", step_index: 2 }).eq("id", offer.id);
-    if (!error) onUpdate({ ...offer, status: "accepted", step: "accepted", step_index: 2 });
-    setLoading(false);
-  };
-
-  const statusColor = { pending: "var(--gold)", accepted: "var(--sage)", countered: "var(--rust)", declined: "#aaa", closed: "var(--sage)" };
+  if (isCompleted) return (
+    <div style={{ background: "#f0fff4", border: "1px solid #9ae6b4", borderRadius: 14, padding: "18px 22px", marginBottom: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ fontSize: 24 }}>{step.icon}</span>
+        <div>
+          <div style={{ fontWeight: 500, fontSize: 15, color: "var(--sage)" }}>Step {step.id}: {step.label}</div>
+          <div style={{ fontSize: 12, color: "var(--sage)" }}>Completed</div>
+        </div>
+        <span style={{ marginLeft: "auto", fontSize: 20 }}>✅</span>
+      </div>
+    </div>
+  );
 
   return (
-    <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16, padding: "24px 28px", marginBottom: 20 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+    <div style={{ background: "var(--card)", border: "2px solid var(--gold)", borderRadius: 14, padding: "22px", marginBottom: 12, animation: "fadeIn 0.3s ease" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+        <span style={{ fontSize: 28 }}>{step.icon}</span>
         <div>
-          <div style={{ fontSize: 18, fontWeight: 500, marginBottom: 4 }}>{offer.listings?.address || "Property"}</div>
-          <div style={{ fontSize: 13, color: "#888" }}>{isSeller ? "Buyer: " + offer.buyer_name : "Seller: " + (offer.listings?.seller_name || "Seller")}</div>
+          <div style={{ fontWeight: 600, fontSize: 16 }}>Step {step.id}: {step.label}</div>
+          <div style={{ fontSize: 13, color: "#666" }}>{step.desc}</div>
         </div>
-        <span style={{ background: statusColor[offer.status] || "var(--warm)", color: "#fff", fontSize: 11, fontWeight: 600, padding: "4px 12px", borderRadius: 20, textTransform: "uppercase" }}>{offer.status}</span>
+        <span style={{ marginLeft: "auto", background: "var(--gold)", color: "#fff", fontSize: 10, padding: "3px 10px", borderRadius: 12, fontWeight: 700 }}>ACTION NEEDED</span>
       </div>
 
-      <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
-        <div style={{ background: "var(--warm)", borderRadius: 10, padding: "12px 16px", flex: 1, minWidth: 120 }}>
-          <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>OFFER PRICE</div>
-          <div style={{ fontSize: 20, fontWeight: 600, color: "var(--gold)" }}>{formatPrice(offer.offer_price)}</div>
-        </div>
-        <div style={{ background: "var(--warm)", borderRadius: 10, padding: "12px 16px", flex: 1, minWidth: 120 }}>
-          <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>EARNEST MONEY</div>
-          <div style={{ fontSize: 20, fontWeight: 600 }}>{formatPrice(offer.earnest_money)}</div>
-        </div>
-        <div style={{ background: "var(--warm)", borderRadius: 10, padding: "12px 16px", flex: 1, minWidth: 120 }}>
-          <div style={{ fontSize: 11, color: "#888", marginBottom: 4 }}>CLOSING DATE</div>
-          <div style={{ fontSize: 16, fontWeight: 600 }}>{offer.closing_date || "TBD"}</div>
-        </div>
+      <div style={{ background: "var(--warm)", borderRadius: 10, padding: "14px 16px", marginBottom: 16, fontSize: 14, lineHeight: 1.7 }}>
+        <strong>Your action:</strong> {isBuyer ? step.buyerAction : step.sellerAction}
       </div>
 
-      {offer.status === "countered" && (
-        <div style={{ background: "#fff8f0", border: "1px solid #fcd", borderRadius: 12, padding: "16px 18px", marginBottom: 20 }}>
-          <div style={{ fontWeight: 600, marginBottom: 8, color: "var(--rust)" }}>Counteroffer Received</div>
-          {offer.counter_price && <div style={{ fontSize: 14, marginBottom: 4 }}>Counter Price: {formatPrice(offer.counter_price)}</div>}
-          {offer.counter_closing_date && <div style={{ fontSize: 14, marginBottom: 4 }}>Counter Closing: {offer.counter_closing_date}</div>}
-          {offer.counter_message && <div style={{ fontSize: 14, color: "#666" }}>{offer.counter_message}</div>}
-          {isBuyer && (
-            <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-              <button onClick={acceptCounter} disabled={loading} style={{ flex: 1, background: "var(--sage)", color: "#fff", border: "none", borderRadius: 10, padding: "10px", fontSize: 13, cursor: "pointer" }}>Accept Counter</button>
-              <button onClick={() => respondToOffer("declined")} disabled={loading} style={{ flex: 1, background: "#fff5f5", color: "var(--rust)", border: "1px solid #fcc", borderRadius: 10, padding: "10px", fontSize: 13, cursor: "pointer" }}>Decline</button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {offer.status === "accepted" && (
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 13, fontWeight: 500, color: "#666", marginBottom: 14 }}>Transaction Progress</div>
-          <div style={{ display: "flex", gap: 0, overflowX: "auto", paddingBottom: 8 }}>
-            {TRANSACTION_STEPS.map((s, i) => (
-              <div key={s.id} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-                <div style={{ textAlign: "center", width: 70 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: offer.step_index > s.id ? "var(--sage)" : offer.step_index === s.id ? "var(--gold)" : "var(--warm)", color: offer.step_index >= s.id ? "#fff" : "#aaa", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 4px", fontSize: 14 }}>
-                    {offer.step_index > s.id ? "v" : s.icon}
-                  </div>
-                  <div style={{ fontSize: 9, color: offer.step_index === s.id ? "var(--gold)" : "#aaa", lineHeight: 1.3 }}>{s.label}</div>
-                </div>
-                {i < TRANSACTION_STEPS.length - 1 && <div style={{ width: 20, height: 2, background: offer.step_index > s.id ? "var(--sage)" : "var(--warm)", flexShrink: 0, marginBottom: 20 }} />}
-              </div>
-            ))}
-          </div>
-          <div style={{ background: "var(--warm)", borderRadius: 10, padding: "14px 16px", marginTop: 12 }}>
-            <div style={{ fontWeight: 500, marginBottom: 4 }}>Current Step: {currentStep.label}</div>
-            <div style={{ fontSize: 13, color: "#666" }}>{currentStep.desc}</div>
-          </div>
-          {offer.step !== "closing" && (
-            <button onClick={advanceStep} disabled={loading} style={{ marginTop: 12, width: "100%", background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "12px", fontSize: 14, cursor: loading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-              {loading ? <Spinner /> : "Mark " + currentStep.label + " Complete"}
-            </button>
-          )}
-          {offer.step === "closing" && (
-            <div style={{ marginTop: 12, background: "var(--sage)", color: "#fff", borderRadius: 12, padding: "16px", textAlign: "center", fontSize: 15, fontWeight: 500 }}>
-              Transaction Complete! Congratulations!
-            </div>
-          )}
-        </div>
-      )}
-
-      {offer.status === "pending" && isSeller && (
+      {step.key === "offer" && offer.status === "pending" && isSeller && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {offer.message && <div style={{ background: "var(--warm)", borderRadius: 10, padding: "14px 16px", fontSize: 14, color: "#555", lineHeight: 1.6, marginBottom: 4 }}>"{offer.message}"</div>}
-          <div style={{ display: "flex", gap: 10 }}>
+          {offer.message && <div style={{ background: "var(--cream)", borderRadius: 10, padding: "14px", fontSize: 14, color: "#555", fontStyle: "italic" }}>"{offer.message}"</div>}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+            <div style={{ background: "var(--warm)", borderRadius: 10, padding: "12px", textAlign: "center" }}>
+              <div style={{ fontSize: 11, color: "#888" }}>OFFER PRICE</div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: "var(--gold)" }}>{formatPrice(offer.offer_price)}</div>
+            </div>
+            <div style={{ background: "var(--warm)", borderRadius: 10, padding: "12px", textAlign: "center" }}>
+              <div style={{ fontSize: 11, color: "#888" }}>EARNEST</div>
+              <div style={{ fontSize: 18, fontWeight: 600 }}>{formatPrice(offer.earnest_money)}</div>
+            </div>
+            <div style={{ background: "var(--warm)", borderRadius: 10, padding: "12px", textAlign: "center" }}>
+              <div style={{ fontSize: 11, color: "#888" }}>CLOSING</div>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>{offer.closing_date || "TBD"}</div>
+            </div>
+          </div>
+          <div style={{ fontSize: 13, color: "#666" }}>
+            Contingencies: {[offer.financing_contingency && "Financing", offer.inspection_contingency && "Inspection", offer.appraisal_contingency && "Appraisal"].filter(Boolean).join(", ") || "None"}
+          </div>
+          <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
             <button onClick={() => respondToOffer("accepted")} disabled={loading} style={{ flex: 2, background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "12px", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {loading ? <Spinner /> : "Accept Offer"}
             </button>
-            <button onClick={() => setShowCounter(true)} style={{ flex: 1, background: "var(--warm)", color: "var(--ink)", border: "none", borderRadius: 12, padding: "12px", fontSize: 14, cursor: "pointer" }}>Counter</button>
             <button onClick={() => respondToOffer("declined")} disabled={loading} style={{ flex: 1, background: "#fff5f5", color: "var(--rust)", border: "1px solid #fcc", borderRadius: 12, padding: "12px", fontSize: 13, cursor: "pointer" }}>Decline</button>
           </div>
-          {showCounter && (
-            <div style={{ background: "var(--cream)", borderRadius: 12, padding: "18px", border: "1px solid var(--warm)" }}>
-              <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 14 }}>Your Counteroffer</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div><label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 4 }}>COUNTER PRICE</label><input style={inp} type="number" value={counterForm.counter_price} onChange={e => setCounterForm(f => ({ ...f, counter_price: e.target.value }))} placeholder="490000" /></div>
-                <div><label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 4 }}>COUNTER CLOSING DATE</label><input style={inp} type="date" value={counterForm.counter_closing_date} onChange={e => setCounterForm(f => ({ ...f, counter_closing_date: e.target.value }))} /></div>
-                <div><label style={{ fontSize: 11, color: "#888", display: "block", marginBottom: 4 }}>MESSAGE TO BUYER</label><textarea style={{ ...inp, minHeight: 70, resize: "vertical" }} value={counterForm.counter_message} onChange={e => setCounterForm(f => ({ ...f, counter_message: e.target.value }))} placeholder="Explain your counteroffer..." /></div>
-                <div style={{ display: "flex", gap: 10 }}>
-                  <button onClick={() => setShowCounter(false)} style={{ flex: 1, background: "none", border: "1.5px solid var(--warm)", borderRadius: 10, padding: "10px", fontSize: 13, cursor: "pointer" }}>Cancel</button>
-                  <button onClick={submitCounter} disabled={loading} style={{ flex: 2, background: "var(--rust)", color: "#fff", border: "none", borderRadius: 10, padding: "10px", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                    {loading ? <Spinner /> : "Send Counteroffer"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
-      {offer.status === "declined" && (
-        <div style={{ background: "#fff5f5", borderRadius: 10, padding: "14px 16px", fontSize: 14, color: "var(--rust)", textAlign: "center" }}>This offer was declined.</div>
+
+      {step.key === "offer" && offer.status === "pending" && isBuyer && (
+        <div style={{ background: "var(--cream)", borderRadius: 10, padding: "14px", fontSize: 14, color: "#666", textAlign: "center" }}>
+          Waiting for seller to review your offer...
+          <div style={{ marginTop: 8, display: "flex", justifyContent: "center", gap: 6 }}>
+            {[0,1,2].map(i => <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--gold)", animation: "pulse 1.4s " + (i * 0.2) + "s infinite" }} />)}
+          </div>
+        </div>
+      )}
+
+      {step.key !== "offer" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div>
+            <label style={{ display: "block", fontSize: 11, color: "#888", marginBottom: 6, textTransform: "uppercase" }}>Upload Document (optional)</label>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, border: "1.5px dashed var(--warm)", borderRadius: 10, padding: "12px 16px", cursor: "pointer", background: "var(--cream)" }}>
+              <span style={{ fontSize: 20 }}>📎</span>
+              <span style={{ fontSize: 13, color: "#888" }}>{uploading ? "Uploading..." : uploadedFile ? "Document uploaded" : "Click to upload document"}</span>
+              <input type="file" style={{ display: "none" }} onChange={e => e.target.files[0] && uploadDoc(e.target.files[0])} />
+            </label>
+            {uploadedFile && <div style={{ fontSize: 12, color: "var(--sage)", marginTop: 4 }}>Document ready to submit</div>}
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 11, color: "#888", marginBottom: 6, textTransform: "uppercase" }}>Add a Note (optional)</label>
+            <textarea style={{ ...inp, minHeight: 70, resize: "vertical" }} value={note} onChange={e => setNote(e.target.value)} placeholder="Add any notes for the other party..." />
+          </div>
+
+          {step.key === "closing" && (
+            <div>
+              <label style={{ display: "block", fontSize: 11, color: "#888", marginBottom: 6, textTransform: "uppercase" }}>E-Signature Required</label>
+              {!signed ? <SignaturePad onSign={() => setSigned(true)} /> : (
+                <div style={{ background: "#f0fff4", border: "1px solid #9ae6b4", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "var(--sage)" }}>Signature captured</div>
+              )}
+            </div>
+          )}
+
+          <button onClick={() => advance()} disabled={loading || (step.key === "closing" && !signed)} style={{ background: loading ? "#aaa" : step.key === "closing" && !signed ? "#ccc" : "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 14, cursor: loading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+            {loading ? <Spinner /> : step.key === "closing" ? "Complete Transaction" : "Mark Complete & Continue"}
+          </button>
+        </div>
       )}
     </div>
   );
@@ -567,18 +702,22 @@ function TransactionDashboard({ offer, onUpdate, user }) {
 function OffersTab({ user, onRequireAuth }) {
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeOffer, setActiveOffer] = useState(null);
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
     async function load() {
-      const { data } = await sb.from("offers").select("*, listings(address, city, state, seller_name, price)").or("buyer_id.eq." + user.id + ",seller_id.eq." + user.id).order("created_at", { ascending: false });
+      const { data } = await sb.from("offers").select("*, listings(address, city, state, seller_name, price, user_id)").or("buyer_id.eq." + user.id + ",seller_id.eq." + user.id).order("created_at", { ascending: false });
       setOffers(data || []);
       setLoading(false);
     }
     load();
   }, [user]);
 
-  const updateOffer = (updated) => setOffers(prev => prev.map(o => o.id === updated.id ? { ...o, ...updated } : o));
+  const updateOffer = (updated) => {
+    setOffers(prev => prev.map(o => o.id === updated.id ? { ...o, ...updated } : o));
+    if (activeOffer?.id === updated.id) setActiveOffer(prev => ({ ...prev, ...updated }));
+  };
 
   if (!user) return (
     <div style={{ maxWidth: 480, margin: "80px auto", textAlign: "center", padding: "0 24px" }}>
@@ -588,6 +727,70 @@ function OffersTab({ user, onRequireAuth }) {
       <button onClick={onRequireAuth} style={{ background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "14px 32px", fontSize: 15, cursor: "pointer" }}>Sign In</button>
     </div>
   );
+
+  if (activeOffer) {
+    const currentStepIndex = activeOffer.step_index || 1;
+    return (
+      <div style={{ maxWidth: 700, margin: "0 auto", padding: "32px 24px" }}>
+        <button onClick={() => setActiveOffer(null)} style={{ background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 14, marginBottom: 20, display: "flex", alignItems: "center", gap: 6 }}>Back to All Offers</button>
+        <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16, padding: "22px 26px", marginBottom: 24 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+            <div>
+              <div style={{ fontSize: 20, fontWeight: 500, marginBottom: 4 }}>{activeOffer.listings?.address}</div>
+              <div style={{ fontSize: 13, color: "#888" }}>{activeOffer.listings?.city}, {activeOffer.listings?.state}</div>
+            </div>
+            <span style={{ background: activeOffer.status === "accepted" ? "var(--sage)" : activeOffer.status === "declined" ? "#aaa" : "var(--gold)", color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 20, textTransform: "uppercase" }}>{activeOffer.status}</span>
+          </div>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ background: "var(--warm)", borderRadius: 10, padding: "10px 14px", flex: 1, minWidth: 100 }}>
+              <div style={{ fontSize: 10, color: "#888" }}>OFFER PRICE</div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: "var(--gold)" }}>{formatPrice(activeOffer.offer_price)}</div>
+            </div>
+            <div style={{ background: "var(--warm)", borderRadius: 10, padding: "10px 14px", flex: 1, minWidth: 100 }}>
+              <div style={{ fontSize: 10, color: "#888" }}>EARNEST</div>
+              <div style={{ fontSize: 18, fontWeight: 600 }}>{formatPrice(activeOffer.earnest_money)}</div>
+            </div>
+            <div style={{ background: "var(--warm)", borderRadius: 10, padding: "10px 14px", flex: 1, minWidth: 100 }}>
+              <div style={{ fontSize: 10, color: "#888" }}>CLOSING</div>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>{activeOffer.closing_date || "TBD"}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: "flex", overflowX: "auto", gap: 0, paddingBottom: 8, marginBottom: 20 }}>
+            {TRANSACTION_STEPS.map((s, i) => (
+              <div key={s.id} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+                <div style={{ textAlign: "center", width: 64 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: currentStepIndex > s.id ? "var(--sage)" : currentStepIndex === s.id ? "var(--gold)" : "var(--warm)", color: currentStepIndex >= s.id ? "#fff" : "#aaa", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 4px", fontSize: 12 }}>
+                    {currentStepIndex > s.id ? "v" : s.icon}
+                  </div>
+                  <div style={{ fontSize: 8, color: currentStepIndex === s.id ? "var(--gold)" : "#aaa", lineHeight: 1.2 }}>{s.label}</div>
+                </div>
+                {i < TRANSACTION_STEPS.length - 1 && <div style={{ width: 16, height: 2, background: currentStepIndex > s.id ? "var(--sage)" : "var(--warm)", flexShrink: 0, marginBottom: 16 }} />}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {activeOffer.status === "declined" && (
+          <div style={{ background: "#fff5f5", border: "1px solid #fcc", borderRadius: 14, padding: "20px", textAlign: "center", color: "var(--rust)" }}>
+            This offer was declined.
+          </div>
+        )}
+
+        {activeOffer.status !== "declined" && TRANSACTION_STEPS.map(step => (
+          <StepCard key={step.id} step={step} offer={activeOffer} user={user} onUpdate={updateOffer} />
+        ))}
+
+        {activeOffer.step === "closing" && activeOffer.step_index > 9 && (
+          <div style={{ background: "var(--sage)", color: "#fff", borderRadius: 16, padding: "24px", textAlign: "center", fontSize: 18, fontWeight: 500 }}>
+            Transaction Complete! Congratulations!
+          </div>
+        )}
+      </div>
+    );
+  }
 
   const buyerOffers = offers.filter(o => o.buyer_id === user.id);
   const sellerOffers = offers.filter(o => o.seller_id === user.id);
@@ -606,16 +809,260 @@ function OffersTab({ user, onRequireAuth }) {
       )}
       {sellerOffers.length > 0 && (
         <div style={{ marginBottom: 40 }}>
-          <h3 style={{ fontSize: 22, fontWeight: 400, marginBottom: 20 }}>Offers on My Listings</h3>
-          {sellerOffers.map(o => <TransactionDashboard key={o.id} offer={o} onUpdate={updateOffer} user={user} />)}
+          <h3 style={{ fontSize: 22, fontWeight: 400, marginBottom: 16 }}>Offers on My Listings</h3>
+          {sellerOffers.map(o => (
+            <div key={o.id} onClick={() => setActiveOffer(o)} style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 14, padding: "18px 22px", marginBottom: 12, cursor: "pointer", transition: "all 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = "var(--gold)"}
+              onMouseLeave={e => e.currentTarget.style.borderColor = "var(--warm)"}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontWeight: 500, fontSize: 16, marginBottom: 3 }}>{o.listings?.address}</div>
+                  <div style={{ fontSize: 13, color: "#888" }}>Buyer: {o.buyer_name} - {formatPrice(o.offer_price)}</div>
+                  <div style={{ fontSize: 12, color: "#aaa", marginTop: 4 }}>Step {o.step_index} of 9: {TRANSACTION_STEPS.find(s => s.id === o.step_index)?.label}</div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+                  <span style={{ background: o.status === "accepted" ? "var(--sage)" : o.status === "declined" ? "#aaa" : "var(--gold)", color: "#fff", fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 16, textTransform: "uppercase" }}>{o.status}</span>
+                  <span style={{ fontSize: 12, color: "var(--gold)" }}>View Details →</span>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
       {buyerOffers.length > 0 && (
         <div>
-          <h3 style={{ fontSize: 22, fontWeight: 400, marginBottom: 20 }}>My Offers</h3>
-          {buyerOffers.map(o => <TransactionDashboard key={o.id} offer={o} onUpdate={updateOffer} user={user} />)}
+          <h3 style={{ fontSize: 22, fontWeight: 400, marginBottom: 16 }}>My Offers</h3>
+          {buyerOffers.map(o => (
+            <div key={o.id} onClick={() => setActiveOffer(o)} style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 14, padding: "18px 22px", marginBottom: 12, cursor: "pointer", transition: "all 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = "var(--gold)"}
+              onMouseLeave={e => e.currentTarget.style.borderColor = "var(--warm)"}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontWeight: 500, fontSize: 16, marginBottom: 3 }}>{o.listings?.address}</div>
+                  <div style={{ fontSize: 13, color: "#888" }}>Offer: {formatPrice(o.offer_price)} - Closing: {o.closing_date || "TBD"}</div>
+                  <div style={{ fontSize: 12, color: "#aaa", marginTop: 4 }}>Step {o.step_index} of 9: {TRANSACTION_STEPS.find(s => s.id === o.step_index)?.label}</div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+                  <span style={{ background: o.status === "accepted" ? "var(--sage)" : o.status === "declined" ? "#aaa" : "var(--gold)", color: "#fff", fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 16, textTransform: "uppercase" }}>{o.status}</span>
+                  <span style={{ fontSize: 12, color: "var(--gold)" }}>View Details →</span>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
+    </div>
+  );
+}
+function MessagesTab({ newThread, user, onRequireAuth }) {
+  const [conversations, setConversations] = useState([]);
+  const [activeConv, setActiveConv] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    if (!user) { setLoading(false); return; }
+    loadConversations();
+  }, [user]);
+
+  const loadConversations = async () => {
+    const { data } = await sb.from("messages")
+      .select("*, listings(address, city, state, seller_name, user_id)")
+      .or("user_id.eq." + user.id + ",recipient_id.eq." + user.id)
+      .order("created_at", { ascending: false });
+
+    if (!data) { setLoading(false); return; }
+
+    const convMap = {};
+    data.forEach(msg => {
+      const key = msg.listing_id + "-" + [msg.user_id, msg.recipient_id].sort().join("-");
+      if (!convMap[key]) {
+        convMap[key] = {
+          key,
+          listing_id: msg.listing_id,
+          listing: msg.listings,
+          other_user_id: msg.user_id === user.id ? msg.recipient_id : msg.user_id,
+          other_name: msg.user_id === user.id ? msg.recipient_name : msg.sender_name,
+          last_message: msg.body,
+          last_time: msg.created_at,
+          unread: 0,
+        };
+      }
+      if (msg.recipient_id === user.id && !msg.read) convMap[key].unread++;
+    });
+
+    setConversations(Object.values(convMap).sort((a, b) => new Date(b.last_time) - new Date(a.last_time)));
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (newThread && user) {
+      const conv = {
+        key: newThread.id + "-" + [user.id, newThread.user_id].sort().join("-"),
+        listing_id: newThread.id,
+        listing: newThread,
+        other_user_id: newThread.user_id,
+        other_name: newThread.seller_name,
+        last_message: "",
+        last_time: new Date().toISOString(),
+        unread: 0,
+      };
+      setActiveConv(conv);
+    }
+  }, [newThread, user]);
+
+  useEffect(() => {
+    if (!activeConv || !user) return;
+    loadMessages();
+    const sub = sb.channel("conv-" + activeConv.key)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: "listing_id=eq." + activeConv.listing_id },
+        payload => {
+          const msg = payload.new;
+          if (msg.user_id === activeConv.other_user_id || msg.recipient_id === activeConv.other_user_id) {
+            setMessages(prev => [...prev, msg]);
+          }
+        })
+      .subscribe();
+    return () => sb.removeChannel(sub);
+  }, [activeConv?.key]);
+
+  const loadMessages = async () => {
+    const { data } = await sb.from("messages").select("*")
+      .eq("listing_id", activeConv.listing_id)
+      .or("and(user_id.eq." + user.id + ",recipient_id.eq." + activeConv.other_user_id + "),and(user_id.eq." + activeConv.other_user_id + ",recipient_id.eq." + user.id + ")")
+      .order("created_at", { ascending: true });
+    setMessages(data || []);
+    await sb.from("messages").update({ read: true }).eq("listing_id", activeConv.listing_id).eq("recipient_id", user.id);
+  };
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+  const send = async () => {
+    if (!input.trim() || !activeConv || !user) return;
+    setSending(true);
+    const msg = {
+      listing_id: activeConv.listing_id,
+      user_id: user.id,
+      recipient_id: activeConv.other_user_id,
+      sender_name: user.user_metadata?.full_name || user.email,
+      recipient_name: activeConv.other_name,
+      body: input,
+      read: false,
+    };
+    const { data } = await sb.from("messages").insert([msg]).select();
+    if (data) {
+      setMessages(prev => [...prev, data[0]]);
+      setInput("");
+      await sendNotification(activeConv.other_user_id, "New message from " + (user.user_metadata?.full_name || user.email) + " about " + (activeConv.listing?.address || "a listing"), "messages");
+      loadConversations();
+    }
+    setSending(false);
+  };
+
+  if (!user) return (
+    <div style={{ maxWidth: 480, margin: "80px auto", textAlign: "center", padding: "0 24px" }}>
+      <div style={{ fontSize: 48, marginBottom: 16 }}>💬</div>
+      <h2 style={{ fontSize: 32, marginBottom: 12 }}>Messages</h2>
+      <p style={{ color: "#888", lineHeight: 1.7, marginBottom: 28 }}>Sign in to message buyers and sellers directly.</p>
+      <button onClick={onRequireAuth} style={{ background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "14px 32px", fontSize: 15, cursor: "pointer" }}>Sign In</button>
+    </div>
+  );
+
+  return (
+    <div style={{ maxWidth: 960, margin: "0 auto", padding: "32px 24px" }}>
+      <h2 style={{ fontSize: 36, fontWeight: 400, marginBottom: 24 }}>Messages</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 16, height: 580 }}>
+
+        {/* Conversation list */}
+        <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          <div style={{ padding: "14px 18px", borderBottom: "1px solid var(--warm)", fontWeight: 600, fontSize: 14 }}>Conversations</div>
+          <div style={{ flex: 1, overflow: "auto" }}>
+            {loading && <div style={{ padding: 24, textAlign: "center", color: "#ccc", fontSize: 13 }}>Loading...</div>}
+            {!loading && conversations.length === 0 && (
+              <div style={{ padding: 24, textAlign: "center", color: "#ccc", fontSize: 13 }}>No conversations yet. Browse a listing and message the seller!</div>
+            )}
+            {conversations.map(conv => (
+              <div key={conv.key} onClick={() => setActiveConv(conv)}
+                style={{ padding: "14px 18px", cursor: "pointer", borderBottom: "1px solid var(--warm)", background: activeConv?.key === conv.key ? "var(--warm)" : "transparent", transition: "background 0.15s", position: "relative" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                  <div style={{ fontWeight: conv.unread > 0 ? 700 : 500, fontSize: 13 }}>{conv.listing?.address || "Property"}</div>
+                  <div style={{ fontSize: 10, color: "#aaa" }}>{timeAgo(conv.last_time)}</div>
+                </div>
+                <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>{conv.other_name}</div>
+                <div style={{ fontSize: 12, color: conv.unread > 0 ? "var(--ink)" : "#aaa", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{conv.last_message}</div>
+                {conv.unread > 0 && (
+                  <div style={{ position: "absolute", top: 14, right: 14, background: "var(--sage)", color: "#fff", borderRadius: "50%", width: 18, height: 18, fontSize: 10, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{conv.unread}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Message pane */}
+        <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          {activeConv ? (
+            <>
+              <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--warm)", display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--sage)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 600, fontSize: 14 }}>
+                  {activeConv.other_name?.[0]?.toUpperCase() || "?"}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>{activeConv.other_name}</div>
+                  <div style={{ fontSize: 12, color: "#888" }}>{activeConv.listing?.address}</div>
+                </div>
+              </div>
+
+              <div style={{ flex: 1, overflow: "auto", padding: "20px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+                {messages.length === 0 && (
+                  <div style={{ textAlign: "center", color: "#ccc", marginTop: 60, fontSize: 16 }}>Send a message to start the conversation</div>
+                )}
+                {messages.map((m, i) => {
+                  const isMe = m.user_id === user.id;
+                  const showAvatar = !isMe && (i === 0 || messages[i-1].user_id !== m.user_id);
+                  return (
+                    <div key={i} style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start", alignItems: "flex-end", gap: 8 }}>
+                      {!isMe && (
+                        <div style={{ width: 28, height: 28, borderRadius: "50%", background: showAvatar ? "var(--mist)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 600, color: "var(--sage)", flexShrink: 0 }}>
+                          {showAvatar ? (activeConv.other_name?.[0]?.toUpperCase() || "?") : ""}
+                        </div>
+                      )}
+                      <div style={{ maxWidth: "68%" }}>
+                        <div style={{ background: isMe ? "var(--sage)" : "var(--warm)", color: isMe ? "#fff" : "var(--ink)", borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px", padding: "10px 14px", fontSize: 14, lineHeight: 1.5 }}>
+                          {m.body}
+                        </div>
+                        <div style={{ fontSize: 10, color: "#bbb", marginTop: 3, textAlign: isMe ? "right" : "left" }}>
+                          {timeAgo(m.created_at)} {isMe && m.read ? "✓✓" : isMe ? "✓" : ""}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={bottomRef} />
+              </div>
+
+              <div style={{ padding: "12px 16px", borderTop: "1px solid var(--warm)", display: "flex", gap: 10, alignItems: "flex-end" }}>
+                <textarea value={input} onChange={e => setInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+                  placeholder="Message..." rows={1}
+                  style={{ flex: 1, padding: "10px 14px", borderRadius: 22, border: "1.5px solid var(--warm)", background: "var(--cream)", fontSize: 14, outline: "none", resize: "none", fontFamily: "sans-serif", lineHeight: 1.5, maxHeight: 100, overflow: "auto" }} />
+                <button onClick={send} disabled={sending || !input.trim()}
+                  style={{ background: input.trim() ? "var(--sage)" : "#ddd", color: "#fff", border: "none", borderRadius: "50%", width: 40, height: 40, cursor: input.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>
+                  {sending ? <Spinner /> : "↑"}
+                </button>
+              </div>
+            </>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1, color: "#ccc", gap: 12 }}>
+              <div style={{ fontSize: 48 }}>💬</div>
+              <div style={{ fontSize: 18 }}>Select a conversation</div>
+              <div style={{ fontSize: 13 }}>or browse a listing to start one</div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -627,7 +1074,6 @@ function SellTab({ user, onRequireAuth }) {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(null);
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
   const inp = { width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "var(--cream)", fontSize: 14, outline: "none" };
   const lbl = { display: "block", fontSize: 11, fontWeight: 500, color: "#888", marginBottom: 5, textTransform: "uppercase" };
 
@@ -830,104 +1276,6 @@ function ProfileTab({ user, onRequireAuth }) {
   );
 }
 
-function MessagesTab({ newThread, user }) {
-  const [listings, setListings] = useState([]);
-  const [activeListing, setActiveListing] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [senderName, setSenderName] = useState("");
-  const [sending, setSending] = useState(false);
-  const bottomRef = useRef(null);
-
-  useEffect(() => {
-    if (user) setSenderName(user.user_metadata?.full_name || user.email || "");
-  }, [user]);
-
-  useEffect(() => {
-    sb.from("listings").select("id,address,city,state,seller_name").order("created_at", { ascending: false })
-      .then(({ data }) => setListings(data || []));
-  }, []);
-
-  useEffect(() => {
-    if (newThread && listings.length > 0) {
-      const match = listings.find(l => l.id === newThread.id);
-      setActiveListing(match || newThread);
-    }
-  }, [newThread, listings]);
-
-  useEffect(() => {
-    if (!activeListing) return;
-    setMessages([]);
-    sb.from("messages").select("*").eq("listing_id", activeListing.id).order("created_at", { ascending: true })
-      .then(({ data }) => setMessages(data || []));
-    const sub = sb.channel("msgs-" + activeListing.id)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: "listing_id=eq." + activeListing.id }, payload => setMessages(prev => [...prev, payload.new]))
-      .subscribe();
-    return () => sb.removeChannel(sub);
-  }, [activeListing?.id]);
-
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
-
-  const send = async () => {
-    if (!input.trim() || !activeListing) return;
-    setSending(true);
-    await sb.from("messages").insert([{ listing_id: activeListing.id, sender_name: senderName || "Buyer", sender_role: "buyer", body: input, user_id: user?.id || null }]);
-    setInput("");
-    setSending(false);
-  };
-
-  return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
-      <h2 style={{ fontSize: 36, fontWeight: 400, marginBottom: 20 }}>Messages</h2>
-      <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 16, height: 520 }}>
-        <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 14, overflow: "auto" }}>
-          {listings.length === 0 && <div style={{ padding: 24, textAlign: "center", color: "#ccc", fontSize: 13 }}>No listings yet</div>}
-          {listings.map(l => (
-            <div key={l.id} onClick={() => setActiveListing(l)} style={{ padding: "14px 18px", cursor: "pointer", borderBottom: "1px solid var(--warm)", background: activeListing?.id === l.id ? "var(--warm)" : "transparent" }}>
-              <div style={{ fontWeight: 500, fontSize: 13, marginBottom: 2 }}>{l.address}</div>
-              <div style={{ fontSize: 12, color: "#888" }}>{l.city}, {l.state}</div>
-              <div style={{ fontSize: 11, color: "#aaa", marginTop: 3 }}>Seller: {l.seller_name}</div>
-            </div>
-          ))}
-        </div>
-        <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 14, display: "flex", flexDirection: "column" }}>
-          {activeListing ? (
-            <>
-              <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--warm)" }}>
-                <div style={{ fontWeight: 500, fontSize: 14 }}>{activeListing.address}</div>
-                <div style={{ fontSize: 12, color: "#888" }}>Seller: {activeListing.seller_name}</div>
-              </div>
-              <div style={{ flex: 1, overflow: "auto", padding: "16px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
-                {messages.map((m, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: m.sender_role === "buyer" ? "flex-end" : "flex-start" }}>
-                    <div style={{ maxWidth: "72%", background: m.sender_role === "buyer" ? "var(--sage)" : "var(--warm)", color: m.sender_role === "buyer" ? "#fff" : "var(--ink)", borderRadius: m.sender_role === "buyer" ? "18px 18px 4px 18px" : "18px 18px 18px 4px", padding: "10px 14px", fontSize: 14, lineHeight: 1.6 }}>
-                      <div style={{ fontSize: 10, opacity: 0.6, marginBottom: 4 }}>{m.sender_name} - {timeAgo(m.created_at)}</div>
-                      {m.body}
-                    </div>
-                  </div>
-                ))}
-                {messages.length === 0 && <div style={{ textAlign: "center", color: "#ccc", marginTop: 40, fontSize: 18 }}>Start the conversation</div>}
-                <div ref={bottomRef} />
-              </div>
-              <div style={{ padding: "12px 16px", borderTop: "1px solid var(--warm)", display: "flex", flexDirection: "column", gap: 8 }}>
-                {!user && <input value={senderName} onChange={e => setSenderName(e.target.value)} placeholder="Your name" style={{ padding: "7px 12px", borderRadius: 8, border: "1px solid var(--warm)", background: "var(--cream)", fontSize: 12, outline: "none" }} />}
-                <div style={{ display: "flex", gap: 10 }}>
-                  <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && send()} placeholder="Type a message..." style={{ flex: 1, padding: "10px 14px", borderRadius: 22, border: "1.5px solid var(--warm)", background: "var(--cream)", fontSize: 14, outline: "none" }} />
-                  <button onClick={send} disabled={sending} style={{ background: "var(--sage)", color: "#fff", border: "none", borderRadius: 22, padding: "10px 18px", cursor: "pointer", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
-                    {sending ? <Spinner /> : "Send"}
-                  </button>
-                </div>
-              </div>
-            </>
-          ) : (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flex: 1, color: "#ccc", fontSize: 20 }}>Select a listing to message</div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function ValuationTab() {
   const [form, setForm] = useState({ address: "", beds: 3, baths: 2, sqft: 1800, year: 2005, condition: "Good", type: "Single Family" });
   const [result, setResult] = useState(null);
@@ -950,7 +1298,7 @@ function ValuationTab() {
   return (
     <div style={{ maxWidth: 680, margin: "0 auto", padding: "32px 24px" }}>
       <h2 style={{ fontSize: 36, fontWeight: 400, marginBottom: 6 }}>Home Valuation</h2>
-      <p style={{ color: "#888", fontSize: 14, marginBottom: 28 }}>Get an AI-powered estimate - no realtor required.</p>
+      <p style={{ color: "#888", fontSize: 14, marginBottom: 28 }}>Get an instant estimate for your home - no realtor required.</p>
       <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16, padding: "26px", marginBottom: 20 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div><label style={lbl}>Property Address</label><input style={inp} value={form.address} onChange={e => update("address", e.target.value)} placeholder="123 Main St, Austin TX" /></div>
@@ -973,12 +1321,12 @@ function ValuationTab() {
             </div>
           </div>
           <button onClick={estimate} disabled={loading} style={{ background: loading ? "#aaa" : "var(--rust)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 15, cursor: loading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-            {loading ? <Spinner /> : "Get AI Valuation"}
+            {loading ? <><Spinner /> Analyzing your property...</> : "Get My Home Value"}
           </button>
         </div>
       </div>
       {result && (
-        <div>
+        <div style={{ animation: "fadeIn 0.4s ease" }}>
           <div style={{ background: "linear-gradient(135deg,var(--ink),#2d2010)", borderRadius: 16, padding: "26px", color: "#fff", marginBottom: 16 }}>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 14 }}>Estimated Value Range</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 18 }}>
@@ -990,9 +1338,10 @@ function ValuationTab() {
               ))}
             </div>
             <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 14, fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.7 }}>{result.summary}</div>
+            <div style={{ marginTop: 8, fontSize: 11, color: "rgba(255,255,255,0.35)" }}>~${result.pricePerSqft}/sqft</div>
           </div>
           <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16, padding: "22px 24px" }}>
-            <div style={{ fontSize: 20, marginBottom: 14 }}>Tips to Maximize Your Sale Price</div>
+            <div style={{ fontSize: 20, marginBottom: 14, fontWeight: 500 }}>Tips to Maximize Your Sale Price</div>
             {result.tips.map((tip, i) => (
               <div key={i} style={{ display: "flex", gap: 10, marginBottom: 10, alignItems: "flex-start" }}>
                 <span style={{ background: "var(--sage)", color: "#fff", borderRadius: "50%", width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0, marginTop: 2 }}>{i + 1}</span>
@@ -1062,7 +1411,7 @@ function ContractsTab() {
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", padding: "32px 24px" }}>
       <h2 style={{ fontSize: 36, fontWeight: 400, marginBottom: 6 }}>Document Center</h2>
-      <p style={{ color: "#888", fontSize: 14, marginBottom: 28 }}>AI-generated starting points for US real estate transactions. Always have a licensed attorney review before signing.</p>
+      <p style={{ color: "#888", fontSize: 14, marginBottom: 28 }}>Professional real estate documents for US transactions. Always have a licensed attorney review before signing.</p>
       {!selected ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px,1fr))", gap: 14 }}>
           {CONTRACT_TEMPLATES.map(c => (
@@ -1080,15 +1429,15 @@ function ContractsTab() {
         <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16, padding: "28px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <h3 style={{ fontSize: 22 }}>{selected.name}</h3>
-            <span style={{ background: "var(--sage)", color: "#fff", fontSize: 11, padding: "3px 10px", borderRadius: 16 }}>Generated</span>
+            <span style={{ background: "var(--sage)", color: "#fff", fontSize: 11, padding: "3px 10px", borderRadius: 16 }}>Ready</span>
           </div>
           <div style={{ background: "#fffbf0", border: "1px solid var(--warm)", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "var(--rust)", marginBottom: 16 }}>
-            AI-generated draft for informational purposes only. Have a licensed real estate attorney review before signing.
+            Review carefully before signing. We recommend having a licensed real estate attorney review this document.
           </div>
           <div style={{ background: "var(--cream)", borderRadius: 10, padding: "20px", fontSize: 13, lineHeight: 2, color: "#444", whiteSpace: "pre-wrap", fontFamily: "Georgia, serif", marginBottom: 20, maxHeight: 500, overflow: "auto" }}>{contractText}</div>
           <div style={{ display: "flex", gap: 10 }}>
             <button onClick={() => { setGenerated(false); setSelected(null); setContractText(""); }} style={{ flex: 1, background: "none", border: "1.5px solid var(--warm)", borderRadius: 12, padding: "12px", fontSize: 14, cursor: "pointer" }}>Back</button>
-            <button onClick={() => { const b = new Blob([contractText], { type: "text/plain" }); const u = URL.createObjectURL(b); const a = document.createElement("a"); a.href = u; a.download = selected.name.replace(/\s/g, "_") + ".txt"; a.click(); }} style={{ flex: 2, background: "var(--gold)", color: "#fff", border: "none", borderRadius: 12, padding: "12px", fontSize: 14, cursor: "pointer" }}>Download</button>
+            <button onClick={() => { const b = new Blob([contractText], { type: "text/plain" }); const u = URL.createObjectURL(b); const a = document.createElement("a"); a.href = u; a.download = selected.name.replace(/\s/g, "_") + ".txt"; a.click(); }} style={{ flex: 2, background: "var(--gold)", color: "#fff", border: "none", borderRadius: 12, padding: "12px", fontSize: 14, cursor: "pointer" }}>Download Document</button>
           </div>
         </div>
       ) : (
@@ -1129,10 +1478,10 @@ function ContractsTab() {
                 </>
               )}
               <div style={{ background: "var(--warm)", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "#666" }}>
-                Generated for use across the United States. Always consult a licensed real estate attorney before signing.
+                Documents are prepared for use across the United States. Always consult a licensed real estate attorney before signing.
               </div>
               <button onClick={generate} disabled={loading} style={{ background: loading ? "#aaa" : "var(--ink)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 15, cursor: loading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-                {loading ? <Spinner /> : "Generate Document"}
+                {loading ? <><Spinner /> Preparing your document... this takes about 15 seconds</> : "Generate Document"}
               </button>
             </div>
           </div>
@@ -1178,15 +1527,16 @@ export default function App() {
             ))}
           </nav>
           <div style={{ width: 1, height: 24, background: "rgba(255,255,255,0.15)", margin: "0 8px" }} />
+          <NotificationBell user={user} />
           {user ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 8 }}>
               <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--sage)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "#fff", fontWeight: 600 }}>
                 {(user.user_metadata?.full_name || user.email)?.[0]?.toUpperCase()}
               </div>
               <button onClick={handleLogout} style={{ background: "none", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.6)", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer" }}>Log out</button>
             </div>
           ) : (
-            <button onClick={() => setShowAuth(true)} style={{ background: "var(--gold)", color: "#fff", border: "none", borderRadius: 8, padding: "7px 16px", fontSize: 13, cursor: "pointer", fontWeight: 500 }}>Sign In</button>
+            <button onClick={() => setShowAuth(true)} style={{ background: "var(--gold)", color: "#fff", border: "none", borderRadius: 8, padding: "7px 16px", fontSize: 13, cursor: "pointer", fontWeight: 500, marginLeft: 8 }}>Sign In</button>
           )}
         </div>
       </header>
@@ -1201,7 +1551,7 @@ export default function App() {
       {tab === "Browse" && <BrowseTab onMessage={handleMessage} onOffer={handleOffer} user={user} />}
       {tab === "Sell" && <SellTab user={user} onRequireAuth={() => setShowAuth(true)} />}
       {tab === "Offers" && <OffersTab user={user} onRequireAuth={() => setShowAuth(true)} />}
-      {tab === "Messages" && <MessagesTab newThread={messageThread} user={user} />}
+      {tab === "Messages" && <MessagesTab newThread={messageThread} user={user} onRequireAuth={() => setShowAuth(true)} />}
       {tab === "Valuation" && <ValuationTab />}
       {tab === "Contracts" && <ContractsTab />}
       {tab === "Profile" && <ProfileTab user={user} onRequireAuth={() => setShowAuth(true)} />}
