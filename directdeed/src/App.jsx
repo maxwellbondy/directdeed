@@ -929,14 +929,13 @@ function MessagesTab({ newThread, user, onRequireAuth }) {
     return () => sb.removeChannel(sub);
   }, [activeConv?.key]);
 
-  const loadMessages = async () => {
-    const { data } = await sb.from("messages").select("*")
-      .eq("listing_id", activeConv.listing_id)
-      .or("and(user_id.eq." + user.id + ",recipient_id.eq." + activeConv.other_user_id + "),and(user_id.eq." + activeConv.other_user_id + ",recipient_id.eq." + user.id + ")")
-      .order("created_at", { ascending: true });
-    setMessages(data || []);
-    await sb.from("messages").update({ read: true }).eq("listing_id", activeConv.listing_id).eq("recipient_id", user.id);
-  };
+const loadMessages = async () => {
+  const { data } = await sb.from("messages").select("*")
+    .eq("listing_id", activeConv.listing_id)
+    .order("created_at", { ascending: true });
+  setMessages(data || []);
+  await sb.from("messages").update({ read: true }).eq("listing_id", activeConv.listing_id).eq("recipient_id", user.id);
+};
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
