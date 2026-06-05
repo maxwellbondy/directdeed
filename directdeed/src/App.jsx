@@ -21,15 +21,42 @@ const styles = `
 `;
 
 const TRANSACTION_STEPS = [
-  { id: 1, key: "offer", label: "Offer", desc: "Seller reviews and responds to the offer", icon: "📋", owner: "seller", buyerAction: "Your offer has been submitted. Waiting for the seller to respond.", sellerAction: "Review the offer below. You may accept, counter, or decline." },
-  { id: 2, key: "earnest", label: "Earnest Money", desc: "Buyer deposits earnest money into escrow", icon: "💰", owner: "buyer", buyerAction: "Deposit your earnest money to the agreed escrow holder and upload the confirmation receipt below.", sellerAction: "Waiting for the buyer to deposit earnest money. You will be notified when complete." },
-  { id: 3, key: "inspection", label: "Inspection", desc: "Buyer schedules and completes a home inspection", icon: "🔍", owner: "buyer", buyerAction: "Schedule a licensed home inspector. Upload the inspection report and submit any repair requests below.", sellerAction: "Waiting for the buyer to complete their inspection. You will be notified when the report is ready." },
-  { id: 4, key: "inspection_response", label: "Repair Response", desc: "Seller responds to buyer repair requests", icon: "🔨", owner: "seller", buyerAction: "Waiting for the seller to respond to your repair requests. You will be notified when they respond.", sellerAction: "Review the buyer's repair requests and respond below. You may agree to repairs, offer a credit, or decline." },
-  { id: 5, key: "appraisal", label: "Appraisal", desc: "Buyer uploads the property appraisal", icon: "📊", owner: "buyer", buyerAction: "Your lender will order the appraisal. Upload the appraisal report below when received.", sellerAction: "Waiting for the buyer to upload the appraisal report. You will be notified when complete." },
-  { id: 6, key: "financing", label: "Financing", desc: "Buyer confirms loan approval", icon: "🏦", owner: "buyer", buyerAction: "Upload your loan commitment letter from your lender to confirm financing is secured.", sellerAction: "Waiting for the buyer to upload their loan commitment. You will be notified when complete." },
-  { id: 7, key: "title", label: "Title Search", desc: "Seller resolves any title issues", icon: "📜", owner: "seller", buyerAction: "Waiting for the seller to clear title. You will be notified when the title search is complete.", sellerAction: "Work with your title company to complete the title search and resolve any issues. Confirm below when complete." },
-  { id: 8, key: "walkthrough", label: "Final Walkthrough", desc: "Buyer completes final walkthrough", icon: "🚶", owner: "buyer", buyerAction: "Complete your final walkthrough of the property and confirm the condition is as agreed below.", sellerAction: "Waiting for the buyer to complete their final walkthrough. Ensure the property is ready." },
-  { id: 9, key: "closing", label: "Closing", desc: "Both parties sign and complete the transaction", icon: "🎉", owner: "both", buyerAction: "Sign the closing documents below and confirm funds have been transferred.", sellerAction: "Sign the closing documents below and confirm you are ready to transfer keys." },
+  { id: 1, key: "offer", label: "Offer", desc: "Seller reviews and responds to the offer", icon: "📋", owner: "seller",
+    buyerAction: "Your offer has been submitted. Waiting for the seller to respond.",
+    sellerAction: "Review the offer below. You may accept, counter, or decline.",
+    relatedDocs: ["Purchase & Sale Agreement", "Counteroffer Addendum"] },
+  { id: 2, key: "earnest", label: "Earnest Money", desc: "Buyer deposits earnest money into escrow", icon: "💰", owner: "buyer",
+    buyerAction: "Deposit your earnest money with a licensed title company or real estate attorney acting as escrow agent. Upload your deposit confirmation receipt below.",
+    sellerAction: "Waiting for the buyer to deposit earnest money with the escrow agent. You will be notified when complete.",
+    relatedDocs: ["Earnest Money Agreement"] },
+  { id: 3, key: "inspection", label: "Inspection", desc: "Buyer schedules and completes a home inspection", icon: "🔍", owner: "buyer",
+    buyerAction: "Schedule a licensed home inspector within your contingency period. Upload the inspection report and submit any repair requests below.",
+    sellerAction: "Waiting for the buyer to complete their inspection. You will be notified when the report is ready.",
+    relatedDocs: ["Inspection Contingency Waiver", "Property Disclosure Statement"] },
+  { id: 4, key: "inspection_response", label: "Repair Response", desc: "Seller responds to buyer repair requests", icon: "🔨", owner: "seller",
+    buyerAction: "Waiting for the seller to respond to your repair requests.",
+    sellerAction: "Review the buyer's repair requests and respond below. You may agree to repairs, offer a credit, or decline.",
+    relatedDocs: ["Counteroffer Addendum", "As-Is Addendum"] },
+  { id: 5, key: "appraisal", label: "Appraisal", desc: "Buyer uploads the property appraisal", icon: "📊", owner: "buyer",
+    buyerAction: "Your lender will order the appraisal. Upload the appraisal report below when received.",
+    sellerAction: "Waiting for the buyer to upload the appraisal report.",
+    relatedDocs: [] },
+  { id: 6, key: "financing", label: "Financing", desc: "Buyer confirms loan approval", icon: "🏦", owner: "buyer",
+    buyerAction: "Upload your loan commitment letter from your lender to confirm financing is secured.",
+    sellerAction: "Waiting for the buyer to upload their loan commitment letter.",
+    relatedDocs: ["Seller Financing Addendum"] },
+  { id: 7, key: "title", label: "Title Search", desc: "Seller resolves any title issues", icon: "📜", owner: "seller",
+    buyerAction: "Waiting for the seller to clear title. You will be notified when the title search is complete.",
+    sellerAction: "Work with your title company to complete the title search and resolve any issues. Confirm below when complete.",
+    relatedDocs: ["Lead Paint Disclosure"] },
+  { id: 8, key: "walkthrough", label: "Final Walkthrough", desc: "Buyer completes final walkthrough", icon: "🚶", owner: "buyer",
+    buyerAction: "Complete your final walkthrough and confirm the property is in the agreed condition below.",
+    sellerAction: "Waiting for the buyer to complete their final walkthrough. Ensure the property is ready.",
+    relatedDocs: [] },
+  { id: 9, key: "closing", label: "Closing", desc: "Both parties sign and complete the transaction", icon: "🎉", owner: "both",
+    buyerAction: "Sign the closing documents below and confirm funds have been transferred to the title company.",
+    sellerAction: "Sign the closing documents below and confirm you are ready to transfer keys.",
+    relatedDocs: ["Purchase & Sale Agreement"] },
 ];
 
 function formatPrice(p) { return "$" + Number(p).toLocaleString(); }
@@ -65,9 +92,7 @@ async function sendEmail(to, subject, html) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ to, subject, html }),
     });
-  } catch (e) {
-    console.error("Email error:", e.message);
-  }
+  } catch (e) { console.error("Email error:", e.message); }
 }
 
 function Spinner({ dark }) {
@@ -91,21 +116,15 @@ function NotificationBell({ user }) {
 
   const markAllRead = async () => {
     await sb.from("notifications").update({ read: true }).eq("user_id", user.id).eq("read", false);
-    setNotifications([]);
-    setOpen(false);
+    setNotifications([]); setOpen(false);
   };
 
   if (!user) return null;
-
   return (
     <div style={{ position: "relative" }}>
       <button onClick={() => setOpen(!open)} style={{ background: "none", border: "none", cursor: "pointer", color: "#fff", fontSize: 18, position: "relative", padding: "4px 8px" }}>
         🔔
-        {notifications.length > 0 && (
-          <span style={{ position: "absolute", top: 0, right: 0, background: "var(--rust)", color: "#fff", borderRadius: "50%", width: 16, height: 16, fontSize: 10, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>
-            {notifications.length > 9 ? "9+" : notifications.length}
-          </span>
-        )}
+        {notifications.length > 0 && <span style={{ position: "absolute", top: 0, right: 0, background: "var(--rust)", color: "#fff", borderRadius: "50%", width: 16, height: 16, fontSize: 10, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{notifications.length > 9 ? "9+" : notifications.length}</span>}
       </button>
       {open && (
         <div style={{ position: "absolute", right: 0, top: 40, background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 14, width: 320, boxShadow: "0 8px 32px var(--shadow)", zIndex: 300, animation: "fadeIn 0.2s ease" }}>
@@ -130,53 +149,173 @@ function NotificationBell({ user }) {
 
 function AuthModal({ onClose, onAuth }) {
   const [mode, setMode] = useState("login");
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const inp = { width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "var(--cream)", fontSize: 14, outline: "none", color: "var(--ink)" };
-  const lbl = { display: "block", fontSize: 11, fontWeight: 500, color: "#555", marginBottom: 5, textTransform: "uppercase" };
+  const [emailSent, setEmailSent] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
 
-  const submit = async () => {
-    setLoading(true); setError(null); setSuccess(null);
+  const inp = { width: "100%", padding: "12px 16px", borderRadius: 12, border: "1.5px solid var(--warm)", background: "#fff", fontSize: 15, outline: "none", color: "var(--ink)", transition: "border-color 0.2s" };
+  const lbl = { display: "block", fontSize: 12, fontWeight: 600, color: "#555", marginBottom: 6 };
+
+  const resetSignup = () => { setStep(1); setName(""); setEmail(""); setPassword(""); setConfirmPassword(""); setError(null); };
+
+  const submitLogin = async () => {
+    if (!email || !password) { setError("Please fill in all fields."); return; }
+    setLoading(true); setError(null);
     try {
-      if (mode === "signup") {
-        const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name } } });
-        if (error) throw error;
-        setSuccess("Account created! Check your email to confirm, then log in.");
-      } else {
-        const { data, error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        onAuth(data.user); onClose();
-      }
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      onAuth(data.user); onClose();
     } catch (e) { setError(e.message); }
     setLoading(false);
   };
 
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(26,18,8,0.55)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
-      <div style={{ background: "var(--card)", borderRadius: 20, maxWidth: 420, width: "100%", padding: "36px 32px", boxShadow: "0 24px 80px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
-          <h2 style={{ fontSize: 28, color: "var(--ink)" }}>{mode === "login" ? "Welcome back" : "Create account"}</h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#888" }}>x</button>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {mode === "signup" && <div><label style={lbl}>Full Name</label><input style={inp} value={name} onChange={e => setName(e.target.value)} placeholder="Jane Smith" /></div>}
-          <div><label style={lbl}>Email</label><input style={inp} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="jane@email.com" /></div>
-          <div><label style={lbl}>Password</label><input style={inp} type="password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && submit()} /></div>
-          {error && <div style={{ background: "#fff5f5", border: "1px solid #fcc", borderRadius: 10, padding: "10px 14px", color: "var(--rust)", fontSize: 13 }}>{error}</div>}
-          {success && <div style={{ background: "#f0fff4", border: "1px solid #9ae6b4", borderRadius: 10, padding: "10px 14px", color: "var(--sage)", fontSize: 13 }}>{success}</div>}
-          <button onClick={submit} disabled={loading} style={{ background: loading ? "#aaa" : "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 15, cursor: loading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-            {loading ? <Spinner /> : mode === "login" ? "Log In" : "Create Account"}
+  const submitSignup = async () => {
+    if (!name.trim()) { setError("Please enter your full name."); return; }
+    if (!email.trim()) { setError("Please enter your email address."); return; }
+    if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
+    if (password !== confirmPassword) { setError("Passwords do not match."); return; }
+    setLoading(true); setError(null);
+    try {
+      const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name } } });
+      if (error) throw error;
+      setEmailSent(true);
+    } catch (e) { setError(e.message); }
+    setLoading(false);
+  };
+
+  const resendEmail = async () => {
+    setResending(true);
+    try {
+      await sb.auth.resend({ type: "signup", email });
+      setResent(true);
+    } catch (e) {}
+    setResending(false);
+  };
+
+  if (emailSent) return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(26,18,8,0.6)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
+      <div style={{ background: "var(--card)", borderRadius: 24, maxWidth: 460, width: "100%", padding: "44px 40px", boxShadow: "0 24px 80px rgba(0,0,0,0.3)", textAlign: "center" }} onClick={e => e.stopPropagation()}>
+        <div style={{ width: 72, height: 72, borderRadius: "50%", background: "var(--sage)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 32 }}>📧</div>
+        <h2 style={{ fontSize: 26, fontWeight: 700, color: "var(--ink)", marginBottom: 10 }}>Check your email</h2>
+        <p style={{ color: "#555", lineHeight: 1.8, marginBottom: 8, fontSize: 15 }}>We sent a confirmation link to</p>
+        <div style={{ background: "var(--warm)", borderRadius: 10, padding: "10px 16px", marginBottom: 20, fontWeight: 600, color: "var(--ink)", fontSize: 14 }}>{email}</div>
+        <p style={{ color: "#777", lineHeight: 1.7, marginBottom: 24, fontSize: 13 }}>Click the link in the email to activate your account. It may take a minute or two to arrive. Check your spam folder if you don't see it.</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <button onClick={resendEmail} disabled={resending || resent} style={{ background: resent ? "var(--sage)" : "var(--warm)", color: resent ? "#fff" : "var(--ink)", border: "none", borderRadius: 12, padding: "13px", fontSize: 14, cursor: resending || resent ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            {resending ? <Spinner dark /> : resent ? "✓ Email resent!" : "Resend confirmation email"}
           </button>
-          <div style={{ textAlign: "center", fontSize: 13, color: "#555" }}>
-            {mode === "login" ? "No account? " : "Have an account? "}
-            <span onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(null); setSuccess(null); }} style={{ color: "var(--gold)", cursor: "pointer", fontWeight: 500 }}>
-              {mode === "login" ? "Sign up" : "Log in"}
-            </span>
+          <button onClick={() => { setMode("login"); setEmailSent(false); }} style={{ background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 14, cursor: "pointer" }}>
+            I've confirmed — Log In
+          </button>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "#999", fontSize: 13, cursor: "pointer" }}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(26,18,8,0.6)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
+      <div style={{ background: "var(--card)", borderRadius: 24, maxWidth: 460, width: "100%", boxShadow: "0 24px 80px rgba(0,0,0,0.3)", overflow: "hidden" }} onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div style={{ background: "var(--ink)", padding: "28px 32px 24px", textAlign: "center", position: "relative" }}>
+          <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", borderRadius: "50%", width: 28, height: 28, cursor: "pointer", fontSize: 14 }}>✕</button>
+          <div style={{ fontSize: 22, marginBottom: 8 }}>🏡</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: "#fff", marginBottom: 4 }}>
+            {mode === "login" ? "Welcome back" : "Join DirectDeed"}
           </div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
+            {mode === "login" ? "Sign in to your account" : "Buy or sell your home without a realtor"}
+          </div>
+        </div>
+
+        {/* Tab switcher */}
+        <div style={{ display: "flex", borderBottom: "1px solid var(--warm)" }}>
+          {["login", "signup"].map(m => (
+            <button key={m} onClick={() => { setMode(m); setError(null); setStep(1); }} style={{ flex: 1, padding: "14px", background: mode === m ? "var(--card)" : "var(--cream)", border: "none", borderBottom: mode === m ? "2px solid var(--gold)" : "2px solid transparent", fontSize: 13, fontWeight: mode === m ? 600 : 400, color: mode === m ? "var(--gold)" : "#888", cursor: "pointer", marginBottom: -1 }}>
+              {m === "login" ? "Log In" : "Create Account"}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ padding: "28px 32px 32px" }}>
+          {mode === "login" ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div><label style={lbl}>Email Address</label><input style={inp} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="jane@email.com" onFocus={e => e.target.style.borderColor = "var(--gold)"} onBlur={e => e.target.style.borderColor = "var(--warm)"} /></div>
+              <div><label style={lbl}>Password</label><input style={inp} type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Your password" onKeyDown={e => e.key === "Enter" && submitLogin()} onFocus={e => e.target.style.borderColor = "var(--gold)"} onBlur={e => e.target.style.borderColor = "var(--warm)"} /></div>
+              {error && <div style={{ background: "#fff5f5", border: "1px solid #fcc", borderRadius: 10, padding: "10px 14px", color: "var(--rust)", fontSize: 13 }}>{error}</div>}
+              <button onClick={submitLogin} disabled={loading} style={{ background: loading ? "#aaa" : "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "14px", fontSize: 15, cursor: loading ? "default" : "pointer", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+                {loading ? <Spinner /> : "Log In"}
+              </button>
+              <div style={{ textAlign: "center", fontSize: 13, color: "#888" }}>
+                No account yet? <span onClick={() => { setMode("signup"); setError(null); }} style={{ color: "var(--gold)", cursor: "pointer", fontWeight: 600 }}>Create one free</span>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Step indicator */}
+              <div style={{ display: "flex", gap: 6, marginBottom: 4 }}>
+                {["Your Name", "Email & Password", "Confirm"].map((s, i) => (
+                  <div key={i} style={{ flex: 1, textAlign: "center" }}>
+                    <div style={{ width: 24, height: 24, borderRadius: "50%", background: step > i + 1 ? "var(--sage)" : step === i + 1 ? "var(--gold)" : "var(--warm)", color: step >= i + 1 ? "#fff" : "#aaa", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 4px", fontSize: 11, fontWeight: 700 }}>{step > i + 1 ? "✓" : i + 1}</div>
+                    <div style={{ fontSize: 9, color: step === i + 1 ? "var(--gold)" : "#aaa", fontWeight: step === i + 1 ? 600 : 400 }}>{s}</div>
+                  </div>
+                ))}
+              </div>
+
+              {step === 1 && (
+                <>
+                  <div style={{ background: "var(--warm)", borderRadius: 12, padding: "14px 16px", fontSize: 13, color: "#555", lineHeight: 1.7 }}>
+                    DirectDeed connects buyers and sellers directly — no realtors, no commissions. Create your free account to get started.
+                  </div>
+                  <div><label style={lbl}>Your Full Name</label><input style={inp} value={name} onChange={e => setName(e.target.value)} placeholder="Jane Smith" autoFocus onFocus={e => e.target.style.borderColor = "var(--gold)"} onBlur={e => e.target.style.borderColor = "var(--warm)"} onKeyDown={e => e.key === "Enter" && name.trim() && setStep(2)} /></div>
+                  {error && <div style={{ background: "#fff5f5", border: "1px solid #fcc", borderRadius: 10, padding: "10px 14px", color: "var(--rust)", fontSize: 13 }}>{error}</div>}
+                  <button onClick={() => { if (!name.trim()) { setError("Please enter your full name."); return; } setError(null); setStep(2); }} style={{ background: "var(--gold)", color: "#fff", border: "none", borderRadius: 12, padding: "14px", fontSize: 15, cursor: "pointer", fontWeight: 600 }}>Continue</button>
+                </>
+              )}
+
+              {step === 2 && (
+                <>
+                  <div style={{ fontSize: 14, color: "#555" }}>Hi <strong style={{ color: "var(--ink)" }}>{name}</strong>! Now set up your login details.</div>
+                  <div><label style={lbl}>Email Address</label><input style={inp} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="jane@email.com" autoFocus onFocus={e => e.target.style.borderColor = "var(--gold)"} onBlur={e => e.target.style.borderColor = "var(--warm)"} /></div>
+                  <div><label style={lbl}>Password <span style={{ color: "#aaa", fontWeight: 400 }}>(min 8 characters)</span></label><input style={inp} type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Create a strong password" onFocus={e => e.target.style.borderColor = "var(--gold)"} onBlur={e => e.target.style.borderColor = "var(--warm)"} /></div>
+                  {error && <div style={{ background: "#fff5f5", border: "1px solid #fcc", borderRadius: 10, padding: "10px 14px", color: "var(--rust)", fontSize: 13 }}>{error}</div>}
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <button onClick={() => { setError(null); setStep(1); }} style={{ flex: 1, background: "none", border: "1.5px solid var(--warm)", borderRadius: 12, padding: "13px", fontSize: 14, cursor: "pointer", color: "var(--ink)" }}>Back</button>
+                    <button onClick={() => { if (!email.trim()) { setError("Please enter your email."); return; } if (password.length < 8) { setError("Password must be at least 8 characters."); return; } setError(null); setStep(3); }} style={{ flex: 2, background: "var(--gold)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 14, cursor: "pointer", fontWeight: 600 }}>Continue</button>
+                  </div>
+                </>
+              )}
+
+              {step === 3 && (
+                <>
+                  <div style={{ background: "var(--warm)", borderRadius: 12, padding: "14px 16px", fontSize: 13, lineHeight: 1.7, color: "var(--ink)" }}>
+                    <strong>Almost done!</strong> Confirm your details:<br />
+                    Name: <strong>{name}</strong><br />
+                    Email: <strong>{email}</strong>
+                  </div>
+                  <div><label style={lbl}>Confirm Password</label><input style={inp} type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Re-enter your password" autoFocus onKeyDown={e => e.key === "Enter" && submitSignup()} onFocus={e => e.target.style.borderColor = "var(--gold)"} onBlur={e => e.target.style.borderColor = "var(--warm)"} /></div>
+                  <div style={{ fontSize: 11, color: "#888", lineHeight: 1.6 }}>
+                    By creating an account you agree to our <span style={{ color: "var(--gold)" }}>Terms of Service</span> and <span style={{ color: "var(--gold)" }}>Privacy Policy</span>. DirectDeed is not a licensed real estate brokerage.
+                  </div>
+                  {error && <div style={{ background: "#fff5f5", border: "1px solid #fcc", borderRadius: 10, padding: "10px 14px", color: "var(--rust)", fontSize: 13 }}>{error}</div>}
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <button onClick={() => { setError(null); setStep(2); }} style={{ flex: 1, background: "none", border: "1.5px solid var(--warm)", borderRadius: 12, padding: "13px", fontSize: 14, cursor: "pointer", color: "var(--ink)" }}>Back</button>
+                    <button onClick={submitSignup} disabled={loading} style={{ flex: 2, background: loading ? "#aaa" : "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 14, cursor: loading ? "default" : "pointer", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+                      {loading ? <Spinner /> : "Create My Account"}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -189,6 +328,20 @@ function ListingCard({ listing, onClick, onDelete, isOwner }) {
   const cover = photos[0];
   const daysAgo = Math.floor((Date.now() - new Date(listing.created_at)) / 86400000);
 
+  const shareUrl = window.location.origin + "?listing=" + listing.id;
+
+  const handleShare = async (e) => {
+    e.stopPropagation();
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: listing.address + " — DirectDeed", text: formatPrice(listing.price) + " · " + listing.beds + "bd/" + listing.baths + "ba · " + listing.city + ", " + listing.state, url: shareUrl });
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(shareUrl);
+      alert("Link copied to clipboard!");
+    }
+  };
+
   return (
     <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16, overflow: "hidden", cursor: "pointer", transform: hovered ? "translateY(-4px)" : "none", boxShadow: hovered ? "0 12px 40px var(--shadow)" : "0 2px 12px var(--shadow)", transition: "all 0.25s ease", position: "relative" }}>
@@ -197,23 +350,27 @@ function ListingCard({ listing, onClick, onDelete, isOwner }) {
           <span style={{ background: "var(--rust)", color: "#fff", fontSize: 22, fontWeight: 700, padding: "10px 28px", borderRadius: 12, letterSpacing: 2, transform: "rotate(-8deg)" }}>SOLD</span>
         </div>
       )}
-      <div onClick={() => onClick(listing)} style={{ height: 160, background: "linear-gradient(135deg,var(--warm),var(--mist))", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 56 }}>
+      <div onClick={() => onClick(listing)} style={{ height: 180, background: "linear-gradient(135deg,var(--warm),var(--mist))", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 56 }}>
         {cover ? <img src={cover} alt="property" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} /> : "🏡"}
         <span style={{ position: "absolute", top: 10, right: 10, background: "var(--sage)", color: "#fff", fontSize: 9, fontWeight: 700, padding: "3px 9px", borderRadius: 20, textTransform: "uppercase" }}>FSBO</span>
         <span style={{ position: "absolute", top: 10, left: 10, background: "var(--card)", fontSize: 11, padding: "3px 9px", borderRadius: 20, color: "var(--ink)" }}>{daysAgo === 0 ? "Today" : daysAgo + "d ago"}</span>
         {photos.length > 1 && <span style={{ position: "absolute", bottom: 8, right: 8, background: "rgba(0,0,0,0.65)", color: "#fff", fontSize: 10, padding: "3px 8px", borderRadius: 10 }}>+{photos.length - 1} photos</span>}
+        <button onClick={handleShare} style={{ position: "absolute", bottom: 8, left: 8, background: "rgba(255,255,255,0.9)", border: "none", borderRadius: 20, padding: "4px 10px", fontSize: 11, cursor: "pointer", color: "var(--ink)", display: "flex", alignItems: "center", gap: 4 }}>
+          🔗 Share
+        </button>
       </div>
       <div onClick={() => onClick(listing)} style={{ padding: "16px 18px" }}>
-        <div style={{ fontSize: 20, fontWeight: 500, lineHeight: 1.2, marginBottom: 3, color: "var(--ink)" }}>{listing.address}</div>
-        <div style={{ fontSize: 13, color: "#666", marginBottom: 10 }}>{listing.city}, {listing.state} - {listing.type}</div>
-        <div style={{ fontSize: 26, fontWeight: 600, color: "var(--gold)", marginBottom: 10 }}>{formatPrice(listing.price)}</div>
+        <div style={{ fontSize: 18, fontWeight: 500, lineHeight: 1.2, marginBottom: 2, color: "var(--ink)" }}>{listing.address}</div>
+        <div style={{ fontSize: 12, color: "#666", marginBottom: 8 }}>{listing.city}, {listing.state} {listing.zip} · {listing.type}</div>
+        <div style={{ fontSize: 26, fontWeight: 600, color: "var(--gold)", marginBottom: 8 }}>{formatPrice(listing.price)}</div>
         <div style={{ display: "flex", gap: 14, fontSize: 13, color: "#555" }}>
           <span>{listing.beds} bd</span><span>{listing.baths} ba</span><span>{Number(listing.sqft).toLocaleString()} sqft</span>
         </div>
       </div>
       {isOwner && (
-        <div style={{ padding: "0 18px 16px" }}>
-          <button onClick={() => onDelete(listing.id)} style={{ width: "100%", background: "#fff5f5", color: "var(--rust)", border: "1px solid #fcc", borderRadius: 8, padding: "7px", fontSize: 12, cursor: "pointer" }}>Delete Listing</button>
+        <div style={{ padding: "0 18px 16px", display: "flex", gap: 8 }}>
+          <button onClick={handleShare} style={{ flex: 1, background: "var(--warm)", color: "var(--ink)", border: "1px solid var(--warm)", borderRadius: 8, padding: "7px", fontSize: 12, cursor: "pointer" }}>🔗 Share Listing</button>
+          <button onClick={() => onDelete(listing.id)} style={{ flex: 1, background: "#fff5f5", color: "var(--rust)", border: "1px solid #fcc", borderRadius: 8, padding: "7px", fontSize: 12, cursor: "pointer" }}>Delete</button>
         </div>
       )}
     </div>
@@ -224,6 +381,16 @@ function ListingModal({ listing, onClose, onMessage, onOffer, user }) {
   const [photoIdx, setPhotoIdx] = useState(0);
   if (!listing) return null;
   const photos = listing.photos || [];
+
+  const shareUrl = window.location.origin + "?listing=" + listing.id;
+  const handleShare = async () => {
+    if (navigator.share) {
+      try { await navigator.share({ title: listing.address + " — DirectDeed", text: formatPrice(listing.price) + " · " + listing.beds + "bd/" + listing.baths + "ba · " + listing.city + ", " + listing.state, url: shareUrl }); } catch {}
+    } else {
+      await navigator.clipboard.writeText(shareUrl);
+      alert("Link copied!");
+    }
+  };
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(26,18,8,0.55)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
@@ -243,11 +410,11 @@ function ListingModal({ listing, onClose, onMessage, onOffer, user }) {
           )}
         </div>
         <div style={{ padding: "26px 30px 30px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-            <h2 style={{ fontSize: 26, fontWeight: 500, flex: 1, color: "var(--ink)" }}>{listing.address}</h2>
-            <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#888", marginLeft: 12 }}>x</button>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+            <h2 style={{ fontSize: 24, fontWeight: 500, flex: 1, color: "var(--ink)" }}>{listing.address}</h2>
+            <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#888", marginLeft: 12 }}>✕</button>
           </div>
-          <div style={{ color: "#666", fontSize: 13, marginBottom: 14 }}>{listing.city}, {listing.state} - {listing.type}</div>
+          <div style={{ color: "#666", fontSize: 13, marginBottom: 14 }}>{listing.city}, {listing.state} {listing.zip} · {listing.type}</div>
           <div style={{ fontSize: 34, fontWeight: 600, color: "var(--gold)", marginBottom: 18 }}>{formatPrice(listing.price)}</div>
           <div style={{ display: "flex", gap: 20, fontSize: 14, color: "#555", marginBottom: 18, paddingBottom: 18, borderBottom: "1px solid var(--warm)" }}>
             <span>{listing.beds} Beds</span><span>{listing.baths} Baths</span><span>{Number(listing.sqft).toLocaleString()} sqft</span>
@@ -257,9 +424,20 @@ function ListingModal({ listing, onClose, onMessage, onOffer, user }) {
             <span style={{ fontSize: 26 }}>👤</span>
             <div>
               <div style={{ fontWeight: 500, fontSize: 14, color: "var(--ink)" }}>Listed by {listing.seller_name}</div>
-              <div style={{ fontSize: 12, color: "#666" }}>Owner - No realtor commission</div>
+              <div style={{ fontSize: 12, color: "#666" }}>Owner · No realtor commission</div>
             </div>
           </div>
+
+          {/* Social Share */}
+          <div style={{ background: "var(--cream)", borderRadius: 12, padding: "12px 16px", marginBottom: 16, border: "1px solid var(--warm)" }}>
+            <div style={{ fontSize: 12, color: "#666", marginBottom: 8 }}>Share this listing</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={handleShare} style={{ flex: 1, background: "var(--ink)", color: "#fff", border: "none", borderRadius: 8, padding: "8px", fontSize: 12, cursor: "pointer" }}>🔗 Copy Link</button>
+              <a href={"https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(shareUrl)} target="_blank" rel="noopener noreferrer" style={{ flex: 1, background: "#1877f2", color: "#fff", border: "none", borderRadius: 8, padding: "8px", fontSize: 12, cursor: "pointer", textDecoration: "none", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>📘 Facebook</a>
+              <a href={"https://www.instagram.com/"} target="_blank" rel="noopener noreferrer" style={{ flex: 1, background: "linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)", color: "#fff", border: "none", borderRadius: 8, padding: "8px", fontSize: 12, cursor: "pointer", textDecoration: "none", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>📷 Instagram</a>
+            </div>
+          </div>
+
           {!listing.sold ? (
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => { onMessage(listing); onClose(); }} style={{ flex: 1, background: "var(--warm)", color: "var(--ink)", border: "1px solid var(--warm)", borderRadius: 12, padding: "14px", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>Message Seller</button>
@@ -296,7 +474,7 @@ function BrowseTab({ onMessage, onOffer, user }) {
   }, []);
 
   const filtered = listings.filter(l =>
-    (l.address + " " + l.city + " " + l.state).toLowerCase().includes(search.toLowerCase()) &&
+    (l.address + " " + l.city + " " + l.state + " " + l.zip).toLowerCase().includes(search.toLowerCase()) &&
     Number(l.price) <= maxPrice && Number(l.beds) >= minBeds &&
     (showSold ? true : !l.sold)
   );
@@ -304,9 +482,9 @@ function BrowseTab({ onMessage, onOffer, user }) {
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 24px" }}>
       <h2 style={{ fontSize: 36, fontWeight: 400, marginBottom: 6, color: "var(--ink)" }}>Browse Homes</h2>
-      <p style={{ color: "#666", fontSize: 14, marginBottom: 24 }}>Every listing is sold directly by the owner.</p>
+      <p style={{ color: "#666", fontSize: 14, marginBottom: 24 }}>Every listing is sold directly by the owner — no realtor commissions.</p>
       <div style={{ display: "flex", gap: 12, marginBottom: 28, flexWrap: "wrap", alignItems: "center" }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search address or city..." style={{ flex: 2, minWidth: 200, padding: "11px 16px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "var(--card)", fontSize: 14, outline: "none", color: "var(--ink)" }} />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search address, city, or ZIP..." style={{ flex: 2, minWidth: 200, padding: "11px 16px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "var(--card)", fontSize: 14, outline: "none", color: "var(--ink)" }} />
         <select value={minBeds} onChange={e => setMinBeds(Number(e.target.value))} style={{ padding: "11px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "var(--card)", fontSize: 14, cursor: "pointer", color: "var(--ink)" }}>
           <option value={0}>Any beds</option><option value={2}>2+ beds</option><option value={3}>3+ beds</option><option value={4}>4+ beds</option>
         </select>
@@ -314,8 +492,7 @@ function BrowseTab({ onMessage, onOffer, user }) {
           <option value={2000000}>Any price</option><option value={400000}>Under $400k</option><option value={600000}>Under $600k</option><option value={800000}>Under $800k</option><option value={1000000}>Under $1M</option>
         </select>
         <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#555", cursor: "pointer" }}>
-          <input type="checkbox" checked={showSold} onChange={e => setShowSold(e.target.checked)} />
-          Show sold
+          <input type="checkbox" checked={showSold} onChange={e => setShowSold(e.target.checked)} />Show sold
         </label>
       </div>
       {loading && <div style={{ textAlign: "center", padding: "60px 0", color: "#888", fontSize: 22 }}>Loading listings...</div>}
@@ -327,8 +504,8 @@ function BrowseTab({ onMessage, onOffer, user }) {
           </div>
           {filtered.length === 0 && (
             <div style={{ textAlign: "center", color: "#888", padding: "60px 0" }}>
-              <div style={{ fontSize: 28, marginBottom: 10 }}>No listings yet</div>
-              <div style={{ fontSize: 14 }}>Be the first to list your home.</div>
+              <div style={{ fontSize: 28, marginBottom: 10 }}>No listings found</div>
+              <div style={{ fontSize: 14 }}>Try adjusting your filters or be the first to list your home.</div>
             </div>
           )}
         </>
@@ -374,7 +551,7 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
   const submit = async () => {
     setSubmitting(true); setError(null);
     try {
-      const { data, error: insertErr } = await sb.from("offers").insert([{
+      const { error: insertErr } = await sb.from("offers").insert([{
         listing_id: listing.id,
         buyer_id: user.id,
         seller_id: listing.user_id,
@@ -391,11 +568,11 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
         status: "pending",
         step: "offer",
         step_index: 1,
-      }]).select();
+      }]);
       if (insertErr) throw new Error(insertErr.message);
       await sendNotification(listing.user_id, "New offer of " + formatPrice(form.offer_price) + " on " + listing.address, "offers");
       await sendEmail(listing.seller_email, "New Offer on " + listing.address,
-        "<h2>You have a new offer!</h2><p><strong>" + form.buyer_name + "</strong> has submitted an offer of <strong>" + formatPrice(form.offer_price) + "</strong> on " + listing.address + ".</p><p>Log in to DirectDeed to review and respond.</p>"
+        "<h2 style='font-family:sans-serif;color:#1a1208'>You have a new offer!</h2><p style='font-family:sans-serif;color:#444'><strong>" + form.buyer_name + "</strong> has submitted an offer of <strong>" + formatPrice(form.offer_price) + "</strong> on " + listing.address + ".</p><p style='font-family:sans-serif;color:#444'>Closing date: <strong>" + (form.closing_date || "TBD") + "</strong></p><p style='font-family:sans-serif;color:#444'>Log in to DirectDeed to review and respond.</p>"
       );
       setSubmitted(true);
     } catch (e) { setError(e.message); }
@@ -420,13 +597,13 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
         <div style={{ padding: "28px 32px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
             <h2 style={{ fontSize: 26, fontWeight: 500, color: "var(--ink)" }}>Make an Offer</h2>
-            <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#888" }}>x</button>
+            <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#888" }}>✕</button>
           </div>
-          <div style={{ fontSize: 13, color: "#666", marginBottom: 24 }}>{listing.address} - Listed at {formatPrice(listing.price)}</div>
+          <div style={{ fontSize: 13, color: "#666", marginBottom: 24 }}>{listing.address}, {listing.city}, {listing.state} {listing.zip} · Listed at {formatPrice(listing.price)}</div>
           <div style={{ display: "flex", gap: 6, marginBottom: 28 }}>
             {["Offer Terms", "Contingencies", "Your Info"].map((s, i) => (
               <div key={i} style={{ flex: 1, textAlign: "center" }}>
-                <div style={{ width: 24, height: 24, borderRadius: "50%", background: step > i + 1 ? "var(--sage)" : step === i + 1 ? "var(--gold)" : "var(--warm)", color: step >= i + 1 ? "#fff" : "#888", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 4px", fontSize: 11, fontWeight: 600 }}>{step > i + 1 ? "v" : i + 1}</div>
+                <div style={{ width: 24, height: 24, borderRadius: "50%", background: step > i + 1 ? "var(--sage)" : step === i + 1 ? "var(--gold)" : "var(--warm)", color: step >= i + 1 ? "#fff" : "#888", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 4px", fontSize: 11, fontWeight: 600 }}>{step > i + 1 ? "✓" : i + 1}</div>
                 <div style={{ fontSize: 10, color: step === i + 1 ? "var(--gold)" : "#888" }}>{s}</div>
               </div>
             ))}
@@ -441,7 +618,11 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div><label style={lbl}>Earnest Money</label><input style={inp} type="number" value={form.earnest_money} onChange={e => update("earnest_money", e.target.value)} placeholder="5000" /></div>
-                <div><label style={lbl}>Proposed Closing Date</label><input style={inp} type="date" value={form.closing_date} onChange={e => update("closing_date", e.target.value)} /></div>
+                <div>
+                  <label style={lbl}>Proposed Closing Date</label>
+                  <input style={inp} type="date" value={form.closing_date} onChange={e => update("closing_date", e.target.value)} />
+                  <div style={{ fontSize: 11, color: "#888", marginTop: 3 }}>Key negotiation term — choose carefully</div>
+                </div>
               </div>
               <div><label style={lbl}>Message to Seller (optional)</label>
                 <textarea style={{ ...inp, minHeight: 80, resize: "vertical" }} value={form.message} onChange={e => update("message", e.target.value)} placeholder="Tell the seller about yourself and why you love the home..." />
@@ -452,7 +633,7 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
 
           {step === 2 && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <p style={{ fontSize: 14, color: "#555", lineHeight: 1.7, background: "var(--warm)", padding: "14px 16px", borderRadius: 10 }}>Contingencies protect you as a buyer. Keeping them gives you an exit if something goes wrong. Waiving them makes your offer more competitive but carries more risk.</p>
+              <p style={{ fontSize: 14, color: "#555", lineHeight: 1.7, background: "var(--warm)", padding: "14px 16px", borderRadius: 10 }}>Contingencies protect you as a buyer. Keeping them gives you an exit if something goes wrong. Waiving them makes your offer more competitive but carries risk.</p>
               {[
                 { key: "financing_contingency", label: "Financing Contingency", desc: "Protects you if your loan falls through. Recommended if you need a mortgage." },
                 { key: "inspection_contingency", label: "Inspection Contingency", desc: "Allows you to negotiate repairs or walk away after a home inspection." },
@@ -460,7 +641,7 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
               ].map(c => (
                 <div key={c.key} style={{ background: form[c.key] ? "#f0fff4" : "#fff5f5", border: "1px solid " + (form[c.key] ? "#9ae6b4" : "#fcc"), borderRadius: 12, padding: "16px 18px", display: "flex", alignItems: "flex-start", gap: 14, cursor: "pointer" }} onClick={() => update(c.key, !form[c.key])}>
                   <div style={{ width: 22, height: 22, borderRadius: 6, background: form[c.key] ? "var(--sage)" : "#ddd", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
-                    {form[c.key] && <span style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>v</span>}
+                    {form[c.key] && <span style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>✓</span>}
                   </div>
                   <div>
                     <div style={{ fontWeight: 500, fontSize: 14, marginBottom: 3, color: "var(--ink)" }}>{c.label}</div>
@@ -482,7 +663,7 @@ function MakeOfferModal({ listing, user, onClose, onRequireAuth }) {
               <div><label style={lbl}>Phone Number</label><input style={inp} type="tel" value={form.buyer_phone} onChange={e => update("buyer_phone", e.target.value)} placeholder="(555) 123-4567" /></div>
               <div style={{ background: "var(--warm)", borderRadius: 10, padding: "14px 16px", fontSize: 13, lineHeight: 1.8, color: "var(--ink)" }}>
                 <strong>Offer Summary</strong><br />
-                Price: {formatPrice(form.offer_price)} | Earnest: {formatPrice(form.earnest_money)} | Closing: {form.closing_date || "TBD"}<br />
+                Price: {formatPrice(form.offer_price)} · Earnest: {formatPrice(form.earnest_money)} · Closing: {form.closing_date || "TBD"}<br />
                 Contingencies: {[form.financing_contingency && "Financing", form.inspection_contingency && "Inspection", form.appraisal_contingency && "Appraisal"].filter(Boolean).join(", ") || "None"}
               </div>
               {error && <div style={{ background: "#fff5f5", border: "1px solid #fcc", borderRadius: 10, padding: "12px 16px", color: "var(--rust)", fontSize: 13 }}>{error}</div>}
@@ -504,20 +685,12 @@ function SignaturePad({ onSign }) {
   const canvasRef = useRef(null);
   const [drawing, setDrawing] = useState(false);
   const [signed, setSigned] = useState(false);
-
-  const getPos = (e, canvas) => {
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return { x: clientX - rect.left, y: clientY - rect.top };
-  };
-
+  const getPos = (e, canvas) => { const rect = canvas.getBoundingClientRect(); const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; return { x: clientX - rect.left, y: clientY - rect.top }; };
   const start = (e) => { const canvas = canvasRef.current; const ctx = canvas.getContext("2d"); const pos = getPos(e, canvas); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); setDrawing(true); };
   const draw = (e) => { if (!drawing) return; const canvas = canvasRef.current; const ctx = canvas.getContext("2d"); const pos = getPos(e, canvas); ctx.lineTo(pos.x, pos.y); ctx.strokeStyle = "#1a1208"; ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.stroke(); setSigned(true); };
   const stop = () => setDrawing(false);
   const clear = () => { const canvas = canvasRef.current; const ctx = canvas.getContext("2d"); ctx.clearRect(0, 0, canvas.width, canvas.height); setSigned(false); };
   const save = () => { if (!signed) return; onSign(canvasRef.current.toDataURL()); };
-
   return (
     <div>
       <div style={{ border: "1.5px solid var(--warm)", borderRadius: 10, background: "#fff", marginBottom: 8 }}>
@@ -548,6 +721,7 @@ function StepCard({ step, offer, user, onUpdate }) {
   const [uploading, setUploading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [showCounter, setShowCounter] = useState(false);
+  const [showDocs, setShowDocs] = useState(false);
   const [counterForm, setCounterForm] = useState({ counter_price: "", counter_closing_date: "", counter_message: "" });
   const inp = { width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid var(--warm)", background: "var(--cream)", fontSize: 14, outline: "none", color: "var(--ink)" };
 
@@ -569,20 +743,18 @@ function StepCard({ step, offer, user, onUpdate }) {
     const nextStep = TRANSACTION_STEPS[nextIndex - 1];
     const updates = { step_index: nextIndex, step: nextStep?.key || "closing" };
     if (uploadedFile) updates["step_" + step.key + "_doc"] = uploadedFile;
-
     if (step.key === "closing") {
       updates.status = "closed";
       await sb.from("listings").update({ sold: true, sold_at: new Date().toISOString() }).eq("id", offer.listing_id);
     }
-
     const { error } = await sb.from("offers").update(updates).eq("id", offer.id);
     if (!error) {
       const otherPartyId = isSeller ? offer.buyer_id : offer.seller_id;
       const otherEmail = isSeller ? offer.buyer_email : offer.listings?.seller_email;
-      const nextStepLabel = nextStep?.label || "Closing";
-      await sendNotification(otherPartyId, step.label + " complete. Next step: " + nextStepLabel, "offers");
+      const nextLabel = nextStep?.label || "Closing";
+      await sendNotification(otherPartyId, step.label + " complete. Next: " + nextLabel, "offers");
       await sendEmail(otherEmail, "Transaction Update: " + step.label + " Complete",
-        "<h2>" + step.label + " has been completed.</h2><p>The next step is <strong>" + nextStepLabel + "</strong>. Log in to DirectDeed to take action.</p>"
+        "<h2 style='font-family:sans-serif;color:#1a1208'>" + step.label + " has been completed.</h2><p style='font-family:sans-serif;color:#444'>The next step is <strong>" + nextLabel + "</strong>. Log in to DirectDeed to take action.</p>"
       );
       onUpdate({ ...offer, ...updates });
     }
@@ -599,7 +771,8 @@ function StepCard({ step, offer, user, onUpdate }) {
       const msg = status === "accepted" ? "Your offer was accepted! Next: deposit earnest money." : "Your offer was declined.";
       await sendNotification(offer.buyer_id, msg, "offers");
       await sendEmail(offer.buyer_email, "Offer Update on " + (offer.listings?.address || "your property"),
-        "<h2>Your offer has been " + status + ".</h2>" + (status === "accepted" ? "<p>Next step: deposit your earnest money and upload confirmation in DirectDeed.</p>" : "<p>You may submit a new offer or contact the seller directly.</p>")
+        "<h2 style='font-family:sans-serif;color:#1a1208'>Your offer has been " + status + ".</h2>" +
+        (status === "accepted" ? "<p style='font-family:sans-serif;color:#444'>Next step: deposit your earnest money with a licensed title company or real estate attorney and upload confirmation in DirectDeed.</p>" : "<p style='font-family:sans-serif;color:#444'>You may submit a new offer or contact the seller directly.</p>")
       );
       onUpdate({ ...offer, ...updates });
     }
@@ -613,11 +786,11 @@ function StepCard({ step, offer, user, onUpdate }) {
     if (!error) {
       await sendNotification(offer.buyer_id, "The seller has countered your offer. Log in to respond.", "offers");
       await sendEmail(offer.buyer_email, "Counteroffer on " + (offer.listings?.address || "your property"),
-        "<h2>The seller has submitted a counteroffer.</h2>" +
-        (counterForm.counter_price ? "<p>Counter price: <strong>" + formatPrice(counterForm.counter_price) + "</strong></p>" : "") +
-        (counterForm.counter_closing_date ? "<p>Counter closing date: <strong>" + counterForm.counter_closing_date + "</strong></p>" : "") +
-        (counterForm.counter_message ? "<p>Message: " + counterForm.counter_message + "</p>" : "") +
-        "<p>Log in to DirectDeed to accept or decline.</p>"
+        "<h2 style='font-family:sans-serif;color:#1a1208'>The seller has submitted a counteroffer.</h2>" +
+        (counterForm.counter_price ? "<p style='font-family:sans-serif;color:#444'>Counter price: <strong>" + formatPrice(counterForm.counter_price) + "</strong></p>" : "") +
+        (counterForm.counter_closing_date ? "<p style='font-family:sans-serif;color:#444'>Counter closing date: <strong>" + counterForm.counter_closing_date + "</strong></p>" : "") +
+        (counterForm.counter_message ? "<p style='font-family:sans-serif;color:#444'>Message: " + counterForm.counter_message + "</p>" : "") +
+        "<p style='font-family:sans-serif;color:#444'>Log in to DirectDeed to accept or decline.</p>"
       );
       onUpdate({ ...offer, ...updates });
       setShowCounter(false);
@@ -630,33 +803,27 @@ function StepCard({ step, offer, user, onUpdate }) {
     const updates = { status: "accepted", offer_price: offer.counter_price || offer.offer_price, closing_date: offer.counter_closing_date || offer.closing_date, step: "earnest", step_index: 2, counter_price: null, counter_closing_date: null, counter_message: null };
     const { error } = await sb.from("offers").update(updates).eq("id", offer.id);
     if (!error) {
-      await sendNotification(offer.seller_id, "The buyer accepted your counteroffer! Next step: earnest money deposit.", "offers");
+      await sendNotification(offer.seller_id, "The buyer accepted your counteroffer! Next: earnest money deposit.", "offers");
       onUpdate({ ...offer, ...updates });
     }
     setLoading(false);
   };
 
   if (isLocked) return (
-    <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 14, padding: "16px 20px", marginBottom: 10, opacity: 0.5 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ fontSize: 22 }}>{step.icon}</span>
-        <div>
-          <div style={{ fontWeight: 500, fontSize: 14, color: "var(--ink)" }}>Step {step.id}: {step.label}</div>
-          <div style={{ fontSize: 12, color: "#888" }}>Locked - complete previous steps first</div>
-        </div>
-        <span style={{ marginLeft: "auto", fontSize: 16 }}>🔒</span>
+    <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 14, padding: "14px 18px", marginBottom: 8, opacity: 0.5 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={{ fontSize: 20 }}>{step.icon}</span>
+        <div><div style={{ fontWeight: 500, fontSize: 13, color: "var(--ink)" }}>Step {step.id}: {step.label}</div><div style={{ fontSize: 11, color: "#888" }}>Locked — complete previous steps first</div></div>
+        <span style={{ marginLeft: "auto" }}>🔒</span>
       </div>
     </div>
   );
 
   if (isCompleted) return (
-    <div style={{ background: "#f0fff4", border: "1px solid #9ae6b4", borderRadius: 14, padding: "16px 20px", marginBottom: 10 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ fontSize: 22 }}>{step.icon}</span>
-        <div>
-          <div style={{ fontWeight: 500, fontSize: 14, color: "var(--sage)" }}>Step {step.id}: {step.label}</div>
-          <div style={{ fontSize: 12, color: "var(--sage)" }}>Completed</div>
-        </div>
+    <div style={{ background: "#f0fff4", border: "1px solid #9ae6b4", borderRadius: 14, padding: "14px 18px", marginBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={{ fontSize: 20 }}>{step.icon}</span>
+        <div><div style={{ fontWeight: 500, fontSize: 13, color: "var(--sage)" }}>Step {step.id}: {step.label}</div><div style={{ fontSize: 11, color: "var(--sage)" }}>Completed ✓</div></div>
         <span style={{ marginLeft: "auto", fontSize: 18 }}>✅</span>
       </div>
     </div>
@@ -666,19 +833,55 @@ function StepCard({ step, offer, user, onUpdate }) {
     <div style={{ background: "var(--card)", border: "2px solid var(--gold)", borderRadius: 14, padding: "20px", marginBottom: 10, animation: "fadeIn 0.3s ease" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
         <span style={{ fontSize: 26 }}>{step.icon}</span>
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 600, fontSize: 15, color: "var(--ink)" }}>Step {step.id}: {step.label}</div>
-          <div style={{ fontSize: 13, color: "#666" }}>{step.desc}</div>
+          <div style={{ fontSize: 12, color: "#666" }}>{step.desc}</div>
         </div>
-        {isMyTurn && <span style={{ marginLeft: "auto", background: "var(--gold)", color: "#fff", fontSize: 10, padding: "3px 10px", borderRadius: 12, fontWeight: 700 }}>YOUR TURN</span>}
-        {!isMyTurn && <span style={{ marginLeft: "auto", background: "#ddd", color: "#555", fontSize: 10, padding: "3px 10px", borderRadius: 12, fontWeight: 700 }}>WAITING</span>}
+        {isMyTurn && <span style={{ background: "var(--gold)", color: "#fff", fontSize: 10, padding: "3px 10px", borderRadius: 12, fontWeight: 700 }}>YOUR TURN</span>}
+        {!isMyTurn && <span style={{ background: "#eee", color: "#666", fontSize: 10, padding: "3px 10px", borderRadius: 12, fontWeight: 700 }}>WAITING</span>}
       </div>
 
-      <div style={{ background: "var(--cream)", borderRadius: 10, padding: "12px 16px", marginBottom: 14, fontSize: 13, color: "var(--ink)", lineHeight: 1.7 }}>
+      <div style={{ background: "var(--cream)", borderRadius: 10, padding: "12px 16px", marginBottom: 14, fontSize: 13, color: "var(--ink)", lineHeight: 1.7, border: "1px solid var(--warm)" }}>
         <strong>Your action:</strong> {isBuyer ? step.buyerAction : step.sellerAction}
       </div>
 
-      {/* STEP 1: OFFER - Seller actions */}
+      {/* Related documents */}
+      {step.relatedDocs && step.relatedDocs.length > 0 && (
+        <div style={{ marginBottom: 14 }}>
+          <button onClick={() => setShowDocs(!showDocs)} style={{ background: "none", border: "1px solid var(--warm)", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", color: "var(--gold)", fontWeight: 500 }}>
+            📄 {showDocs ? "Hide" : "View"} related documents ({step.relatedDocs.length})
+          </button>
+          {showDocs && (
+            <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {step.relatedDocs.map(doc => (
+                <div key={doc} style={{ background: "var(--warm)", borderRadius: 8, padding: "6px 12px", fontSize: 12, color: "var(--ink)", border: "1px solid var(--warm)" }}>
+                  📋 {doc}
+                  <span style={{ color: "var(--gold)", marginLeft: 8, cursor: "pointer", fontSize: 11 }} onClick={() => window.open("/?tab=Contracts", "_self")}>Generate →</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* EARNEST MONEY STEP — special guidance */}
+      {step.key === "earnest" && isBuyer && (
+        <div style={{ background: "#fffbf0", border: "1px solid #f0d080", borderRadius: 12, padding: "16px", marginBottom: 14 }}>
+          <div style={{ fontWeight: 600, fontSize: 13, color: "var(--gold)", marginBottom: 8 }}>📋 How to Deposit Earnest Money</div>
+          <div style={{ fontSize: 13, color: "#555", lineHeight: 1.8 }}>
+            Earnest money is held by a neutral third party until closing. Here's how:<br />
+            <strong>1. Choose an escrow agent</strong> — typically a licensed title company or real estate attorney in the property's state.<br />
+            <strong>2. Contact them directly</strong> — provide the purchase price, your name, seller's name, and property address.<br />
+            <strong>3. Wire or deliver funds</strong> — they will provide wiring instructions. Keep your receipt.<br />
+            <strong>4. Upload confirmation here</strong> — upload the wire receipt or deposit confirmation below to advance.<br />
+          </div>
+          <div style={{ marginTop: 10, background: "var(--warm)", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "#666" }}>
+            💡 <strong>Tip:</strong> Search "[your state] title companies" or ask your real estate attorney for a recommendation. Never wire money directly to the seller.
+          </div>
+        </div>
+      )}
+
+      {/* STEP 1: OFFER — Seller actions */}
       {step.key === "offer" && offer.status === "pending" && isSeller && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 4 }}>
@@ -691,8 +894,8 @@ function StepCard({ step, offer, user, onUpdate }) {
               <div style={{ fontSize: 18, fontWeight: 600, color: "var(--ink)" }}>{formatPrice(offer.earnest_money)}</div>
             </div>
             <div style={{ background: "var(--warm)", borderRadius: 10, padding: "10px", textAlign: "center" }}>
-              <div style={{ fontSize: 10, color: "#666" }}>CLOSING</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>{offer.closing_date || "TBD"}</div>
+              <div style={{ fontSize: 10, color: "#666" }}>CLOSING DATE</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{offer.closing_date || "TBD"}</div>
             </div>
           </div>
           {offer.message && <div style={{ background: "var(--cream)", borderRadius: 10, padding: "12px", fontSize: 13, color: "#555", fontStyle: "italic", border: "1px solid var(--warm)" }}>"{offer.message}"</div>}
@@ -723,7 +926,7 @@ function StepCard({ step, offer, user, onUpdate }) {
         </div>
       )}
 
-      {/* STEP 1: OFFER - Buyer waiting */}
+      {/* STEP 1: OFFER — Buyer waiting */}
       {step.key === "offer" && offer.status === "pending" && isBuyer && (
         <div style={{ background: "var(--cream)", borderRadius: 10, padding: "14px", fontSize: 14, color: "#555", textAlign: "center", border: "1px solid var(--warm)" }}>
           Waiting for seller to review your offer...
@@ -733,7 +936,7 @@ function StepCard({ step, offer, user, onUpdate }) {
         </div>
       )}
 
-      {/* COUNTEROFFER RECEIVED - Buyer */}
+      {/* COUNTEROFFER — Buyer */}
       {step.key === "offer" && offer.status === "countered" && isBuyer && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ background: "#fff8f0", border: "1px solid #fcd", borderRadius: 10, padding: "14px 16px" }}>
@@ -751,7 +954,7 @@ function StepCard({ step, offer, user, onUpdate }) {
         </div>
       )}
 
-      {/* COUNTEROFFER RECEIVED - Seller waiting */}
+      {/* COUNTEROFFER — Seller waiting */}
       {step.key === "offer" && offer.status === "countered" && isSeller && (
         <div style={{ background: "var(--cream)", borderRadius: 10, padding: "14px", fontSize: 14, color: "#555", textAlign: "center", border: "1px solid var(--warm)" }}>
           Waiting for buyer to respond to your counteroffer...
@@ -762,13 +965,13 @@ function StepCard({ step, offer, user, onUpdate }) {
       {step.key !== "offer" && isMyTurn && (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div>
-            <label style={{ display: "block", fontSize: 11, color: "#555", marginBottom: 6, textTransform: "uppercase" }}>Upload Document (optional)</label>
-            <label style={{ display: "flex", alignItems: "center", gap: 10, border: "1.5px dashed var(--warm)", borderRadius: 10, padding: "12px 16px", cursor: "pointer", background: "var(--cream)" }}>
+            <label style={{ display: "block", fontSize: 11, color: "#555", marginBottom: 6, textTransform: "uppercase" }}>Upload Document</label>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, border: "1.5px dashed var(--warm)", borderRadius: 10, padding: "12px 16px", cursor: "pointer", background: "#fff" }}>
               <span style={{ fontSize: 20 }}>📎</span>
-              <span style={{ fontSize: 13, color: "#666" }}>{uploading ? "Uploading..." : uploadedFile ? "Document uploaded" : "Click to upload document"}</span>
+              <span style={{ fontSize: 13, color: "#666" }}>{uploading ? "Uploading..." : uploadedFile ? "✓ Document uploaded — ready to submit" : "Click to upload confirmation or document"}</span>
               <input type="file" style={{ display: "none" }} onChange={e => e.target.files[0] && uploadDoc(e.target.files[0])} />
             </label>
-            {uploadedFile && <div style={{ fontSize: 12, color: "var(--sage)", marginTop: 4 }}>Document ready</div>}
+            {uploadedFile && <div style={{ fontSize: 12, color: "var(--sage)", marginTop: 4 }}>Document attached and ready</div>}
           </div>
           <div>
             <label style={{ display: "block", fontSize: 11, color: "#555", marginBottom: 6, textTransform: "uppercase" }}>Note (optional)</label>
@@ -777,13 +980,13 @@ function StepCard({ step, offer, user, onUpdate }) {
           {step.key === "closing" && (
             <div>
               <label style={{ display: "block", fontSize: 11, color: "#555", marginBottom: 6, textTransform: "uppercase" }}>E-Signature Required</label>
-              {isBuyer && !signed ? <SignaturePad onSign={() => setSigned(true)} /> : isBuyer && signed && <div style={{ background: "#f0fff4", border: "1px solid #9ae6b4", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "var(--sage)" }}>Buyer signature captured</div>}
-              {isSeller && !sellerSigned ? <SignaturePad onSign={() => setSellerSigned(true)} /> : isSeller && sellerSigned && <div style={{ background: "#f0fff4", border: "1px solid #9ae6b4", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "var(--sage)" }}>Seller signature captured</div>}
+              {isBuyer && !signed ? <SignaturePad onSign={() => setSigned(true)} /> : isBuyer && signed && <div style={{ background: "#f0fff4", border: "1px solid #9ae6b4", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "var(--sage)" }}>✓ Buyer signature captured</div>}
+              {isSeller && !sellerSigned ? <SignaturePad onSign={() => setSellerSigned(true)} /> : isSeller && sellerSigned && <div style={{ background: "#f0fff4", border: "1px solid #9ae6b4", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "var(--sage)" }}>✓ Seller signature captured</div>}
             </div>
           )}
           <button onClick={advance} disabled={loading || (step.key === "closing" && ((isBuyer && !signed) || (isSeller && !sellerSigned)))}
             style={{ background: loading ? "#aaa" : (step.key === "closing" && ((isBuyer && !signed) || (isSeller && !sellerSigned))) ? "#ccc" : "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
-            {loading ? <Spinner /> : step.key === "closing" ? "Complete Transaction" : "Mark Complete and Continue"}
+            {loading ? <Spinner /> : step.key === "closing" ? "Complete Transaction" : "Mark Complete & Continue"}
           </button>
         </div>
       )}
@@ -811,7 +1014,10 @@ function OffersTab({ user, onRequireAuth }) {
   useEffect(() => {
     if (!user) { setLoading(false); return; }
     async function load() {
-      const { data } = await sb.from("offers").select("*, listings(address, city, state, seller_name, price, user_id, seller_email)").or("buyer_id.eq." + user.id + ",seller_id.eq." + user.id).order("created_at", { ascending: false });
+      const { data } = await sb.from("offers")
+        .select("*, listings(address, city, state, zip, seller_name, price, user_id, seller_email)")
+        .or("buyer_id.eq." + user.id + ",seller_id.eq." + user.id)
+        .order("created_at", { ascending: false });
       setOffers(data || []);
       setLoading(false);
     }
@@ -839,41 +1045,50 @@ function OffersTab({ user, onRequireAuth }) {
         <button onClick={() => setActiveOffer(null)} style={{ background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: 14, marginBottom: 20, display: "flex", alignItems: "center", gap: 6 }}>
           ← Back to All Offers
         </button>
-        <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16, padding: "22px 26px", marginBottom: 24 }}>
+
+        {/* Offer summary card */}
+        <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16, padding: "22px 26px", marginBottom: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
             <div>
-              <div style={{ fontSize: 20, fontWeight: 500, marginBottom: 4, color: "var(--ink)" }}>{activeOffer.listings?.address}</div>
-              <div style={{ fontSize: 13, color: "#666" }}>{activeOffer.listings?.city}, {activeOffer.listings?.state}</div>
+              <div style={{ fontSize: 20, fontWeight: 500, marginBottom: 2, color: "var(--ink)" }}>{activeOffer.listings?.address}</div>
+              <div style={{ fontSize: 13, color: "#666" }}>{activeOffer.listings?.city}, {activeOffer.listings?.state} {activeOffer.listings?.zip}</div>
             </div>
             <span style={{ background: activeOffer.status === "accepted" || activeOffer.status === "closed" ? "var(--sage)" : activeOffer.status === "declined" ? "#aaa" : activeOffer.status === "countered" ? "var(--rust)" : "var(--gold)", color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 20, textTransform: "uppercase" }}>{activeOffer.status}</span>
           </div>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <div style={{ background: "var(--warm)", borderRadius: 10, padding: "10px 14px", flex: 1, minWidth: 100 }}>
               <div style={{ fontSize: 10, color: "#666" }}>OFFER PRICE</div>
               <div style={{ fontSize: 18, fontWeight: 600, color: "var(--gold)" }}>{formatPrice(activeOffer.offer_price)}</div>
             </div>
             <div style={{ background: "var(--warm)", borderRadius: 10, padding: "10px 14px", flex: 1, minWidth: 100 }}>
-              <div style={{ fontSize: 10, color: "#666" }}>EARNEST</div>
+              <div style={{ fontSize: 10, color: "#666" }}>EARNEST MONEY</div>
               <div style={{ fontSize: 18, fontWeight: 600, color: "var(--ink)" }}>{formatPrice(activeOffer.earnest_money)}</div>
             </div>
             <div style={{ background: "var(--warm)", borderRadius: 10, padding: "10px 14px", flex: 1, minWidth: 100 }}>
-              <div style={{ fontSize: 10, color: "#666" }}>CLOSING</div>
+              <div style={{ fontSize: 10, color: "#666" }}>CLOSING DATE</div>
               <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>{activeOffer.closing_date || "TBD"}</div>
+            </div>
+            <div style={{ background: "var(--warm)", borderRadius: 10, padding: "10px 14px", flex: 1, minWidth: 100 }}>
+              <div style={{ fontSize: 10, color: "#666" }}>CONTINGENCIES</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: "var(--ink)", lineHeight: 1.5 }}>
+                {[activeOffer.financing_contingency && "Financing", activeOffer.inspection_contingency && "Inspection", activeOffer.appraisal_contingency && "Appraisal"].filter(Boolean).join(", ") || "None"}
+              </div>
             </div>
           </div>
         </div>
 
-        <div style={{ marginBottom: 24, overflowX: "auto" }}>
-          <div style={{ display: "flex", gap: 0, paddingBottom: 8 }}>
+        {/* Progress tracker */}
+        <div style={{ marginBottom: 20, overflowX: "auto" }}>
+          <div style={{ display: "flex", gap: 0, paddingBottom: 8, minWidth: 560 }}>
             {TRANSACTION_STEPS.map((s, i) => (
               <div key={s.id} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-                <div style={{ textAlign: "center", width: 64 }}>
+                <div style={{ textAlign: "center", width: 62 }}>
                   <div style={{ width: 28, height: 28, borderRadius: "50%", background: currentStepIndex > s.id ? "var(--sage)" : currentStepIndex === s.id ? "var(--gold)" : "var(--warm)", color: currentStepIndex >= s.id ? "#fff" : "#888", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 4px", fontSize: 12 }}>
                     {currentStepIndex > s.id ? "✓" : s.icon}
                   </div>
-                  <div style={{ fontSize: 8, color: currentStepIndex === s.id ? "var(--gold)" : "#888", lineHeight: 1.2 }}>{s.label}</div>
+                  <div style={{ fontSize: 8, color: currentStepIndex === s.id ? "var(--gold)" : "#888", lineHeight: 1.2, fontWeight: currentStepIndex === s.id ? 600 : 400 }}>{s.label}</div>
                 </div>
-                {i < TRANSACTION_STEPS.length - 1 && <div style={{ width: 14, height: 2, background: currentStepIndex > s.id ? "var(--sage)" : "var(--warm)", flexShrink: 0, marginBottom: 16 }} />}
+                {i < TRANSACTION_STEPS.length - 1 && <div style={{ width: 12, height: 2, background: currentStepIndex > s.id ? "var(--sage)" : "var(--warm)", flexShrink: 0, marginBottom: 16 }} />}
               </div>
             ))}
           </div>
@@ -905,11 +1120,13 @@ function OffersTab({ user, onRequireAuth }) {
     <div onClick={() => setActiveOffer(o)} style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 14, padding: "18px 22px", marginBottom: 12, cursor: "pointer", transition: "all 0.2s" }}
       onMouseEnter={e => e.currentTarget.style.borderColor = "var(--gold)"}
       onMouseLeave={e => e.currentTarget.style.borderColor = "var(--warm)"}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <div style={{ fontWeight: 500, fontSize: 16, marginBottom: 3, color: "var(--ink)" }}>{o.listings?.address}</div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 500, fontSize: 16, marginBottom: 2, color: "var(--ink)" }}>{o.listings?.address}</div>
+          <div style={{ fontSize: 12, color: "#888", marginBottom: 6 }}>{o.listings?.city}, {o.listings?.state} {o.listings?.zip}</div>
           <div style={{ fontSize: 13, color: "#666", marginBottom: 4 }}>
             {o.buyer_id === user.id ? "Offer: " + formatPrice(o.offer_price) : "Buyer: " + o.buyer_name + " — " + formatPrice(o.offer_price)}
+            {o.closing_date && <span style={{ color: "#888", marginLeft: 8 }}>· Closing: {o.closing_date}</span>}
           </div>
           <div style={{ fontSize: 12, color: "#888" }}>
             Step {o.step_index} of 9: {TRANSACTION_STEPS.find(s => s.id === o.step_index)?.label}
@@ -959,6 +1176,7 @@ function MessagesTab({ newThread, user, onRequireAuth }) {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const bottomRef = useRef(null);
+  const channelRef = useRef(null);
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
@@ -967,31 +1185,24 @@ function MessagesTab({ newThread, user, onRequireAuth }) {
 
   const loadConversations = async () => {
     const { data } = await sb.from("messages")
-      .select("*, listings(address, city, state, seller_name, user_id)")
+      .select("*, listings(address, city, state, zip, seller_name, user_id)")
       .or("user_id.eq." + user.id + ",recipient_id.eq." + user.id)
       .order("created_at", { ascending: false });
-
     if (!data) { setLoading(false); return; }
-
     const convMap = {};
     data.forEach(msg => {
       const otherId = msg.user_id === user.id ? msg.recipient_id : msg.user_id;
       const key = msg.listing_id + "-" + [msg.user_id, msg.recipient_id].sort().join("-");
       if (!convMap[key]) {
         convMap[key] = {
-          key,
-          listing_id: msg.listing_id,
-          listing: msg.listings,
+          key, listing_id: msg.listing_id, listing: msg.listings,
           other_user_id: otherId,
           other_name: msg.user_id === user.id ? msg.recipient_name : msg.sender_name,
-          last_message: msg.body,
-          last_time: msg.created_at,
-          unread: 0,
+          last_message: msg.body, last_time: msg.created_at, unread: 0,
         };
       }
       if (msg.recipient_id === user.id && !msg.read) convMap[key].unread++;
     });
-
     setConversations(Object.values(convMap).sort((a, b) => new Date(b.last_time) - new Date(a.last_time)));
     setLoading(false);
   };
@@ -1000,13 +1211,9 @@ function MessagesTab({ newThread, user, onRequireAuth }) {
     if (newThread && user) {
       const conv = {
         key: newThread.id + "-" + [user.id, newThread.user_id].sort().join("-"),
-        listing_id: newThread.id,
-        listing: newThread,
-        other_user_id: newThread.user_id,
-        other_name: newThread.seller_name,
-        last_message: "",
-        last_time: new Date().toISOString(),
-        unread: 0,
+        listing_id: newThread.id, listing: newThread,
+        other_user_id: newThread.user_id, other_name: newThread.seller_name,
+        last_message: "", last_time: new Date().toISOString(), unread: 0,
       };
       setActiveConv(conv);
     }
@@ -1015,19 +1222,25 @@ function MessagesTab({ newThread, user, onRequireAuth }) {
   useEffect(() => {
     if (!activeConv || !user) return;
     loadMessages();
-    const sub = sb.channel("conv-" + activeConv.key)
+    if (channelRef.current) sb.removeChannel(channelRef.current);
+    const ch = sb.channel("conv-" + activeConv.key)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: "listing_id=eq." + activeConv.listing_id },
         payload => {
           const msg = payload.new;
-          if (msg.user_id === activeConv.other_user_id || msg.recipient_id === activeConv.other_user_id) {
-            setMessages(prev => [...prev, msg]);
-          }
+          const isRelevant = (msg.user_id === user.id && msg.recipient_id === activeConv.other_user_id) ||
+                             (msg.user_id === activeConv.other_user_id && msg.recipient_id === user.id);
+          if (isRelevant) setMessages(prev => {
+            if (prev.find(m => m.id === msg.id)) return prev;
+            return [...prev, msg];
+          });
         })
       .subscribe();
-    return () => sb.removeChannel(sub);
+    channelRef.current = ch;
+    return () => { if (channelRef.current) sb.removeChannel(channelRef.current); };
   }, [activeConv?.key]);
 
   const loadMessages = async () => {
+    if (!activeConv || !user) return;
     const { data } = await sb.from("messages").select("*")
       .eq("listing_id", activeConv.listing_id)
       .or(
@@ -1036,30 +1249,41 @@ function MessagesTab({ newThread, user, onRequireAuth }) {
       )
       .order("created_at", { ascending: true });
     setMessages(data || []);
-    await sb.from("messages").update({ read: true }).eq("listing_id", activeConv.listing_id).eq("recipient_id", user.id);
+    await sb.from("messages").update({ read: true })
+      .eq("listing_id", activeConv.listing_id)
+      .eq("recipient_id", user.id)
+      .eq("read", false);
   };
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const send = async () => {
     if (!input.trim() || !activeConv || !user) return;
+    const body = input.trim();
+    setInput("");
     setSending(true);
-    const msg = {
-      listing_id: activeConv.listing_id,
-      user_id: user.id,
-      recipient_id: activeConv.other_user_id,
-      sender_name: user.user_metadata?.full_name || user.email,
-      recipient_name: activeConv.other_name,
-      body: input,
-      read: false,
-    };
-    const { data } = await sb.from("messages").insert([msg]).select();
-    if (data) {
-      setMessages(prev => [...prev, data[0]]);
-      setInput("");
-      await sendNotification(activeConv.other_user_id, "New message from " + (user.user_metadata?.full_name || user.email) + " about " + (activeConv.listing?.address || "a listing"), "messages");
-      loadConversations();
-    }
+    try {
+      const msg = {
+        listing_id: activeConv.listing_id,
+        user_id: user.id,
+        recipient_id: activeConv.other_user_id,
+        sender_name: user.user_metadata?.full_name || user.email,
+        recipient_name: activeConv.other_name,
+        body,
+        read: false,
+      };
+      const { data, error } = await sb.from("messages").insert([msg]).select();
+      if (error) { console.error("Message error:", error); setSending(false); return; }
+      if (data && data[0]) {
+        setMessages(prev => {
+          if (prev.find(m => m.id === data[0].id)) return prev;
+          return [...prev, data[0]];
+        });
+        await sendNotification(activeConv.other_user_id,
+          "New message from " + (user.user_metadata?.full_name || user.email) + " about " + (activeConv.listing?.address || "a listing"), "messages");
+        loadConversations();
+      }
+    } catch (e) { console.error("Send error:", e); }
     setSending(false);
   };
 
@@ -1081,17 +1305,17 @@ function MessagesTab({ newThread, user, onRequireAuth }) {
           <div style={{ flex: 1, overflow: "auto" }}>
             {loading && <div style={{ padding: 24, textAlign: "center", color: "#888", fontSize: 13 }}>Loading...</div>}
             {!loading && conversations.length === 0 && (
-              <div style={{ padding: 24, textAlign: "center", color: "#888", fontSize: 13 }}>No conversations yet. Browse a listing and message the seller!</div>
+              <div style={{ padding: 24, textAlign: "center", color: "#888", fontSize: 13, lineHeight: 1.6 }}>No conversations yet.<br />Browse a listing and message the seller to start.</div>
             )}
             {conversations.map(conv => (
               <div key={conv.key} onClick={() => setActiveConv(conv)}
                 style={{ padding: "14px 18px", cursor: "pointer", borderBottom: "1px solid var(--warm)", background: activeConv?.key === conv.key ? "var(--warm)" : "transparent", transition: "background 0.15s", position: "relative" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 3 }}>
                   <div style={{ fontWeight: conv.unread > 0 ? 700 : 500, fontSize: 13, color: "var(--ink)" }}>{conv.listing?.address || "Property"}</div>
-                  <div style={{ fontSize: 10, color: "#888" }}>{timeAgo(conv.last_time)}</div>
+                  <div style={{ fontSize: 10, color: "#aaa" }}>{timeAgo(conv.last_time)}</div>
                 </div>
-                <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>{conv.other_name}</div>
-                <div style={{ fontSize: 12, color: conv.unread > 0 ? "var(--ink)" : "#888", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{conv.last_message}</div>
+                <div style={{ fontSize: 12, color: "#666", marginBottom: 3 }}>{conv.other_name}</div>
+                <div style={{ fontSize: 12, color: conv.unread > 0 ? "var(--ink)" : "#aaa", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{conv.last_message}</div>
                 {conv.unread > 0 && (
                   <div style={{ position: "absolute", top: 14, right: 14, background: "var(--sage)", color: "#fff", borderRadius: "50%", width: 18, height: 18, fontSize: 10, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{conv.unread}</div>
                 )}
@@ -1104,21 +1328,21 @@ function MessagesTab({ newThread, user, onRequireAuth }) {
           {activeConv ? (
             <>
               <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--warm)", display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--sage)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 600, fontSize: 14 }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--sage)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 600, fontSize: 14, flexShrink: 0 }}>
                   {activeConv.other_name?.[0]?.toUpperCase() || "?"}
                 </div>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>{activeConv.other_name}</div>
-                  <div style={{ fontSize: 12, color: "#666" }}>{activeConv.listing?.address}</div>
+                  <div style={{ fontSize: 12, color: "#666" }}>{activeConv.listing?.address}{activeConv.listing?.city ? ", " + activeConv.listing.city + ", " + activeConv.listing.state + " " + (activeConv.listing.zip || "") : ""}</div>
                 </div>
               </div>
               <div style={{ flex: 1, overflow: "auto", padding: "20px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
-                {messages.length === 0 && <div style={{ textAlign: "center", color: "#888", marginTop: 60, fontSize: 16 }}>Send a message to start the conversation</div>}
+                {messages.length === 0 && <div style={{ textAlign: "center", color: "#888", marginTop: 60, fontSize: 15 }}>Send a message to start the conversation</div>}
                 {messages.map((m, i) => {
                   const isMe = m.user_id === user.id;
                   const showAvatar = !isMe && (i === 0 || messages[i-1].user_id !== m.user_id);
                   return (
-                    <div key={i} style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start", alignItems: "flex-end", gap: 8 }}>
+                    <div key={m.id || i} style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start", alignItems: "flex-end", gap: 8 }}>
                       {!isMe && (
                         <div style={{ width: 28, height: 28, borderRadius: "50%", background: showAvatar ? "var(--mist)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 600, color: "var(--sage)", flexShrink: 0 }}>
                           {showAvatar ? (activeConv.other_name?.[0]?.toUpperCase() || "?") : ""}
@@ -1128,8 +1352,8 @@ function MessagesTab({ newThread, user, onRequireAuth }) {
                         <div style={{ background: isMe ? "var(--sage)" : "var(--warm)", color: isMe ? "#fff" : "var(--ink)", borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px", padding: "10px 14px", fontSize: 14, lineHeight: 1.5 }}>
                           {m.body}
                         </div>
-                        <div style={{ fontSize: 10, color: "#aaa", marginTop: 3, textAlign: isMe ? "right" : "left" }}>
-                          {timeAgo(m.created_at)}{isMe && m.read ? " ✓✓" : isMe ? " ✓" : ""}
+                        <div style={{ fontSize: 10, color: "#bbb", marginTop: 3, textAlign: isMe ? "right" : "left" }}>
+                          {timeAgo(m.created_at)}{isMe && (m.read ? " ✓✓" : " ✓")}
                         </div>
                       </div>
                     </div>
@@ -1140,10 +1364,10 @@ function MessagesTab({ newThread, user, onRequireAuth }) {
               <div style={{ padding: "12px 16px", borderTop: "1px solid var(--warm)", display: "flex", gap: 10, alignItems: "flex-end" }}>
                 <textarea value={input} onChange={e => setInput(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-                  placeholder="Message..." rows={1}
+                  placeholder="Type a message... (Enter to send)" rows={1}
                   style={{ flex: 1, padding: "10px 14px", borderRadius: 22, border: "1.5px solid var(--warm)", background: "var(--cream)", fontSize: 14, outline: "none", resize: "none", fontFamily: "sans-serif", lineHeight: 1.5, maxHeight: 100, overflow: "auto", color: "var(--ink)" }} />
                 <button onClick={send} disabled={sending || !input.trim()}
-                  style={{ background: input.trim() ? "var(--sage)" : "#ddd", color: "#fff", border: "none", borderRadius: "50%", width: 40, height: 40, cursor: input.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>
+                  style={{ background: input.trim() ? "var(--sage)" : "#ddd", color: "#fff", border: "none", borderRadius: "50%", width: 42, height: 42, cursor: input.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0, transition: "background 0.2s" }}>
                   {sending ? <Spinner /> : "↑"}
                 </button>
               </div>
@@ -1179,7 +1403,7 @@ function SellTab({ user, onRequireAuth }) {
     <div style={{ maxWidth: 480, margin: "80px auto", textAlign: "center", padding: "0 24px" }}>
       <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
       <h2 style={{ fontSize: 32, marginBottom: 12, color: "var(--ink)" }}>Sign in to list your home</h2>
-      <p style={{ color: "#666", lineHeight: 1.7, marginBottom: 28 }}>Create a free account to post your listing and connect with buyers directly.</p>
+      <p style={{ color: "#666", lineHeight: 1.7, marginBottom: 28 }}>Create a free account to post your listing and connect with buyers directly — no realtor needed.</p>
       <button onClick={onRequireAuth} style={{ background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "14px 32px", fontSize: 15, cursor: "pointer" }}>Sign Up Free</button>
     </div>
   );
@@ -1226,7 +1450,7 @@ function SellTab({ user, onRequireAuth }) {
     <div style={{ maxWidth: 520, margin: "80px auto", textAlign: "center", padding: "0 24px" }}>
       <div style={{ fontSize: 64, marginBottom: 20 }}>🎉</div>
       <h2 style={{ fontSize: 36, marginBottom: 12, color: "var(--ink)" }}>Your listing is live!</h2>
-      <p style={{ color: "#555", lineHeight: 1.8, marginBottom: 28 }}>Buyers can now find and contact you directly.</p>
+      <p style={{ color: "#555", lineHeight: 1.8, marginBottom: 28 }}>Buyers can now find and contact you directly. Share your listing on social media to reach more buyers.</p>
       <button onClick={reset} style={{ background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "14px 32px", fontSize: 15, cursor: "pointer" }}>List Another Property</button>
     </div>
   );
@@ -1250,7 +1474,7 @@ function SellTab({ user, onRequireAuth }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
             <div><label style={lbl}>City</label><input style={inp} value={form.city} onChange={e => update("city", e.target.value)} placeholder="Austin" /></div>
             <div><label style={lbl}>State</label><input style={inp} value={form.state} onChange={e => update("state", e.target.value)} placeholder="TX" /></div>
-            <div><label style={lbl}>ZIP</label><input style={inp} value={form.zip} onChange={e => update("zip", e.target.value)} placeholder="78701" /></div>
+            <div><label style={lbl}>ZIP Code</label><input style={inp} value={form.zip} onChange={e => update("zip", e.target.value)} placeholder="78701" /></div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }}>
             <div><label style={lbl}>Beds</label><input style={inp} type="number" value={form.beds} onChange={e => update("beds", e.target.value)} placeholder="3" /></div>
@@ -1262,7 +1486,7 @@ function SellTab({ user, onRequireAuth }) {
               </select>
             </div>
           </div>
-          <button onClick={() => setStep(2)} style={{ background: "var(--gold)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 15, cursor: "pointer" }}>Continue</button>
+          <button onClick={() => { if (!form.address || !form.city || !form.state || !form.zip) { alert("Please fill in all address fields including ZIP code."); return; } setStep(2); }} style={{ background: "var(--gold)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 15, cursor: "pointer" }}>Continue</button>
         </div>
       )}
 
@@ -1279,7 +1503,7 @@ function SellTab({ user, onRequireAuth }) {
               {photos.map((p, i) => (
                 <div key={i} style={{ position: "relative", borderRadius: 10, overflow: "hidden", aspectRatio: "4/3" }}>
                   <img src={p.preview} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  <button onClick={() => setPhotos(prev => prev.filter((_, j) => j !== i))} style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.6)", color: "#fff", border: "none", borderRadius: "50%", width: 20, height: 20, cursor: "pointer", fontSize: 11 }}>x</button>
+                  <button onClick={() => setPhotos(prev => prev.filter((_, j) => j !== i))} style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.6)", color: "#fff", border: "none", borderRadius: "50%", width: 22, height: 22, cursor: "pointer", fontSize: 12 }}>✕</button>
                 </div>
               ))}
             </div>
@@ -1294,7 +1518,7 @@ function SellTab({ user, onRequireAuth }) {
       {step === 3 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <div><label style={lbl}>Asking Price</label><input style={inp} type="number" value={form.price} onChange={e => update("price", e.target.value)} placeholder="485000" /></div>
-          <div><label style={lbl}>Description</label><textarea style={{ ...inp, minHeight: 110, resize: "vertical" }} value={form.description} onChange={e => update("description", e.target.value)} placeholder="Describe your home — highlights, updates, neighborhood..." /></div>
+          <div><label style={lbl}>Description</label><textarea style={{ ...inp, minHeight: 110, resize: "vertical" }} value={form.description} onChange={e => update("description", e.target.value)} placeholder="Describe your home — highlights, recent updates, neighborhood, schools nearby..." /></div>
           <div style={{ display: "flex", gap: 10 }}>
             <button onClick={() => setStep(2)} style={{ flex: 1, background: "none", border: "1.5px solid var(--warm)", borderRadius: 12, padding: "13px", fontSize: 14, cursor: "pointer", color: "var(--ink)" }}>Back</button>
             <button onClick={() => setStep(4)} style={{ flex: 2, background: "var(--gold)", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 14, cursor: "pointer" }}>Continue</button>
@@ -1307,6 +1531,9 @@ function SellTab({ user, onRequireAuth }) {
           <div><label style={lbl}>Your Name</label><input style={inp} value={form.seller_name} onChange={e => update("seller_name", e.target.value)} placeholder="Jane Smith" /></div>
           <div><label style={lbl}>Email</label><input style={inp} type="email" value={form.seller_email} onChange={e => update("seller_email", e.target.value)} placeholder="jane@email.com" /></div>
           <div><label style={lbl}>Phone</label><input style={inp} type="tel" value={form.seller_phone} onChange={e => update("seller_phone", e.target.value)} placeholder="(555) 123-4567" /></div>
+          <div style={{ background: "var(--warm)", borderRadius: 10, padding: "12px 16px", fontSize: 12, color: "#555", lineHeight: 1.7 }}>
+            Your contact info is only shared with buyers who make an offer on your property.
+          </div>
           {error && <div style={{ background: "#fff5f5", border: "1px solid #fcc", borderRadius: 10, padding: "12px 16px", color: "var(--rust)", fontSize: 13 }}>{error}</div>}
           <div style={{ display: "flex", gap: 10 }}>
             <button onClick={() => setStep(3)} style={{ flex: 1, background: "none", border: "1.5px solid var(--warm)", borderRadius: 12, padding: "13px", fontSize: 14, cursor: "pointer", color: "var(--ink)" }}>Back</button>
@@ -1332,7 +1559,7 @@ function ProfileTab({ user, onRequireAuth }) {
   }, [user]);
 
   const deleteListing = async (id) => {
-    if (!window.confirm("Delete this listing?")) return;
+    if (!window.confirm("Delete this listing? This cannot be undone.")) return;
     await sb.from("listings").delete().eq("id", id);
     setListings(prev => prev.filter(l => l.id !== id));
   };
@@ -1341,7 +1568,7 @@ function ProfileTab({ user, onRequireAuth }) {
     <div style={{ maxWidth: 480, margin: "80px auto", textAlign: "center", padding: "0 24px" }}>
       <div style={{ fontSize: 48, marginBottom: 16 }}>👤</div>
       <h2 style={{ fontSize: 32, marginBottom: 12, color: "var(--ink)" }}>Your Profile</h2>
-      <p style={{ color: "#666", lineHeight: 1.7, marginBottom: 28 }}>Sign in to manage your listings.</p>
+      <p style={{ color: "#666", lineHeight: 1.7, marginBottom: 28 }}>Sign in to manage your listings and account.</p>
       <button onClick={onRequireAuth} style={{ background: "var(--sage)", color: "#fff", border: "none", borderRadius: 12, padding: "14px 32px", fontSize: 15, cursor: "pointer" }}>Sign In</button>
     </div>
   );
@@ -1349,19 +1576,23 @@ function ProfileTab({ user, onRequireAuth }) {
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 36, background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16, padding: "24px 28px" }}>
-        <div style={{ width: 60, height: 60, borderRadius: "50%", background: "var(--sage)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, color: "#fff", fontWeight: 600 }}>
+        <div style={{ width: 60, height: 60, borderRadius: "50%", background: "var(--sage)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, color: "#fff", fontWeight: 700 }}>
           {(user.user_metadata?.full_name || user.email)?.[0]?.toUpperCase()}
         </div>
         <div>
-          <div style={{ fontSize: 24, fontWeight: 500, color: "var(--ink)" }}>{user.user_metadata?.full_name || "Your Account"}</div>
+          <div style={{ fontSize: 24, fontWeight: 600, color: "var(--ink)" }}>{user.user_metadata?.full_name || "Your Account"}</div>
           <div style={{ fontSize: 13, color: "#666", marginTop: 2 }}>{user.email}</div>
         </div>
-        <div style={{ marginLeft: "auto", fontSize: 13, color: "#888" }}>{listings.length} listing{listings.length !== 1 ? "s" : ""}</div>
+        <div style={{ marginLeft: "auto", background: "var(--warm)", borderRadius: 10, padding: "8px 16px", textAlign: "center" }}>
+          <div style={{ fontSize: 20, fontWeight: 700, color: "var(--ink)" }}>{listings.length}</div>
+          <div style={{ fontSize: 11, color: "#666" }}>listing{listings.length !== 1 ? "s" : ""}</div>
+        </div>
       </div>
       <h3 style={{ fontSize: 26, fontWeight: 400, marginBottom: 20, color: "var(--ink)" }}>My Listings</h3>
       {loading && <div style={{ textAlign: "center", padding: "40px", color: "#888" }}>Loading...</div>}
       {!loading && listings.length === 0 && (
         <div style={{ textAlign: "center", padding: "60px", color: "#888", background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16 }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>🏡</div>
           <div style={{ fontSize: 22, marginBottom: 8, color: "var(--ink)" }}>No listings yet</div>
           <div style={{ fontSize: 14 }}>Head to the Sell tab to list your first home.</div>
         </div>
@@ -1399,7 +1630,7 @@ function ValuationTab() {
       <p style={{ color: "#666", fontSize: 14, marginBottom: 28 }}>Get an instant estimate for your home — no realtor required.</p>
       <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16, padding: "26px", marginBottom: 20 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div><label style={lbl}>Property Address</label><input style={inp} value={form.address} onChange={e => update("address", e.target.value)} placeholder="123 Main St, Austin TX" /></div>
+          <div><label style={lbl}>Property Address</label><input style={inp} value={form.address} onChange={e => update("address", e.target.value)} placeholder="123 Main St, Austin TX 78701" /></div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
             <div><label style={lbl}>Beds</label><input style={inp} type="number" value={form.beds} onChange={e => update("beds", Number(e.target.value))} /></div>
             <div><label style={lbl}>Baths</label><input style={inp} type="number" value={form.baths} onChange={e => update("baths", Number(e.target.value))} /></div>
@@ -1480,12 +1711,12 @@ function ContractsTab() {
     const prompts = {
       "Purchase & Sale Agreement": "Generate a detailed professionally structured residential Purchase and Sale Agreement for use in the United States. " + base + " Include all numbered sections: 1) Parties and Property, 2) Purchase Price and Payment, 3) Earnest Money, 4) Financing Contingency, 5) Inspection Contingency, 6) Appraisal Contingency, 7) Title and Closing, 8) Possession Date, 9) Included Items, 10) Property Condition, 11) Closing Costs, 12) Default and Remedies, 13) Dispute Resolution, 14) Entire Agreement. End with signature blocks. Use plain-English legal language. Do not use markdown.",
       "Property Disclosure Statement": "Generate a detailed Seller Property Disclosure Statement for US residential real estate. Seller: " + (f.seller || "_______________") + ". Property: " + f.address + ", " + f.city + ", " + f.state + " " + f.zip + ". Include Yes/No/Unknown questions for: 1) Roof, 2) Foundation, 3) Water intrusion, 4) Plumbing, 5) Electrical, 6) HVAC, 7) Pests, 8) Environmental hazards, 9) HOA, 10) Legal disputes, 11) Unpermitted work, 12) Neighborhood nuisances, 13) Other defects. Include seller certification and signature block. Do not use markdown.",
-      "Counteroffer Addendum": "Generate a formal Counteroffer Addendum for US residential real estate. " + base + " Include: 1) Reference to original offer, 2) Modified price, 3) Modified closing date, 4) Modified contingencies, 5) Additional terms, 6) Expiration, 7) Statement other terms unchanged, 8) Signature blocks. Do not use markdown.",
-      "Inspection Contingency Waiver": "Generate a detailed Inspection Contingency Waiver for US residential real estate. " + base + " Include: 1) Voluntary waiver statement, 2) As-is acceptance, 3) No seller warranties, 4) Risks acknowledged, 5) Waiver is informed and voluntary, 6) Other terms remain, 7) Signature blocks. Do not use markdown.",
+      "Counteroffer Addendum": "Generate a formal Counteroffer Addendum for US residential real estate. " + base + " Include: 1) Reference to original offer, 2) Modified price, 3) Modified closing date, 4) Modified contingencies, 5) Additional terms, 6) Expiration, 7) Other terms unchanged, 8) Signature blocks. Do not use markdown.",
+      "Inspection Contingency Waiver": "Generate a detailed Inspection Contingency Waiver for US residential real estate. " + base + " Include: 1) Voluntary waiver, 2) As-is acceptance, 3) No seller warranties, 4) Risks acknowledged, 5) Voluntary and informed, 6) Other terms remain, 7) Signature blocks. Do not use markdown.",
       "Earnest Money Agreement": "Generate a detailed Earnest Money Agreement for US residential real estate. " + base + " Escrow agent: " + (f.agentName || "_______________") + ". Include: 1) Deposit amount, 2) Deadline, 3) Escrow holder, 4) Return conditions, 5) Forfeiture conditions, 6) Dispute instructions, 7) Interest, 8) Signature blocks. Do not use markdown.",
       "As-Is Addendum": "Generate a detailed As-Is Addendum for US residential real estate. " + base + " Include: 1) As-is statement, 2) No warranties, 3) Buyer acknowledgment, 4) No repairs or credits, 5) Buyer inspection rights, 6) Price reflects condition, 7) Survivability, 8) Signature blocks. Do not use markdown.",
-      "Lead Paint Disclosure": "Generate a Lead-Based Paint Disclosure per 42 USC 4852d for US residential real estate built before 1978. Property: " + f.address + ", " + f.city + ", " + f.state + " " + f.zip + ". Seller: " + (f.seller || "_______________") + ". Buyer: " + (f.buyer || "_______________") + ". Include: 1) Federal requirement statement, 2) Seller disclosure with checkboxes, 3) Available records, 4) EPA pamphlet acknowledgment, 5) 10-day inspection notice, 6) Agent certification, 7) Signature blocks. Do not use markdown.",
-      "Seller Financing Addendum": "Generate a detailed Seller Financing Addendum for US residential real estate. " + base + " Include: 1) Loan amount, 2) Interest rate, 3) Term, 4) Monthly payment, 5) Due date and grace period, 6) Late penalty, 7) Balloon payment, 8) Prepayment, 9) Security interest, 10) Default, 11) Acceleration, 12) Due-on-sale, 13) Insurance and taxes, 14) Signature blocks. Do not use markdown.",
+      "Lead Paint Disclosure": "Generate a Lead-Based Paint Disclosure per 42 USC 4852d for US residential real estate built before 1978. Property: " + f.address + ", " + f.city + ", " + f.state + " " + f.zip + ". Seller: " + (f.seller || "_______________") + ". Buyer: " + (f.buyer || "_______________") + ". Include: 1) Federal requirement, 2) Seller disclosure with checkboxes, 3) Available records, 4) EPA pamphlet acknowledgment, 5) 10-day inspection notice, 6) Agent certification, 7) Signature blocks. Do not use markdown.",
+      "Seller Financing Addendum": "Generate a detailed Seller Financing Addendum for US residential real estate. " + base + " Include: 1) Loan amount, 2) Interest rate, 3) Term, 4) Monthly payment, 5) Due date, 6) Late penalty, 7) Balloon payment, 8) Prepayment, 9) Security interest, 10) Default, 11) Acceleration, 12) Due-on-sale, 13) Insurance and taxes, 14) Signature blocks. Do not use markdown.",
       "Residential Lease Agreement": "Generate a detailed Residential Lease Agreement. Landlord: " + (f.seller || "_______________") + ". Tenant: " + (f.buyer || "_______________") + ". Property: " + f.address + ", " + f.city + ", " + f.state + " " + f.zip + ". Rent: $" + (f.monthlyRent || "_______________") + ". Deposit: $" + (f.deposit || "_______________") + ". Start: " + (f.leaseStart || "_______________") + ". Term: " + (f.leaseMonths || "12") + " months. Include: 1) Parties, 2) Term, 3) Rent, 4) Late fees, 5) Deposit, 6) Utilities, 7) Maintenance, 8) Alterations, 9) Pets, 10) Smoking, 11) Entry rights, 12) Subletting, 13) Termination, 14) Default, 15) Governing law, 16) Signatures. Do not use markdown.",
     };
     return prompts[template.name] || "Generate a professional " + template.name + " for US residential real estate. " + base + " Use plain-English legal language. Do not use markdown.";
@@ -1496,9 +1727,7 @@ function ContractsTab() {
     try {
       const text = await callClaude([{ role: "user", content: getPrompt(selected, form) }], 2000);
       setContractText(text);
-    } catch (e) {
-      setContractText("Error: " + e.message + ". Please try again.");
-    }
+    } catch (e) { setContractText("Error: " + e.message + ". Please try again."); }
     setGenerated(true); setLoading(false);
   };
 
@@ -1519,7 +1748,7 @@ function ContractsTab() {
               <div style={{ fontSize: 34, marginBottom: 10 }}>{c.icon}</div>
               <div style={{ fontSize: 19, fontWeight: 500, marginBottom: 6, color: "var(--ink)" }}>{c.name}</div>
               <div style={{ fontSize: 13, color: "#666", lineHeight: 1.6, marginBottom: 10 }}>{c.desc}</div>
-              <div style={{ fontSize: 12, color: "var(--gold)", fontWeight: 500 }}>Generate free</div>
+              <div style={{ fontSize: 12, color: "var(--gold)", fontWeight: 500 }}>Generate free →</div>
             </div>
           ))}
         </div>
@@ -1534,7 +1763,7 @@ function ContractsTab() {
           </div>
           <div style={{ background: "var(--cream)", borderRadius: 10, padding: "20px", fontSize: 13, lineHeight: 2, color: "#333", whiteSpace: "pre-wrap", fontFamily: "Georgia, serif", marginBottom: 20, maxHeight: 500, overflow: "auto" }}>{contractText}</div>
           <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={() => { setGenerated(false); setSelected(null); setContractText(""); }} style={{ flex: 1, background: "none", border: "1.5px solid var(--warm)", borderRadius: 12, padding: "12px", fontSize: 14, cursor: "pointer", color: "var(--ink)" }}>Back</button>
+            <button onClick={() => { setGenerated(false); setSelected(null); setContractText(""); }} style={{ flex: 1, background: "none", border: "1.5px solid var(--warm)", borderRadius: 12, padding: "12px", fontSize: 14, cursor: "pointer", color: "var(--ink)" }}>← Back</button>
             <button onClick={() => { const b = new Blob([contractText], { type: "text/plain" }); const u = URL.createObjectURL(b); const a = document.createElement("a"); a.href = u; a.download = selected.name.replace(/\s/g, "_") + ".txt"; a.click(); }} style={{ flex: 2, background: "var(--gold)", color: "#fff", border: "none", borderRadius: 12, padding: "12px", fontSize: 14, cursor: "pointer" }}>Download Document</button>
           </div>
         </div>
@@ -1544,10 +1773,7 @@ function ContractsTab() {
           <div style={{ background: "var(--card)", border: "1px solid var(--warm)", borderRadius: 16, padding: "26px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 22 }}>
               <span style={{ fontSize: 34 }}>{selected.icon}</span>
-              <div>
-                <h3 style={{ fontSize: 22, fontWeight: 500, color: "var(--ink)" }}>{selected.name}</h3>
-                <div style={{ fontSize: 13, color: "#666" }}>{selected.desc}</div>
-              </div>
+              <div><h3 style={{ fontSize: 22, fontWeight: 500, color: "var(--ink)" }}>{selected.name}</h3><div style={{ fontSize: 13, color: "#666" }}>{selected.desc}</div></div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -1558,7 +1784,7 @@ function ContractsTab() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
                 <div><label style={lbl}>City</label><input style={inp} value={form.city} onChange={e => update("city", e.target.value)} placeholder="Austin" /></div>
                 <div><label style={lbl}>State</label><input style={inp} value={form.state} onChange={e => update("state", e.target.value)} placeholder="TX" /></div>
-                <div><label style={lbl}>ZIP</label><input style={inp} value={form.zip} onChange={e => update("zip", e.target.value)} placeholder="78701" /></div>
+                <div><label style={lbl}>ZIP Code</label><input style={inp} value={form.zip} onChange={e => update("zip", e.target.value)} placeholder="78701" /></div>
               </div>
               {!isLease && !isLeadPaint && (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
@@ -1567,7 +1793,7 @@ function ContractsTab() {
                   <div><label style={lbl}>Closing Date</label><input style={inp} type="date" value={form.closeDate} onChange={e => update("closeDate", e.target.value)} /></div>
                 </div>
               )}
-              {isEarnest && <div><label style={lbl}>Escrow Agent Name</label><input style={inp} value={form.agentName} onChange={e => update("agentName", e.target.value)} placeholder="First American Title Co." /></div>}
+              {isEarnest && <div><label style={lbl}>Escrow Agent / Title Company Name</label><input style={inp} value={form.agentName} onChange={e => update("agentName", e.target.value)} placeholder="First American Title Co." /></div>}
               {isLease && (
                 <>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
@@ -1613,8 +1839,12 @@ export default function App() {
   return (
     <div style={{ minHeight: "100vh", background: "var(--cream)" }}>
       <style>{styles}</style>
+
+      {/* Open Graph meta tags for social sharing */}
+      <title>DirectDeed — Buy & Sell Homes Without a Realtor</title>
+
       <header style={{ background: "var(--ink)", color: "#fff", padding: "0 28px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 62, position: "sticky", top: 0, zIndex: 50, boxShadow: "0 2px 20px rgba(0,0,0,0.3)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={() => setTab("Browse")}>
           <span style={{ fontSize: 20 }}>🏡</span>
           <span style={{ fontSize: 22, fontWeight: 500 }}>DirectDeed</span>
           <span style={{ fontSize: 10, color: "var(--gold-light)", background: "rgba(212,160,23,0.15)", padding: "2px 9px", borderRadius: 16, marginLeft: 4 }}>No Realtors</span>
@@ -1622,7 +1852,7 @@ export default function App() {
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <nav style={{ display: "flex", gap: 4 }}>
             {NAV_ITEMS.map(n => (
-              <button key={n} onClick={() => setTab(n)} style={{ background: tab === n ? "rgba(255,255,255,0.12)" : "none", border: tab === n ? "1px solid rgba(255,255,255,0.2)" : "1px solid transparent", color: tab === n ? "#fff" : "rgba(255,255,255,0.65)", borderRadius: 8, padding: "6px 14px", fontSize: 13, cursor: "pointer" }}>
+              <button key={n} onClick={() => setTab(n)} style={{ background: tab === n ? "rgba(255,255,255,0.12)" : "none", border: tab === n ? "1px solid rgba(255,255,255,0.2)" : "1px solid transparent", color: tab === n ? "#fff" : "rgba(255,255,255,0.65)", borderRadius: 8, padding: "6px 14px", fontSize: 13, cursor: "pointer", transition: "all 0.15s" }}>
                 {n}
               </button>
             ))}
@@ -1631,7 +1861,7 @@ export default function App() {
           <NotificationBell user={user} />
           {user ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 8 }}>
-              <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--sage)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "#fff", fontWeight: 600 }}>
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--sage)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: "#fff", fontWeight: 700, cursor: "pointer" }} onClick={() => setTab("Profile")}>
                 {(user.user_metadata?.full_name || user.email)?.[0]?.toUpperCase()}
               </div>
               <button onClick={handleLogout} style={{ background: "none", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.75)", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer" }}>Log out</button>
@@ -1645,11 +1875,17 @@ export default function App() {
       {tab === "Browse" && (
         <div style={{ background: "linear-gradient(135deg,var(--ink) 0%,#3d2b0f 60%,var(--rust) 100%)", color: "#fff", padding: "60px 28px 68px", textAlign: "center" }}>
           <div style={{ fontSize: 50, fontWeight: 300, lineHeight: 1.15, marginBottom: 14 }}>Buy and Sell Without the Middleman</div>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", maxWidth: 460, margin: "0 auto", lineHeight: 1.7 }}>Connect buyers and sellers directly. Save the 5-6% commission.</p>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", maxWidth: 460, margin: "0 auto 28px", lineHeight: 1.7 }}>Connect buyers and sellers directly. Save the 5-6% commission.</p>
+          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+            <button onClick={() => setShowAuth(true)} style={{ background: "var(--gold)", color: "#fff", border: "none", borderRadius: 12, padding: "14px 28px", fontSize: 15, cursor: "pointer", fontWeight: 600 }}>Get Started Free</button>
+            <button onClick={() => document.getElementById("listings-section")?.scrollIntoView({ behavior: "smooth" })} style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 12, padding: "14px 28px", fontSize: 15, cursor: "pointer" }}>Browse Homes</button>
+          </div>
         </div>
       )}
 
-      {tab === "Browse" && <BrowseTab onMessage={handleMessage} onOffer={handleOffer} user={user} />}
+      <div id="listings-section">
+        {tab === "Browse" && <BrowseTab onMessage={handleMessage} onOffer={handleOffer} user={user} />}
+      </div>
       {tab === "Sell" && <SellTab user={user} onRequireAuth={() => setShowAuth(true)} />}
       {tab === "Offers" && <OffersTab user={user} onRequireAuth={() => setShowAuth(true)} />}
       {tab === "Messages" && <MessagesTab newThread={messageThread} user={user} onRequireAuth={() => setShowAuth(true)} />}
@@ -1663,8 +1899,8 @@ export default function App() {
       {offerListing && <MakeOfferModal listing={offerListing} user={user} onClose={() => setOfferListing(null)} onRequireAuth={() => { setOfferListing(null); setShowAuth(true); }} />}
 
       <footer style={{ background: "var(--ink)", color: "rgba(255,255,255,0.4)", textAlign: "center", padding: "22px", fontSize: 11, marginTop: 60 }}>
-        © 2026 Bondy Technologies LLC. All rights reserved. DirectDeed is not a licensed real estate brokerage. -
-        <span onClick={() => setTab("Privacy")} style={{ cursor: "pointer", marginLeft: 6, textDecoration: "underline" }}>Privacy Policy</span> -
+        © 2026 Bondy Technologies LLC. All rights reserved. DirectDeed is not a licensed real estate brokerage. —
+        <span onClick={() => setTab("Privacy")} style={{ cursor: "pointer", marginLeft: 6, textDecoration: "underline" }}>Privacy Policy</span> —
         <span onClick={() => setTab("Terms")} style={{ cursor: "pointer", marginLeft: 6, textDecoration: "underline" }}>Terms of Service</span>
       </footer>
     </div>
