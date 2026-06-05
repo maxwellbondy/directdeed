@@ -29,7 +29,7 @@ export default function LegalTab({ section = "privacy" }) {
       <h2 style={{ fontSize: 22, fontWeight: 500, marginBottom: 12, marginTop: 36, color: "#1a1208" }}>6. Age Requirement</h2>
       <p style={{ marginBottom: 24 }}>This Service is intended for users 18 years of age or older. We do not knowingly collect information from anyone under 18.</p>
       <h2 style={{ fontSize: 22, fontWeight: 500, marginBottom: 12, marginTop: 36, color: "#1a1208" }}>7. Contact Us</h2>
-      <p>Bondy Technologies LLC - Michigan, United States<br />legal@directdeed.com</p>
+      <p>Bondy Technologies LLC - Michigan, United States<br />maxbondy@hotmail.com</p>
     </div>
   );
 
@@ -58,7 +58,7 @@ export default function LegalTab({ section = "privacy" }) {
       <h2 style={{ fontSize: 22, fontWeight: 500, marginBottom: 12, marginTop: 36, color: "#1a1208" }}>7. Governing Law</h2>
       <p style={{ marginBottom: 24 }}>These Terms are governed by the laws of the State of Michigan. Disputes shall be resolved in Michigan courts.</p>
       <h2 style={{ fontSize: 22, fontWeight: 500, marginBottom: 12, marginTop: 36, color: "#1a1208" }}>8. Contact</h2>
-      <p>Bondy Technologies LLC - Michigan, United States<br />legal@directdeed.com</p>
+      <p>Bondy Technologies LLC - Michigan, United States<br />maxbondy@hotmail.com</p>
     </div>
   );
 
