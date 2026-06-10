@@ -1272,7 +1272,7 @@ function MessagesTab({ newThread, user, onRequireAuth }) {
     if (!data) { setLoading(false); return; }
     const convMap = {};
     let unread = 0;
-    data.forEach(msg => {
+    data.filter(msg => msg.user_id !== msg.recipient_id).forEach(msg => {
       const otherId = msg.user_id === user.id ? msg.recipient_id : msg.user_id;
       const key = msg.listing_id + "-" + [msg.user_id, msg.recipient_id].sort().join("-");
       if (!convMap[key]) {
@@ -1334,6 +1334,7 @@ function MessagesTab({ newThread, user, onRequireAuth }) {
 
   const send = async () => {
     if (!input.trim() || !activeConv || !user) return;
+if (activeConv.other_user_id === user.id) return;
     const body = input.trim();
     setInput("");
     setSending(true);
