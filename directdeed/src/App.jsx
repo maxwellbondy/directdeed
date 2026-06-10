@@ -706,7 +706,7 @@ function StepCard({ step, offer, user, onUpdate, isExpanded, onToggle }) {
   }, [showMsg]);
 
   const loadMsgs = async () => {
-    const { data } = await sb.from("messages").select("*")
+    const { data } = await sb.from("direct_messages").select("*")
       .eq("listing_id", offer.listing_id)
       .or("and(user_id.eq." + offer.buyer_id + ",recipient_id.eq." + offer.seller_id + "),and(user_id.eq." + offer.seller_id + ",recipient_id.eq." + offer.buyer_id + ")")
       .order("created_at", { ascending: true });
@@ -718,7 +718,7 @@ function StepCard({ step, offer, user, onUpdate, isExpanded, onToggle }) {
     setSendingMsg(true);
     const recipientId = isBuyer ? offer.seller_id : offer.buyer_id;
     const recipientName = isBuyer ? (offer.listings?.seller_name || "Seller") : offer.buyer_name;
-    const { data } = await sb.from("messages").insert([{
+    const { data } = await sb.from("direct_messages").insert([{
       listing_id: offer.listing_id,
       user_id: user.id,
       recipient_id: recipientId,
@@ -1265,7 +1265,7 @@ function MessagesTab({ newThread, user, onRequireAuth }) {
   }, [user]);
 
   const loadConversations = async () => {
-    const { data } = await sb.from("messages")
+    const { data } = await sb.from("direct_messages")
       .select("*, listings(address, city, state, zip, seller_name, user_id)")
       .or("user_id.eq." + user.id + ",recipient_id.eq." + user.id)
       .order("created_at", { ascending: false });
@@ -1308,7 +1308,7 @@ function MessagesTab({ newThread, user, onRequireAuth }) {
     loadMessages();
     if (channelRef.current) sb.removeChannel(channelRef.current);
     const ch = sb.channel("conv-" + activeConv.key)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: "listing_id=eq." + activeConv.listing_id },
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "direct_messages", filter: "listing_id=eq." + activeConv.listing_id },
         payload => {
           const msg = payload.new;
           const relevant = (msg.user_id === user.id && msg.recipient_id === activeConv.other_user_id) ||
@@ -1322,12 +1322,12 @@ function MessagesTab({ newThread, user, onRequireAuth }) {
 
   const loadMessages = async () => {
     if (!activeConv || !user) return;
-    const { data } = await sb.from("messages").select("*")
+    const { data } = await sb.from("direct_messages").select("*")
       .eq("listing_id", activeConv.listing_id)
       .or("and(user_id.eq." + user.id + ",recipient_id.eq." + activeConv.other_user_id + "),and(user_id.eq." + activeConv.other_user_id + ",recipient_id.eq." + user.id + ")")
       .order("created_at", { ascending: true });
     setMessages(data || []);
-    await sb.from("messages").update({ read: true }).eq("listing_id", activeConv.listing_id).eq("recipient_id", user.id).eq("read", false);
+    await sb.from("direct_messages").update({ read: true }).eq("listing_id", activeConv.listing_id).eq("recipient_id", user.id).eq("read", false);
   };
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
@@ -1338,7 +1338,7 @@ function MessagesTab({ newThread, user, onRequireAuth }) {
     setInput("");
     setSending(true);
     try {
-      const { data, error } = await sb.from("messages").insert([{
+      const { data, error } = await sb.from("direct_messages").insert([{
         listing_id: activeConv.listing_id, user_id: user.id, recipient_id: activeConv.other_user_id,
         sender_name: user.user_metadata?.full_name || user.email,
         recipient_name: activeConv.other_name, body, read: false,
@@ -1832,14 +1832,14 @@ export default function App() {
     if (!user) return;
     const loadUnread = async () => {
       const { count: offerCount } = await sb.from("notifications").select("id", { count: "exact" }).eq("user_id", user.id).eq("read", false).like("message", "%offer%");
-      const { count: msgCount } = await sb.from("messages").select("id", { count: "exact" }).eq("recipient_id", user.id).eq("read", false);
+      const { count: msgCount } = await sb.from("direct_messages").select("id", { count: "exact" }).eq("recipient_id", user.id).eq("read", false);
       setOfferUnread(offerCount || 0);
       setMsgUnread(msgCount || 0);
     };
     loadUnread();
     const sub = sb.channel("app-notifs-" + user.id)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: "user_id=eq." + user.id }, () => loadUnread())
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: "recipient_id=eq." + user.id }, () => loadUnread())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "direct_messages", filter: "recipient_id=eq." + user.id }, () => loadUnread())
       .subscribe();
     return () => sb.removeChannel(sub);
   }, [user?.id]);
