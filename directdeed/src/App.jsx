@@ -155,8 +155,8 @@ function PasswordResetModal({onClose}) {
           <div style={{fontSize:12,color:"rgba(255,255,255,0.5)"}}>Choose a strong password for your account</div>
         </div>
         <div style={{padding:"24px 28px 28px",display:"flex",flexDirection:"column",gap:13}}>
-          <div><label style={lbl}>New Password</label><input style={inp} type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Min 8 characters" onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"/></div>
-          <div><label style={lbl}>Confirm Password</label><input style={inp} type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"/></div>
+          <div><label style={lbl}>New Password</label><input style={inp} type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Min 8 characters" onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"}/></div>
+          <div><label style={lbl}>Confirm Password</label><input style={inp} type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"}/></div>
           {error&&<div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:8,padding:"9px 12px",color:"var(--rust)",fontSize:12}}>{error}</div>}
           <button onClick={submit} disabled={loading} style={{background:loading?"#aaa":"var(--sage)",color:"#fff",border:"none",borderRadius:12,padding:"13px",fontSize:14,cursor:"pointer",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
             {loading?<Spinner/>:"Update Password"}
@@ -242,7 +242,7 @@ function AuthModal({onClose,onAuth}) {
         <div style={{padding:"22px 28px 26px"}}>
           {mode==="login"?(
             <div style={{display:"flex",flexDirection:"column",gap:13}}>
-              <div><label style={lbl}>Email</label><input style={inp} type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@email.com" onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"/></div>
+              <div><label style={lbl}>Email</label><input style={inp} type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@email.com" onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"}/></div>
               <div>
                 <label style={lbl}>Password</label>
                 <input style={inp} type="password" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==="Enter"&&login()} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"}/>
@@ -272,8 +272,8 @@ function AuthModal({onClose,onAuth}) {
               </>}
               {step===2&&<>
                 <div style={{fontSize:13,color:"#666"}}>Hi <strong style={{color:"var(--ink)"}}>{name}</strong>! Set up your login.</div>
-                <div><label style={lbl}>Email</label><input style={inp} type="email" value={email} onChange={e=>setEmail(e.target.value)} autoFocus onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"/></div>
-                <div><label style={lbl}>Password <span style={{fontWeight:400,color:"#aaa"}}>(min 8 chars)</span></label><input style={inp} type="password" value={password} onChange={e=>setPassword(e.target.value)} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"/></div>
+                <div><label style={lbl}>Email</label><input style={inp} type="email" value={email} onChange={e=>setEmail(e.target.value)} autoFocus onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"}/></div>
+                <div><label style={lbl}>Password <span style={{fontWeight:400,color:"#aaa"}}>(min 8 chars)</span></label><input style={inp} type="password" value={password} onChange={e=>setPassword(e.target.value)} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"}/></div>
                 {error&&<div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:8,padding:"9px 12px",color:"var(--rust)",fontSize:12}}>{error}</div>}
                 <div style={{display:"flex",gap:8}}>
                   <button onClick={()=>{setError(null);setStep(1);}} style={{flex:1,background:"none",border:"1.5px solid var(--warm)",borderRadius:10,padding:"10px",fontSize:12,cursor:"pointer",color:"var(--ink)"}}>Back</button>
@@ -282,7 +282,7 @@ function AuthModal({onClose,onAuth}) {
               </>}
               {step===3&&<>
                 <div style={{background:"var(--warm)",borderRadius:8,padding:"10px 13px",fontSize:12,color:"var(--ink)",lineHeight:1.7}}><strong>Almost done!</strong><br/>Name: {name} · Email: {email}</div>
-                <div><label style={lbl}>Confirm Password</label><input style={inp} type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} autoFocus onKeyDown={e=>e.key==="Enter"&&signup()} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"/></div>
+                <div><label style={lbl}>Confirm Password</label><input style={inp} type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} autoFocus onKeyDown={e=>e.key==="Enter"&&signup()} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"}/></div>
                 <div style={{fontSize:11,color:"#888",lineHeight:1.6}}>By signing up you agree to our <span style={{color:"var(--gold)"}}>Terms</span> and <span style={{color:"var(--gold)"}}>Privacy Policy</span>. DirectDeed is not a licensed brokerage.</div>
                 {error&&<div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:8,padding:"9px 12px",color:"var(--rust)",fontSize:12}}>{error}</div>}
                 <div style={{display:"flex",gap:8}}>
