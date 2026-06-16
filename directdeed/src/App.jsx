@@ -31,7 +31,6 @@ const styles = `
     .messenger-sidebar.active { display: flex !important; }
     .messenger-chat { display: none !important; }
     .messenger-chat.active { display: flex !important; }
-    .dash-grid { grid-template-columns: 1fr !important; }
   }
   @media (min-width: 769px) {
     .mobile-menu-btn { display: none !important; }
@@ -122,8 +121,6 @@ function PasswordResetModal({onClose}) {
   const [loading,setLoading]=useState(false);
   const [done,setDone]=useState(false);
   const [error,setError]=useState(null);
-  const inp={width:"100%",padding:"12px 16px",borderRadius:12,border:"1.5px solid var(--warm)",background:"#fff",fontSize:15,outline:"none",color:"var(--ink)"};
-  const lbl={display:"block",fontSize:12,fontWeight:600,color:"#555",marginBottom:6};
 
   const submit=async()=>{
     if(password!==confirm){setError("Passwords do not match.");return;}
@@ -134,6 +131,9 @@ function PasswordResetModal({onClose}) {
     setDone(true);setLoading(false);
     window.history.replaceState({},"",window.location.pathname);
   };
+
+  const inp={width:"100%",padding:"12px 16px",borderRadius:12,border:"1.5px solid var(--warm)",background:"#fff",fontSize:15,outline:"none",color:"var(--ink)"};
+  const lbl={display:"block",fontSize:12,fontWeight:600,color:"#555",marginBottom:6};
 
   if(done) return (
     <div style={{position:"fixed",inset:0,background:"rgba(26,18,8,0.65)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
@@ -155,8 +155,19 @@ function PasswordResetModal({onClose}) {
           <div style={{fontSize:12,color:"rgba(255,255,255,0.5)"}}>Choose a strong password for your account</div>
         </div>
         <div style={{padding:"24px 28px 28px",display:"flex",flexDirection:"column",gap:13}}>
-          <div><label style={lbl}>New Password</label><input style={inp} type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Min 8 characters" onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"}/></div>
-          <div><label style={lbl}>Confirm Password</label><input style={inp} type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"}/></div>
+          <div>
+            <label style={lbl}>New Password</label>
+            <input style={inp} type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Min 8 characters"
+              onFocus={e=>e.target.style.borderColor="var(--gold)"}
+              onBlur={e=>e.target.style.borderColor="var(--warm)"}/>
+          </div>
+          <div>
+            <label style={lbl}>Confirm Password</label>
+            <input style={inp} type="password" value={confirm} onChange={e=>setConfirm(e.target.value)}
+              onKeyDown={e=>e.key==="Enter"&&submit()}
+              onFocus={e=>e.target.style.borderColor="var(--gold)"}
+              onBlur={e=>e.target.style.borderColor="var(--warm)"}/>
+          </div>
           {error&&<div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:8,padding:"9px 12px",color:"var(--rust)",fontSize:12}}>{error}</div>}
           <button onClick={submit} disabled={loading} style={{background:loading?"#aaa":"var(--sage)",color:"#fff",border:"none",borderRadius:12,padding:"13px",fontSize:14,cursor:"pointer",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
             {loading?<Spinner/>:"Update Password"}
@@ -179,6 +190,7 @@ function AuthModal({onClose,onAuth}) {
   const [emailSent,setEmailSent]=useState(false);
   const [resent,setResent]=useState(false);
   const [resetSent,setResetSent]=useState(false);
+
   const inp={width:"100%",padding:"12px 16px",borderRadius:12,border:"1.5px solid var(--warm)",background:"#fff",fontSize:15,outline:"none",color:"var(--ink)"};
   const lbl={display:"block",fontSize:12,fontWeight:600,color:"#555",marginBottom:6};
 
@@ -242,12 +254,22 @@ function AuthModal({onClose,onAuth}) {
         <div style={{padding:"22px 28px 26px"}}>
           {mode==="login"?(
             <div style={{display:"flex",flexDirection:"column",gap:13}}>
-              <div><label style={lbl}>Email</label><input style={inp} type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@email.com" onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"}/></div>
+              <div>
+                <label style={lbl}>Email</label>
+                <input style={inp} type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@email.com"
+                  onFocus={e=>e.target.style.borderColor="var(--gold)"}
+                  onBlur={e=>e.target.style.borderColor="var(--warm)"}/>
+              </div>
               <div>
                 <label style={lbl}>Password</label>
-                <input style={inp} type="password" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==="Enter"&&login()} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"}/>
+                <input style={inp} type="password" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==="Enter"&&login()}
+                  onFocus={e=>e.target.style.borderColor="var(--gold)"}
+                  onBlur={e=>e.target.style.borderColor="var(--warm)"}/>
                 <div style={{textAlign:"right",marginTop:6}}>
-                  {resetSent?<span style={{fontSize:12,color:"var(--sage)"}}>✓ Reset email sent!</span>:<span onClick={sendPasswordReset} style={{fontSize:12,color:"var(--gold)",cursor:"pointer",textDecoration:"underline"}}>{loading?"Sending...":"Forgot password?"}</span>}
+                  {resetSent
+                    ?<span style={{fontSize:12,color:"var(--sage)"}}>✓ Reset email sent! Check your inbox.</span>
+                    :<span onClick={sendPasswordReset} style={{fontSize:12,color:"var(--gold)",cursor:"pointer",textDecoration:"underline"}}>{loading?"Sending...":"Forgot password?"}</span>
+                  }
                 </div>
               </div>
               {error&&<div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:8,padding:"9px 12px",color:"var(--rust)",fontSize:12}}>{error}</div>}
@@ -257,7 +279,7 @@ function AuthModal({onClose,onAuth}) {
           ):(
             <div style={{display:"flex",flexDirection:"column",gap:13}}>
               <div style={{display:"flex",gap:5,marginBottom:4}}>
-                {["Name","Email & Password","Confirm"].map((s,i)=>(
+                {["Name","Email & PW","Confirm"].map((s,i)=>(
                   <div key={i} style={{flex:1,textAlign:"center"}}>
                     <div style={{width:20,height:20,borderRadius:"50%",background:step>i+1?"var(--sage)":step===i+1?"var(--gold)":"var(--warm)",color:step>=i+1?"#fff":"#aaa",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 3px",fontSize:9,fontWeight:700}}>{step>i+1?"✓":i+1}</div>
                     <div style={{fontSize:9,color:step===i+1?"var(--gold)":"#aaa"}}>{s}</div>
@@ -266,14 +288,30 @@ function AuthModal({onClose,onAuth}) {
               </div>
               {step===1&&<>
                 <div style={{background:"var(--warm)",borderRadius:8,padding:"10px 13px",fontSize:12,color:"#555",lineHeight:1.6}}>Skip agent fees. Sell directly and keep thousands more.</div>
-                <div><label style={lbl}>Your Full Name</label><input style={inp} value={name} onChange={e=>setName(e.target.value)} placeholder="Jane Smith" autoFocus onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"} onKeyDown={e=>e.key==="Enter"&&name.trim()&&setStep(2)}/></div>
+                <div>
+                  <label style={lbl}>Your Full Name</label>
+                  <input style={inp} value={name} onChange={e=>setName(e.target.value)} placeholder="Jane Smith" autoFocus
+                    onFocus={e=>e.target.style.borderColor="var(--gold)"}
+                    onBlur={e=>e.target.style.borderColor="var(--warm)"}
+                    onKeyDown={e=>e.key==="Enter"&&name.trim()&&setStep(2)}/>
+                </div>
                 {error&&<div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:8,padding:"9px 12px",color:"var(--rust)",fontSize:12}}>{error}</div>}
                 <button onClick={()=>{if(!name.trim()){setError("Please enter your name.");return;}setError(null);setStep(2);}} style={{background:"var(--gold)",color:"#fff",border:"none",borderRadius:12,padding:"12px",fontSize:13,cursor:"pointer",fontWeight:600}}>Continue</button>
               </>}
               {step===2&&<>
                 <div style={{fontSize:13,color:"#666"}}>Hi <strong style={{color:"var(--ink)"}}>{name}</strong>! Set up your login.</div>
-                <div><label style={lbl}>Email</label><input style={inp} type="email" value={email} onChange={e=>setEmail(e.target.value)} autoFocus onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"}/></div>
-                <div><label style={lbl}>Password <span style={{fontWeight:400,color:"#aaa"}}>(min 8 chars)</span></label><input style={inp} type="password" value={password} onChange={e=>setPassword(e.target.value)} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"}/></div>
+                <div>
+                  <label style={lbl}>Email</label>
+                  <input style={inp} type="email" value={email} onChange={e=>setEmail(e.target.value)} autoFocus
+                    onFocus={e=>e.target.style.borderColor="var(--gold)"}
+                    onBlur={e=>e.target.style.borderColor="var(--warm)"}/>
+                </div>
+                <div>
+                  <label style={lbl}>Password <span style={{fontWeight:400,color:"#aaa"}}>(min 8 chars)</span></label>
+                  <input style={inp} type="password" value={password} onChange={e=>setPassword(e.target.value)}
+                    onFocus={e=>e.target.style.borderColor="var(--gold)"}
+                    onBlur={e=>e.target.style.borderColor="var(--warm)"}/>
+                </div>
                 {error&&<div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:8,padding:"9px 12px",color:"var(--rust)",fontSize:12}}>{error}</div>}
                 <div style={{display:"flex",gap:8}}>
                   <button onClick={()=>{setError(null);setStep(1);}} style={{flex:1,background:"none",border:"1.5px solid var(--warm)",borderRadius:10,padding:"10px",fontSize:12,cursor:"pointer",color:"var(--ink)"}}>Back</button>
@@ -282,7 +320,13 @@ function AuthModal({onClose,onAuth}) {
               </>}
               {step===3&&<>
                 <div style={{background:"var(--warm)",borderRadius:8,padding:"10px 13px",fontSize:12,color:"var(--ink)",lineHeight:1.7}}><strong>Almost done!</strong><br/>Name: {name} · Email: {email}</div>
-                <div><label style={lbl}>Confirm Password</label><input style={inp} type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} autoFocus onKeyDown={e=>e.key==="Enter"&&signup()} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--warm)"}/></div>
+                <div>
+                  <label style={lbl}>Confirm Password</label>
+                  <input style={inp} type="password" value={confirm} onChange={e=>setConfirm(e.target.value)} autoFocus
+                    onKeyDown={e=>e.key==="Enter"&&signup()}
+                    onFocus={e=>e.target.style.borderColor="var(--gold)"}
+                    onBlur={e=>e.target.style.borderColor="var(--warm)"}/>
+                </div>
                 <div style={{fontSize:11,color:"#888",lineHeight:1.6}}>By signing up you agree to our <span style={{color:"var(--gold)"}}>Terms</span> and <span style={{color:"var(--gold)"}}>Privacy Policy</span>. DirectDeed is not a licensed brokerage.</div>
                 {error&&<div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:8,padding:"9px 12px",color:"var(--rust)",fontSize:12}}>{error}</div>}
                 <div style={{display:"flex",gap:8}}>
@@ -300,11 +344,10 @@ function AuthModal({onClose,onAuth}) {
 
 function EditListingModal({listing,onClose,onSaved}) {
   const [form,setForm]=useState({
-    address:listing.address||"", city:listing.city||"", state:listing.state||"",
-    zip:listing.zip||"", price:listing.price||"", beds:listing.beds||"",
-    baths:listing.baths||"", sqft:listing.sqft||"", type:listing.type||"Single Family",
-    description:listing.description||"", seller_name:listing.seller_name||"",
-    seller_email:listing.seller_email||"", seller_phone:listing.seller_phone||"",
+    address:listing.address||"",city:listing.city||"",state:listing.state||"",zip:listing.zip||"",
+    price:listing.price||"",beds:listing.beds||"",baths:listing.baths||"",sqft:listing.sqft||"",
+    type:listing.type||"Single Family",description:listing.description||"",
+    seller_name:listing.seller_name||"",seller_email:listing.seller_email||"",seller_phone:listing.seller_phone||"",
     price_reduced:listing.price_reduced||false,
   });
   const [photos,setPhotos]=useState(listing.photos||[]);
@@ -319,7 +362,8 @@ function EditListingModal({listing,onClose,onSaved}) {
   const lbl={display:"block",fontSize:10,fontWeight:600,color:"#555",marginBottom:3,textTransform:"uppercase"};
 
   useEffect(()=>{
-    sb.from("open_houses").select("*, open_house_rsvps(id,name,email,phone)").eq("listing_id",listing.id).order("date").then(({data})=>setOpenHouses(data||[]));
+    sb.from("open_houses").select("*,open_house_rsvps(id,name,email,phone)").eq("listing_id",listing.id).order("date")
+      .then(({data})=>setOpenHouses(data||[]));
   },[]);
 
   const addNewPhotos=files=>{
@@ -344,17 +388,16 @@ function EditListingModal({listing,onClose,onSaved}) {
       }
       const allPhotos=[...photos,...uploadedUrls];
       const updates={
-        address:form.address, city:form.city, state:form.state, zip:form.zip,
-        price:Number(form.price), beds:Number(form.beds), baths:Number(form.baths),
-        sqft:Number(form.sqft), type:form.type, description:form.description,
-        seller_name:form.seller_name, seller_email:form.seller_email, seller_phone:form.seller_phone,
-        photos:allPhotos, price_reduced:form.price_reduced,
+        address:form.address,city:form.city,state:form.state,zip:form.zip,
+        price:Number(form.price),beds:Number(form.beds),baths:Number(form.baths),sqft:Number(form.sqft),
+        type:form.type,description:form.description,seller_name:form.seller_name,
+        seller_email:form.seller_email,seller_phone:form.seller_phone,
+        photos:allPhotos,price_reduced:form.price_reduced,
         original_price:form.price_reduced&&!listing.original_price?listing.price:listing.original_price,
       };
       const{error:e}=await sb.from("listings").update(updates).eq("id",listing.id);
       if(e) throw new Error(e.message);
-      onSaved({...listing,...updates});
-      onClose();
+      onSaved({...listing,...updates});onClose();
     }catch(e){setError(e.message);}
     setSaving(false);
   };
@@ -364,8 +407,7 @@ function EditListingModal({listing,onClose,onSaved}) {
     setSavingOH(true);
     const{data,error:e}=await sb.from("open_houses").insert([{listing_id:listing.id,...ohForm}]).select();
     if(!e&&data) setOpenHouses(prev=>[...prev,{...data[0],open_house_rsvps:[]}]);
-    setOhForm({date:"",start_time:"",end_time:"",notes:""});
-    setSavingOH(false);
+    setOhForm({date:"",start_time:"",end_time:"",notes:""});setSavingOH(false);
   };
 
   const deleteOpenHouse=async id=>{
@@ -381,24 +423,21 @@ function EditListingModal({listing,onClose,onSaved}) {
           <button onClick={onClose} style={{background:"rgba(255,255,255,0.1)",border:"none",color:"#fff",borderRadius:"50%",width:26,height:26,cursor:"pointer",fontSize:12}}>✕</button>
         </div>
         <div style={{padding:"20px 22px",display:"flex",flexDirection:"column",gap:14}}>
-          {/* Address */}
           <div><label style={lbl}>Street Address</label><input style={inp} value={form.address} onChange={e=>setForm(f=>({...f,address:e.target.value}))}/></div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:9}}>
             <div><label style={lbl}>City</label><input style={inp} value={form.city} onChange={e=>setForm(f=>({...f,city:e.target.value}))}/></div>
             <div><label style={lbl}>State</label><input style={inp} value={form.state} onChange={e=>setForm(f=>({...f,state:e.target.value}))}/></div>
             <div><label style={lbl}>ZIP</label><input style={inp} value={form.zip} onChange={e=>setForm(f=>({...f,zip:e.target.value}))}/></div>
           </div>
-          {/* Price */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
             <div><label style={lbl}>Asking Price</label><input style={inp} type="number" value={form.price} onChange={e=>setForm(f=>({...f,price:e.target.value}))}/></div>
-            <div style={{display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
+            <div style={{display:"flex",alignItems:"flex-end",paddingBottom:2}}>
               <label style={{display:"flex",alignItems:"center",gap:7,fontSize:12,cursor:"pointer",color:"var(--ink)"}}>
                 <input type="checkbox" checked={form.price_reduced} onChange={e=>setForm(f=>({...f,price_reduced:e.target.checked}))}/>
                 Mark as Price Reduced
               </label>
             </div>
           </div>
-          {/* Details */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:9}}>
             <div><label style={lbl}>Beds</label><input style={inp} type="number" value={form.beds} onChange={e=>setForm(f=>({...f,beds:e.target.value}))}/></div>
             <div><label style={lbl}>Baths</label><input style={inp} type="number" value={form.baths} onChange={e=>setForm(f=>({...f,baths:e.target.value}))}/></div>
@@ -409,14 +448,11 @@ function EditListingModal({listing,onClose,onSaved}) {
               </select>
             </div>
           </div>
-          {/* Description */}
           <div><label style={lbl}>Description</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/></div>
-          {/* Contact */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
             <div><label style={lbl}>Contact Name</label><input style={inp} value={form.seller_name} onChange={e=>setForm(f=>({...f,seller_name:e.target.value}))}/></div>
             <div><label style={lbl}>Contact Phone</label><input style={inp} value={form.seller_phone} onChange={e=>setForm(f=>({...f,seller_phone:e.target.value}))}/></div>
           </div>
-          {/* Photos */}
           <div>
             <label style={lbl}>Photos</label>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(80px,1fr))",gap:6,marginBottom:8}}>
@@ -428,7 +464,7 @@ function EditListingModal({listing,onClose,onSaved}) {
                 </div>
               ))}
               {newPhotos.map((p,i)=>(
-                <div key={"new"+i} style={{position:"relative",borderRadius:7,overflow:"hidden",aspectRatio:"4/3"}}>
+                <div key={"n"+i} style={{position:"relative",borderRadius:7,overflow:"hidden",aspectRatio:"4/3"}}>
                   <img src={p.preview} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
                   <button onClick={()=>setNewPhotos(prev=>prev.filter((_,j)=>j!==i))} style={{position:"absolute",top:2,right:2,background:"rgba(0,0,0,0.6)",color:"#fff",border:"none",borderRadius:"50%",width:16,height:16,cursor:"pointer",fontSize:9}}>✕</button>
                   <div style={{position:"absolute",bottom:2,left:2,background:"var(--sage)",color:"#fff",fontSize:7,padding:"1px 5px",borderRadius:4,fontWeight:700}}>NEW</div>
@@ -438,9 +474,7 @@ function EditListingModal({listing,onClose,onSaved}) {
                 +<input type="file" accept="image/*" multiple style={{display:"none"}} onChange={e=>addNewPhotos(e.target.files)}/>
               </label>
             </div>
-            <div style={{fontSize:11,color:"#888"}}>First photo is the cover. Click ✕ to remove.</div>
           </div>
-          {/* Open Houses */}
           <div style={{borderTop:"1px solid var(--warm)",paddingTop:12}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <div style={{fontSize:13,fontWeight:700,color:"var(--ink)"}}>Open Houses</div>
@@ -453,11 +487,11 @@ function EditListingModal({listing,onClose,onSaved}) {
                   <div><label style={lbl}>Start</label><input style={inp} type="time" value={ohForm.start_time} onChange={e=>setOhForm(f=>({...f,start_time:e.target.value}))}/></div>
                   <div><label style={lbl}>End</label><input style={inp} type="time" value={ohForm.end_time} onChange={e=>setOhForm(f=>({...f,end_time:e.target.value}))}/></div>
                 </div>
-                <div style={{marginBottom:8}}><label style={lbl}>Notes (optional)</label><input style={inp} value={ohForm.notes} onChange={e=>setOhForm(f=>({...f,notes:e.target.value}))} placeholder="Parking instructions, etc."/></div>
+                <div style={{marginBottom:8}}><label style={lbl}>Notes</label><input style={inp} value={ohForm.notes} onChange={e=>setOhForm(f=>({...f,notes:e.target.value}))} placeholder="Parking, access notes..."/></div>
                 <button onClick={addOpenHouse} disabled={savingOH} style={{background:"var(--sage)",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",fontSize:12,cursor:"pointer",fontWeight:600,display:"flex",alignItems:"center",gap:6}}>{savingOH?<Spinner size={12}/>:"Save Open House"}</button>
               </div>
             )}
-            {openHouses.length===0&&<div style={{fontSize:12,color:"#aaa",textAlign:"center",padding:"10px 0"}}>No open houses scheduled.</div>}
+            {openHouses.length===0&&<div style={{fontSize:12,color:"#aaa",textAlign:"center",padding:"8px 0"}}>No open houses scheduled.</div>}
             {openHouses.map(oh=>(
               <div key={oh.id} style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:9,padding:"10px 12px",marginBottom:7,display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
                 <div>
@@ -504,7 +538,7 @@ function ListingCard({listing,onClick,onDelete,isOwner,onMessage,onEdit,user,sav
       )}
       <div onClick={()=>onClick(listing)} style={{height:175,background:"linear-gradient(135deg,var(--warm),var(--mist))",position:"relative",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",fontSize:50}}>
         {cover?<img src={cover} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>:"🏡"}
-        {listing.price_reduced&&<span style={{position:"absolute",top:10,right:10,background:"var(--rust)",color:"#fff",fontSize:9,fontWeight:700,padding:"3px 7px",borderRadius:10,textTransform:"uppercase"}}>Price Reduced</span>}
+        {listing.price_reduced&&<span style={{position:"absolute",top:10,right:10,background:"var(--rust)",color:"#fff",fontSize:9,fontWeight:700,padding:"3px 7px",borderRadius:10}}>Price Reduced</span>}
         <span style={{position:"absolute",top:10,left:10,background:"rgba(255,255,255,0.92)",fontSize:10,padding:"3px 8px",borderRadius:14,color:"var(--ink)"}}>{daysAgo===0?"Today":daysAgo+"d ago"}</span>
         <div style={{position:"absolute",bottom:8,left:8,right:8,display:"flex",gap:6}}>
           <button onClick={handleShare} style={{background:"rgba(255,255,255,0.92)",border:"none",borderRadius:14,padding:"4px 10px",fontSize:11,cursor:"pointer",color:"var(--ink)",fontWeight:500}}>🔗 Share</button>
@@ -525,10 +559,10 @@ function ListingCard({listing,onClick,onDelete,isOwner,onMessage,onEdit,user,sav
           <div style={{fontSize:22,fontWeight:700,color:"var(--gold)"}}>{formatPrice(listing.price)}</div>
           {listing.price_reduced&&listing.original_price&&<div style={{fontSize:13,color:"#aaa",textDecoration:"line-through"}}>{formatPrice(listing.original_price)}</div>}
         </div>
-        <div style={{display:"flex",gap:12,fontSize:12,color:"#555",marginBottom:6}}>
+        <div style={{display:"flex",gap:12,fontSize:12,color:"#555",marginBottom:4}}>
           <span>{listing.beds} bd</span><span>{listing.baths} ba</span><span>{Number(listing.sqft).toLocaleString()} sqft</span>
         </div>
-        {listing.views>0&&<div style={{fontSize:10,color:"#aaa"}}>{listing.views} view{listing.views!==1?"s":""}</div>}
+        {listing.views>0&&<div style={{fontSize:10,color:"#bbb"}}>👁 {listing.views} view{listing.views!==1?"s":""}</div>}
       </div>
       {isOwner&&(
         <div style={{padding:"0 15px 13px",display:"flex",gap:7}}>
@@ -545,21 +579,17 @@ function ListingModal({listing,onClose,onMessage,onOffer,user,saved,onToggleSave
   const [photoIdx,setPhotoIdx]=useState(0);
   const [openHouses,setOpenHouses]=useState([]);
   const [rsvping,setRsvping]=useState(null);
-  const [rsvpForm,setRsvpForm]=useState({name:user?.user_metadata?.full_name||"",email:user?.email||"",phone:""});
   const [rsvpDone,setRsvpDone]=useState({});
+  const [rsvpForm]=useState({name:user?.user_metadata?.full_name||"",email:user?.email||"",phone:""});
 
   useEffect(()=>{
     if(!listing) return;
-    // Increment view count
     sb.from("listings").update({views:(listing.views||0)+1}).eq("id",listing.id).then(()=>{});
-    // Load open houses
-    sb.from("open_houses").select("*, open_house_rsvps(id,user_id)").eq("listing_id",listing.id).order("date").then(({data})=>{
+    sb.from("open_houses").select("*,open_house_rsvps(id,user_id)").eq("listing_id",listing.id).order("date").then(({data})=>{
       setOpenHouses(data||[]);
       if(user){
         const done={};
-        (data||[]).forEach(oh=>{
-          if(oh.open_house_rsvps?.some(r=>r.user_id===user.id)) done[oh.id]=true;
-        });
+        (data||[]).forEach(oh=>{if(oh.open_house_rsvps?.some(r=>r.user_id===user.id))done[oh.id]=true;});
         setRsvpDone(done);
       }
     });
@@ -599,20 +629,14 @@ function ListingModal({listing,onClose,onMessage,onOffer,user,saved,onToggleSave
             <button onClick={e=>{e.stopPropagation();setPhotoIdx(i=>(i-1+photos.length)%photos.length);}} style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",background:"rgba(0,0,0,0.5)",color:"#fff",border:"none",borderRadius:"50%",width:30,height:30,cursor:"pointer",fontSize:13}}>{"<"}</button>
             <button onClick={e=>{e.stopPropagation();setPhotoIdx(i=>(i+1)%photos.length);}} style={{position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",background:"rgba(0,0,0,0.5)",color:"#fff",border:"none",borderRadius:"50%",width:30,height:30,cursor:"pointer",fontSize:13}}>{">"}</button>
           </>}
-          {photos.length>1&&<div style={{position:"absolute",bottom:8,left:"50%",transform:"translateX(-50%)",display:"flex",gap:4}}>
-            {photos.map((_,i)=><div key={i} style={{width:6,height:6,borderRadius:"50%",background:i===photoIdx?"#fff":"rgba(255,255,255,0.4)"}}/>)}
-          </div>}
+          {photos.length>1&&<div style={{position:"absolute",bottom:8,left:"50%",transform:"translateX(-50%)",display:"flex",gap:4}}>{photos.map((_,i)=><div key={i} style={{width:6,height:6,borderRadius:"50%",background:i===photoIdx?"#fff":"rgba(255,255,255,0.4)"}}/>)}</div>}
         </div>
         <div style={{padding:"20px 24px 24px"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:3}}>
             <h2 style={{fontSize:20,fontWeight:600,flex:1,color:"var(--ink)"}}>{listing.address}</h2>
             <div style={{display:"flex",gap:8,alignItems:"center"}}>
-              {user&&!isOwnListing&&(
-                <button onClick={()=>onToggleSave&&onToggleSave(listing.id)} style={{background:"none",border:"none",fontSize:20,cursor:"pointer"}}>{saved?"❤️":"🤍"}</button>
-              )}
-              {isOwnListing&&onEdit&&(
-                <button onClick={()=>{onClose();onEdit(listing);}} style={{background:"var(--warm)",border:"none",borderRadius:8,padding:"5px 11px",fontSize:12,cursor:"pointer",color:"var(--ink)",fontWeight:600}}>✏️ Edit</button>
-              )}
+              {user&&!isOwnListing&&<button onClick={()=>onToggleSave&&onToggleSave(listing.id)} style={{background:"none",border:"none",fontSize:20,cursor:"pointer"}}>{saved?"❤️":"🤍"}</button>}
+              {isOwnListing&&onEdit&&<button onClick={()=>{onClose();onEdit(listing);}} style={{background:"var(--warm)",border:"none",borderRadius:8,padding:"5px 11px",fontSize:12,cursor:"pointer",color:"var(--ink)",fontWeight:600}}>✏️ Edit</button>}
               <button onClick={onClose} style={{background:"none",border:"none",fontSize:18,cursor:"pointer",color:"#888",marginLeft:4}}>✕</button>
             </div>
           </div>
@@ -630,14 +654,12 @@ function ListingModal({listing,onClose,onMessage,onOffer,user,saved,onToggleSave
             <span style={{fontSize:19}}>👤</span>
             <div><div style={{fontWeight:600,fontSize:12,color:"var(--ink)"}}>{listing.seller_name}</div><div style={{fontSize:11,color:"#666"}}>Owner · No commission</div></div>
           </div>
-
-          {/* Open Houses */}
           {openHouses.length>0&&(
             <div style={{marginBottom:13}}>
               <div style={{fontSize:13,fontWeight:700,color:"var(--ink)",marginBottom:8}}>🏠 Open Houses</div>
               {openHouses.map(oh=>(
                 <div key={oh.id} style={{background:"var(--cream)",border:"1px solid var(--warm)",borderRadius:10,padding:"11px 14px",marginBottom:7}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                     <div>
                       <div style={{fontSize:13,fontWeight:600,color:"var(--ink)"}}>{new Date(oh.date+"T12:00:00").toLocaleDateString([],{weekday:"long",month:"long",day:"numeric"})}</div>
                       <div style={{fontSize:12,color:"#666"}}>{oh.start_time} – {oh.end_time}</div>
@@ -645,21 +667,15 @@ function ListingModal({listing,onClose,onMessage,onOffer,user,saved,onToggleSave
                       <div style={{fontSize:11,color:"var(--sage)",marginTop:3}}>{oh.open_house_rsvps?.length||0} attending</div>
                     </div>
                     {user&&!isOwnListing&&(
-                      rsvpDone[oh.id]?(
-                        <button onClick={()=>cancelRsvp(oh.id)} style={{background:"#fff5f5",color:"var(--rust)",border:"1px solid #fcc",borderRadius:8,padding:"5px 12px",fontSize:11,cursor:"pointer",fontWeight:500}}>Cancel RSVP</button>
-                      ):(
-                        <button onClick={()=>submitRsvp(oh.id)} disabled={rsvping===oh.id} style={{background:"var(--sage)",color:"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:11,cursor:"pointer",fontWeight:600,display:"flex",alignItems:"center",gap:5}}>
-                          {rsvping===oh.id?<Spinner size={11}/>:"RSVP"}
-                        </button>
-                      )
+                      rsvpDone[oh.id]
+                        ?<button onClick={()=>cancelRsvp(oh.id)} style={{background:"#fff5f5",color:"var(--rust)",border:"1px solid #fcc",borderRadius:8,padding:"5px 12px",fontSize:11,cursor:"pointer"}}>Cancel RSVP</button>
+                        :<button onClick={()=>submitRsvp(oh.id)} disabled={rsvping===oh.id} style={{background:"var(--sage)",color:"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:11,cursor:"pointer",fontWeight:600,display:"flex",alignItems:"center",gap:5}}>{rsvping===oh.id?<Spinner size={11}/>:"RSVP"}</button>
                     )}
                   </div>
                 </div>
               ))}
             </div>
           )}
-
-          {/* Share */}
           <div style={{background:"var(--cream)",borderRadius:9,padding:"9px 13px",marginBottom:13,border:"1px solid var(--warm)"}}>
             <div style={{fontSize:11,color:"#666",marginBottom:6}}>Share this listing</div>
             <div style={{display:"flex",gap:6}}>
@@ -668,7 +684,6 @@ function ListingModal({listing,onClose,onMessage,onOffer,user,saved,onToggleSave
               <a href={"https://twitter.com/intent/tweet?url="+encodeURIComponent(shareUrl)+"&text="+encodeURIComponent(formatPrice(listing.price)+" home in "+listing.city+", "+listing.state)} target="_blank" rel="noopener noreferrer" style={{flex:1,background:"#000",color:"#fff",borderRadius:7,padding:"7px",fontSize:11,textDecoration:"none",textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>✕ Post</a>
             </div>
           </div>
-
           {!listing.sold&&!isOwnListing?(
             <div style={{display:"flex",gap:9}}>
               <button onClick={()=>{onMessage(listing);onClose();}} style={{flex:1,background:"var(--warm)",color:"var(--ink)",border:"none",borderRadius:12,padding:"12px",fontSize:13,fontWeight:600,cursor:"pointer"}}>💬 Message Seller</button>
@@ -685,7 +700,7 @@ function ListingModal({listing,onClose,onMessage,onOffer,user,saved,onToggleSave
   );
 }
 
-function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,savedIds,onToggleSave,onEdit,refreshKey}) {
+function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,savedIds,onToggleSave,refreshKey}) {
   const [listings,setListings]=useState([]);
   const [loading,setLoading]=useState(true);
   const [search,setSearch]=useState("");
@@ -710,10 +725,9 @@ function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,sav
     }
   },[deepLinkListingId,listings]);
 
-  const handleEdit=l=>{setEditListing(l);};
   const handleSaved=updated=>{
     setListings(prev=>prev.map(l=>l.id===updated.id?{...l,...updated}:l));
-    if(selected?.id===updated.id) setSelected(s=>({...s,...updated}));
+    if(selected?.id===updated.id)setSelected(s=>({...s,...updated}));
   };
 
   const filtered=listings.filter(l=>
@@ -739,7 +753,7 @@ function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,sav
       {!loading&&(
         <div className="listing-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(270px,1fr))",gap:18}}>
           {filtered.map(l=>(
-            <ListingCard key={l.id} listing={l} onClick={setSelected} onDelete={()=>{}} isOwner={user?.id===l.user_id} onMessage={onMessage} onEdit={handleEdit} user={user} saved={savedIds?.has(l.id)} onToggleSave={onToggleSave}/>
+            <ListingCard key={l.id} listing={l} onClick={setSelected} onDelete={()=>{}} isOwner={user?.id===l.user_id} onMessage={onMessage} onEdit={l=>setEditListing(l)} user={user} saved={savedIds?.has(l.id)} onToggleSave={onToggleSave}/>
           ))}
         </div>
       )}
@@ -750,63 +764,52 @@ function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,sav
           <div style={{fontSize:12}}>Try adjusting your filters.</div>
         </div>
       )}
-      <ListingModal listing={selected} onClose={()=>setSelected(null)} onMessage={onMessage} onOffer={onOffer} user={user} saved={savedIds?.has(selected?.id)} onToggleSave={onToggleSave} onEdit={l=>{setSelected(null);handleEdit(l);}}/>
+      <ListingModal listing={selected} onClose={()=>setSelected(null)} onMessage={onMessage} onOffer={onOffer} user={user} saved={savedIds?.has(selected?.id)} onToggleSave={onToggleSave} onEdit={l=>{setSelected(null);setEditListing(l);}}/>
       {editListing&&<EditListingModal listing={editListing} onClose={()=>setEditListing(null)} onSaved={updated=>{handleSaved(updated);setEditListing(null);}}/>}
     </div>
   );
 }
+
 function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMessage,onOffer}) {
   const [myListings,setMyListings]=useState([]);
-  const [myOffers,setMyOffers]=useState([]);
-  const [receivedOffers,setReceivedOffers]=useState([]);
+  const [activeOffers,setActiveOffers]=useState([]);
   const [savedListings,setSavedListings]=useState([]);
-  const [notifications,setNotifications]=useState([]);
-  const [profile,setProfile]=useState({full_name:"",phone:"",bio:""});
-  const [editProfile,setEditProfile]=useState(false);
-  const [savingProfile,setSavingProfile]=useState(false);
+  const [recentNotifs,setRecentNotifs]=useState([]);
   const [loading,setLoading]=useState(true);
-  const [activeSection,setActiveSection]=useState("overview");
   const [editListing,setEditListing]=useState(null);
 
   useEffect(()=>{
     if(!user){setLoading(false);return;}
-    setProfile({full_name:user.user_metadata?.full_name||"",phone:user.user_metadata?.phone||"",bio:user.user_metadata?.bio||""});
     loadAll();
   },[user]);
 
   const loadAll=async()=>{
     setLoading(true);
-    const[listings,buyerOffers,sellerOffers,saved,notifs]=await Promise.all([
+    const[listings,offers,saved,notifs]=await Promise.all([
       sb.from("listings").select("*").eq("user_id",user.id).order("created_at",{ascending:false}),
-      sb.from("offers").select("*,listings(address,city,state,zip,seller_name,price,seller_email,user_id)").eq("buyer_id",user.id).order("created_at",{ascending:false}),
-      sb.from("offers").select("*,listings(address,city,state,zip,seller_name,price,seller_email,user_id)").eq("seller_id",user.id).order("created_at",{ascending:false}),
-      sb.from("saved_listings").select("*,listings(*)").eq("user_id",user.id).order("created_at",{ascending:false}),
-      sb.from("notifications").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(20),
+      sb.from("offers").select("*,listings(address,city,state,zip,seller_name,price,seller_email,user_id)")
+        .or("buyer_id.eq."+user.id+",seller_id.eq."+user.id)
+        .not("status","in","(declined,closed)")
+        .order("created_at",{ascending:false}),
+      sb.from("saved_listings").select("*,listings(*)").eq("user_id",user.id).order("created_at",{ascending:false}).limit(6),
+      sb.from("notifications").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(5),
     ]);
     setMyListings(listings.data||[]);
-    setMyOffers(buyerOffers.data||[]);
-    setReceivedOffers(sellerOffers.data||[]);
+    setActiveOffers(offers.data||[]);
     setSavedListings((saved.data||[]).map(s=>s.listings).filter(Boolean));
-    setNotifications(notifs.data||[]);
+    setRecentNotifs(notifs.data||[]);
     setLoading(false);
-  };
-
-  const saveProfile=async()=>{
-    setSavingProfile(true);
-    await sb.auth.updateUser({data:{full_name:profile.full_name,phone:profile.phone,bio:profile.bio}});
-    setSavingProfile(false);
-    setEditProfile(false);
-  };
-
-  const markAllRead=async()=>{
-    await sb.from("notifications").update({read:true}).eq("user_id",user.id).eq("read",false);
-    setNotifications(prev=>prev.map(n=>({...n,read:true})));
   };
 
   const deleteListing=async id=>{
     if(!window.confirm("Delete this listing?"))return;
     await sb.from("listings").delete().eq("id",id);
     setMyListings(prev=>prev.filter(l=>l.id!==id));
+  };
+
+  const markNotifsRead=async()=>{
+    await sb.from("notifications").update({read:true}).eq("user_id",user.id).eq("read",false);
+    setRecentNotifs(prev=>prev.map(n=>({...n,read:true})));
   };
 
   if(!user) return (
@@ -818,304 +821,158 @@ function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMes
     </div>
   );
 
-  if(loading) return <div style={{textAlign:"center",padding:"60px",color:"#888"}}>Loading your dashboard...</div>;
+  if(loading) return <div style={{textAlign:"center",padding:"60px",color:"#888"}}>Loading...</div>;
 
-  const activeTransactions=[...myOffers,...receivedOffers].filter(o=>o.status!=="declined"&&o.status!=="closed");
-  const unreadNotifs=notifications.filter(n=>!n.read).length;
-
-  const inp={width:"100%",padding:"9px 12px",borderRadius:8,border:"1.5px solid var(--warm)",background:"#fff",fontSize:13,outline:"none",color:"var(--ink)"};
-
-  const sections=[
-    {id:"overview",   label:"Overview",      icon:"📊"},
-    {id:"listings",   label:"My Listings",   icon:"🏡"},
-    {id:"offers",     label:"Offers",        icon:"📋"},
-    {id:"saved",      label:"Saved Homes",   icon:"❤️"},
-    {id:"notifs",     label:"Notifications", icon:"🔔", badge:unreadNotifs},
-    {id:"profile",    label:"My Profile",    icon:"👤"},
-  ];
+  const firstName=user.user_metadata?.full_name?.split(" ")[0]||"there";
+  const unreadNotifs=recentNotifs.filter(n=>!n.read).length;
 
   return (
-    <div style={{maxWidth:1100,margin:"0 auto",padding:"20px 16px"}}>
+    <div style={{maxWidth:760,margin:"0 auto",padding:"24px 16px"}}>
+
       {/* Header */}
-      <div style={{marginBottom:20}}>
-        <h2 style={{fontSize:26,fontWeight:700,color:"var(--ink)",marginBottom:2}}>Welcome back, {user.user_metadata?.full_name?.split(" ")[0]||"there"}!</h2>
-        <p style={{fontSize:13,color:"#666"}}>Here's everything happening with your DirectDeed account.</p>
+      <div style={{marginBottom:24}}>
+        <h2 style={{fontSize:26,fontWeight:700,color:"var(--ink)",marginBottom:3}}>Hi {firstName} 👋</h2>
+        <p style={{fontSize:13,color:"#666"}}>
+          {activeOffers.length>0
+            ?`You have ${activeOffers.length} active transaction${activeOffers.length!==1?"s":""} in progress.`
+            :"No active transactions. List your home or browse to make an offer."}
+        </p>
       </div>
 
-      {/* Section Nav */}
-      <div style={{display:"flex",gap:6,marginBottom:20,flexWrap:"wrap"}}>
-        {sections.map(s=>(
-          <button key={s.id} onClick={()=>setActiveSection(s.id)}
-            style={{background:activeSection===s.id?"var(--sage)":"var(--card)",color:activeSection===s.id?"#fff":"var(--ink)",border:"1px solid "+(activeSection===s.id?"var(--sage)":"var(--warm)"),borderRadius:20,padding:"7px 16px",fontSize:12,cursor:"pointer",fontWeight:activeSection===s.id?600:400,display:"flex",alignItems:"center",gap:5,position:"relative",transition:"all 0.15s"}}>
-            {s.icon} {s.label}
-            {s.badge>0&&<span style={{background:"var(--rust)",color:"#fff",borderRadius:"50%",width:14,height:14,fontSize:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>{s.badge}</span>}
-          </button>
-        ))}
-      </div>
-
-      {/* OVERVIEW */}
-      {activeSection==="overview"&&(
-        <div>
-          {/* Stats */}
-          <div className="dash-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:20}}>
-            {[
-              {label:"My Listings",value:myListings.length,icon:"🏡",color:"var(--gold)"},
-              {label:"Active Transactions",value:activeTransactions.length,icon:"📋",color:"var(--sage)"},
-              {label:"Saved Homes",value:savedListings.length,icon:"❤️",color:"var(--rust)"},
-              {label:"Total Views",value:myListings.reduce((s,l)=>s+(l.views||0),0),icon:"👁",color:"#6d28d9"},
-            ].map(s=>(
-              <div key={s.label} style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:12,padding:"16px",textAlign:"center"}}>
-                <div style={{fontSize:28,marginBottom:6}}>{s.icon}</div>
-                <div style={{fontSize:28,fontWeight:700,color:s.color,marginBottom:3}}>{s.value}</div>
-                <div style={{fontSize:11,color:"#666"}}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Active transactions */}
-          {activeTransactions.length>0&&(
-            <div style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:14,padding:"16px 18px",marginBottom:16}}>
-              <div style={{fontSize:14,fontWeight:700,color:"var(--ink)",marginBottom:12}}>⚡ Active Transactions</div>
-              {activeTransactions.slice(0,3).map(o=>{
-                const si=Math.min(o.step_index||1,TRANSACTION_STEPS.length);
-                const cur=TRANSACTION_STEPS.find(s=>s.id===si);
-                const isBuyer=o.buyer_id===user.id;
-                const needsAction=(cur?.owner==="buyer"&&isBuyer)||(cur?.owner==="seller"&&!isBuyer)||cur?.owner==="both";
-                return (
-                  <div key={o.id} onClick={()=>onNavigate("Offers")}
-                    style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:"1px solid var(--warm)",cursor:"pointer"}}>
-                    <div style={{width:36,height:36,borderRadius:"50%",background:needsAction?"var(--gold)":"var(--warm)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{cur?.icon}</div>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:13,fontWeight:600,color:"var(--ink)"}}>{o.listings?.address}</div>
-                      <div style={{fontSize:11,color:"#666"}}>Step {si}/10: {cur?.label} · {needsAction?"Your turn":"Waiting"}</div>
-                    </div>
-                    <span style={{fontSize:11,color:needsAction?"var(--gold)":"#aaa",fontWeight:needsAction?700:400}}>{needsAction?"⚡ Act":"Wait →"}</span>
+      {/* ACTIVE TRANSACTIONS — the most important thing */}
+      {activeOffers.length>0&&(
+        <div style={{marginBottom:24}}>
+          <div style={{fontSize:15,fontWeight:700,color:"var(--ink)",marginBottom:12}}>⚡ Active Transactions</div>
+          {activeOffers.map(o=>{
+            const si=Math.min(o.step_index||1,TRANSACTION_STEPS.length);
+            const cur=TRANSACTION_STEPS.find(s=>s.id===si);
+            const isBuyer=o.buyer_id===user.id;
+            const isSeller=o.seller_id===user.id;
+            const needsAction=(cur?.owner==="buyer"&&isBuyer)||(cur?.owner==="seller"&&isSeller)||cur?.owner==="both";
+            const progress=Math.round((si/TRANSACTION_STEPS.length)*100);
+            return (
+              <div key={o.id} onClick={()=>onNavigate("Offers")}
+                style={{background:"var(--card)",border:"2px solid "+(needsAction?"var(--gold)":"var(--warm)"),borderRadius:14,padding:"16px 18px",marginBottom:12,cursor:"pointer",transition:"all 0.15s",position:"relative",overflow:"hidden"}}
+                onMouseEnter={e=>e.currentTarget.style.transform="translateY(-1px)"}
+                onMouseLeave={e=>e.currentTarget.style.transform="none"}>
+                {needsAction&&<div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"var(--gold)"}}/>}
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+                  <div>
+                    <div style={{fontSize:16,fontWeight:700,color:"var(--ink)",marginBottom:2}}>{o.listings?.address}</div>
+                    <div style={{fontSize:12,color:"#888"}}>{o.listings?.city}, {o.listings?.state} · {isBuyer?"Buying":"Selling"} · {formatPrice(o.offer_price)}</div>
                   </div>
-                );
-              })}
-              {activeTransactions.length>3&&<div style={{fontSize:12,color:"var(--gold)",textAlign:"center",marginTop:8,cursor:"pointer"}} onClick={()=>onNavigate("Offers")}>View all {activeTransactions.length} transactions →</div>}
-            </div>
-          )}
-
-          {/* Recent notifications */}
-          {notifications.slice(0,4).length>0&&(
-            <div style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:14,padding:"16px 18px"}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                <div style={{fontSize:14,fontWeight:700,color:"var(--ink)"}}>🔔 Recent Activity</div>
-                {unreadNotifs>0&&<button onClick={markAllRead} style={{background:"none",border:"none",color:"var(--gold)",fontSize:11,cursor:"pointer"}}>Mark all read</button>}
-              </div>
-              {notifications.slice(0,4).map(n=>(
-                <div key={n.id} style={{display:"flex",alignItems:"flex-start",gap:9,padding:"8px 0",borderBottom:"1px solid var(--warm)",opacity:n.read?0.6:1}}>
-                  <div style={{width:8,height:8,borderRadius:"50%",background:n.read?"#ddd":"var(--sage)",flexShrink:0,marginTop:4}}/>
-                  <div style={{flex:1}}>
-                    <div style={{fontSize:12,color:"var(--ink)"}}>{n.message}</div>
-                    <div style={{fontSize:10,color:"#aaa",marginTop:1}}>{formatTime(n.created_at)}</div>
+                  <div style={{textAlign:"right"}}>
+                    {needsAction
+                      ?<span style={{background:"var(--gold)",color:"#fff",fontSize:10,fontWeight:700,padding:"3px 9px",borderRadius:10}}>Your Turn</span>
+                      :<span style={{background:"#eee",color:"#888",fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:10}}>Waiting</span>
+                    }
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+                {/* Progress bar */}
+                <div style={{background:"var(--warm)",borderRadius:4,height:6,marginBottom:8,overflow:"hidden"}}>
+                  <div style={{background:needsAction?"var(--gold)":"var(--sage)",height:"100%",width:progress+"%",borderRadius:4,transition:"width 0.3s"}}/>
+                </div>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div style={{fontSize:12,color:needsAction?"var(--gold)":"#666",fontWeight:needsAction?600:400}}>
+                    {cur?.icon} Step {si}/10: {cur?.label}
+                    {needsAction&&" — action needed"}
+                  </div>
+                  <div style={{fontSize:12,color:"var(--sage)",fontWeight:600}}>Continue →</div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
       {/* MY LISTINGS */}
-      {activeSection==="listings"&&(
-        <div>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-            <div style={{fontSize:16,fontWeight:700,color:"var(--ink)"}}>My Listings ({myListings.length})</div>
-            <button onClick={()=>onNavigate("Sell")} style={{background:"var(--sage)",color:"#fff",border:"none",borderRadius:10,padding:"8px 16px",fontSize:12,cursor:"pointer",fontWeight:600}}>+ New Listing</button>
+      <div style={{marginBottom:24}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+          <div style={{fontSize:15,fontWeight:700,color:"var(--ink)"}}>🏡 My Listings</div>
+          <button onClick={()=>onNavigate("Sell")} style={{background:"var(--sage)",color:"#fff",border:"none",borderRadius:10,padding:"6px 14px",fontSize:12,cursor:"pointer",fontWeight:600}}>+ New Listing</button>
+        </div>
+        {myListings.length===0?(
+          <div style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:12,padding:"28px",textAlign:"center",color:"#888"}}>
+            <div style={{fontSize:32,marginBottom:8}}>🏡</div>
+            <div style={{fontSize:15,marginBottom:5,color:"var(--ink)"}}>No listings yet</div>
+            <div style={{fontSize:12,marginBottom:14}}>List your home and connect directly with buyers.</div>
+            <button onClick={()=>onNavigate("Sell")} style={{background:"var(--sage)",color:"#fff",border:"none",borderRadius:10,padding:"9px 20px",fontSize:13,cursor:"pointer",fontWeight:600}}>List My Home</button>
           </div>
-          {myListings.length===0&&(
-            <div style={{textAlign:"center",padding:"40px",color:"#888",background:"var(--card)",border:"1px solid var(--warm)",borderRadius:14}}>
-              <div style={{fontSize:36,marginBottom:10}}>🏡</div>
-              <div style={{fontSize:16,marginBottom:6,color:"var(--ink)"}}>No listings yet</div>
-              <button onClick={()=>onNavigate("Sell")} style={{background:"var(--sage)",color:"#fff",border:"none",borderRadius:10,padding:"10px 20px",fontSize:13,cursor:"pointer",fontWeight:600,marginTop:8}}>List Your Home</button>
-            </div>
-          )}
-          {myListings.map(l=>(
-            <div key={l.id} style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:12,padding:"14px 16px",marginBottom:10,display:"flex",gap:12,alignItems:"flex-start"}}>
+        ):(
+          myListings.map(l=>(
+            <div key={l.id} style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:12,padding:"14px 16px",marginBottom:10,display:"flex",gap:12,alignItems:"center"}}>
               <div style={{width:72,height:56,borderRadius:8,overflow:"hidden",flexShrink:0,background:"var(--warm)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>
                 {l.photos?.[0]?<img src={l.photos[0]} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:"🏡"}
               </div>
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:14,fontWeight:700,color:"var(--ink)",marginBottom:1}}>{l.address}</div>
-                <div style={{fontSize:12,color:"#888",marginBottom:4}}>{l.city}, {l.state} {l.zip}</div>
-                <div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
-                  <span style={{fontSize:14,fontWeight:700,color:"var(--gold)"}}>{formatPrice(l.price)}</span>
-                  {l.price_reduced&&<span style={{background:"var(--rust)",color:"#fff",fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:8}}>REDUCED</span>}
-                  <span style={{fontSize:11,color:"#aaa"}}>👁 {l.views||0} views</span>
-                  {l.sold&&<span style={{background:"#aaa",color:"#fff",fontSize:9,fontWeight:700,padding:"2px 7px",borderRadius:8}}>SOLD</span>}
+                <div style={{fontSize:14,fontWeight:700,color:"var(--ink)",marginBottom:2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{l.address}</div>
+                <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+                  <span style={{fontSize:15,fontWeight:700,color:"var(--gold)"}}>{formatPrice(l.price)}</span>
+                  {l.price_reduced&&<span style={{background:"var(--rust)",color:"#fff",fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:7}}>REDUCED</span>}
+                  {l.sold&&<span style={{background:"#aaa",color:"#fff",fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:7}}>SOLD</span>}
+                  <span style={{fontSize:11,color:"#aaa"}}>👁 {l.views||0}</span>
                 </div>
               </div>
               <div style={{display:"flex",gap:6,flexShrink:0}}>
                 <button onClick={()=>setEditListing(l)} style={{background:"var(--warm)",color:"var(--ink)",border:"none",borderRadius:8,padding:"6px 11px",fontSize:11,cursor:"pointer",fontWeight:500}}>✏️ Edit</button>
-                <button onClick={()=>deleteListing(l.id)} style={{background:"#fff5f5",color:"var(--rust)",border:"1px solid #fcc",borderRadius:8,padding:"6px 11px",fontSize:11,cursor:"pointer"}}>Delete</button>
+                <button onClick={()=>deleteListing(l.id)} style={{background:"#fff5f5",color:"var(--rust)",border:"1px solid #fcc",borderRadius:8,padding:"6px 11px",fontSize:11,cursor:"pointer"}}>🗑️</button>
               </div>
             </div>
-          ))}
-          {editListing&&<EditListingModal listing={editListing} onClose={()=>setEditListing(null)} onSaved={updated=>{setMyListings(prev=>prev.map(l=>l.id===updated.id?{...l,...updated}:l));setEditListing(null);}}/>}
-        </div>
-      )}
-
-      {/* OFFERS */}
-      {activeSection==="offers"&&(
-        <div>
-          {receivedOffers.length>0&&(
-            <div style={{marginBottom:24}}>
-              <div style={{fontSize:14,fontWeight:700,color:"var(--ink)",marginBottom:12}}>Offers Received ({receivedOffers.length})</div>
-              {receivedOffers.map(o=>{
-                const si=Math.min(o.step_index||1,TRANSACTION_STEPS.length);
-                const cur=TRANSACTION_STEPS.find(s=>s.id===si);
-                return (
-                  <div key={o.id} onClick={()=>onNavigate("Offers")} style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:11,padding:"13px 16px",marginBottom:8,cursor:"pointer"}}
-                    onMouseEnter={e=>e.currentTarget.style.transform="translateY(-1px)"}
-                    onMouseLeave={e=>e.currentTarget.style.transform="none"}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-                      <div>
-                        <div style={{fontSize:14,fontWeight:700,color:"var(--ink)",marginBottom:2}}>{o.listings?.address}</div>
-                        <div style={{fontSize:12,color:"#666",marginBottom:3}}>{o.buyer_name} · {formatPrice(o.offer_price)}</div>
-                        <div style={{fontSize:11,color:"#888"}}>{cur?.label} · Step {si}/10</div>
-                      </div>
-                      <span style={{background:o.status==="closed"?"var(--sage)":o.status==="accepted"?"var(--sage)":o.status==="declined"?"#aaa":o.status==="countered"?"var(--rust)":"var(--gold)",color:"#fff",fontSize:8,fontWeight:700,padding:"2px 7px",borderRadius:9,textTransform:"uppercase"}}>{o.status==="closed"?"Closed":o.status}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          {myOffers.length>0&&(
-            <div>
-              <div style={{fontSize:14,fontWeight:700,color:"var(--ink)",marginBottom:12}}>My Offers ({myOffers.length})</div>
-              {myOffers.map(o=>{
-                const si=Math.min(o.step_index||1,TRANSACTION_STEPS.length);
-                const cur=TRANSACTION_STEPS.find(s=>s.id===si);
-                return (
-                  <div key={o.id} onClick={()=>onNavigate("Offers")} style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:11,padding:"13px 16px",marginBottom:8,cursor:"pointer"}}
-                    onMouseEnter={e=>e.currentTarget.style.transform="translateY(-1px)"}
-                    onMouseLeave={e=>e.currentTarget.style.transform="none"}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-                      <div>
-                        <div style={{fontSize:14,fontWeight:700,color:"var(--ink)",marginBottom:2}}>{o.listings?.address}</div>
-                        <div style={{fontSize:12,color:"#666",marginBottom:3}}>{formatPrice(o.offer_price)} · Closing: {o.closing_date||"TBD"}</div>
-                        <div style={{fontSize:11,color:"#888"}}>{cur?.label} · Step {si}/10</div>
-                      </div>
-                      <span style={{background:o.status==="closed"?"var(--sage)":o.status==="accepted"?"var(--sage)":o.status==="declined"?"#aaa":o.status==="countered"?"var(--rust)":"var(--gold)",color:"#fff",fontSize:8,fontWeight:700,padding:"2px 7px",borderRadius:9,textTransform:"uppercase"}}>{o.status==="closed"?"Closed":o.status}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          {myOffers.length===0&&receivedOffers.length===0&&(
-            <div style={{textAlign:"center",padding:"40px",color:"#888",background:"var(--card)",border:"1px solid var(--warm)",borderRadius:14}}>
-              <div style={{fontSize:36,marginBottom:10}}>📋</div>
-              <div style={{fontSize:16,marginBottom:6,color:"var(--ink)"}}>No offers yet</div>
-              <button onClick={()=>onNavigate("Browse")} style={{background:"var(--sage)",color:"#fff",border:"none",borderRadius:10,padding:"10px 20px",fontSize:13,cursor:"pointer",fontWeight:600,marginTop:8}}>Browse Homes</button>
-            </div>
-          )}
-        </div>
-      )}
+          ))
+        )}
+      </div>
 
       {/* SAVED HOMES */}
-      {activeSection==="saved"&&(
-        <div>
-          <div style={{fontSize:16,fontWeight:700,color:"var(--ink)",marginBottom:14}}>Saved Homes ({savedListings.length})</div>
-          {savedListings.length===0&&(
-            <div style={{textAlign:"center",padding:"40px",color:"#888",background:"var(--card)",border:"1px solid var(--warm)",borderRadius:14}}>
-              <div style={{fontSize:36,marginBottom:10}}>❤️</div>
-              <div style={{fontSize:16,marginBottom:6,color:"var(--ink)"}}>No saved homes yet</div>
-              <div style={{fontSize:13,marginBottom:12}}>Tap 🤍 on any listing to save it.</div>
-              <button onClick={()=>onNavigate("Browse")} style={{background:"var(--sage)",color:"#fff",border:"none",borderRadius:10,padding:"10px 20px",fontSize:13,cursor:"pointer",fontWeight:600}}>Browse Homes</button>
-            </div>
-          )}
-          <div className="listing-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(270px,1fr))",gap:18}}>
+      {savedListings.length>0&&(
+        <div style={{marginBottom:24}}>
+          <div style={{fontSize:15,fontWeight:700,color:"var(--ink)",marginBottom:12}}>❤️ Saved Homes</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>
             {savedListings.map(l=>(
-              <ListingCard key={l.id} listing={l} onClick={()=>{}} onDelete={()=>{}} isOwner={false} onMessage={onMessage} user={user} saved={savedIds?.has(l.id)} onToggleSave={onToggleSave}/>
+              <div key={l.id} style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:12,overflow:"hidden",cursor:"pointer"}}
+                onClick={()=>onNavigate("Browse")}>
+                <div style={{height:110,background:"linear-gradient(135deg,var(--warm),var(--mist))",position:"relative",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30}}>
+                  {l.photos?.[0]?<img src={l.photos[0]} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>:"🏡"}
+                  {l.sold&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{color:"#fff",fontWeight:700,fontSize:12}}>SOLD</span></div>}
+                </div>
+                <div style={{padding:"10px 12px"}}>
+                  <div style={{fontSize:12,fontWeight:600,color:"var(--ink)",marginBottom:2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{l.address}</div>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={{fontSize:14,fontWeight:700,color:"var(--gold)"}}>{formatPrice(l.price)}</span>
+                    <button onClick={e=>{e.stopPropagation();onToggleSave&&onToggleSave(l.id);}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>❤️</button>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* NOTIFICATIONS */}
-      {activeSection==="notifs"&&(
+      {/* RECENT ACTIVITY */}
+      {recentNotifs.length>0&&(
         <div>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-            <div style={{fontSize:16,fontWeight:700,color:"var(--ink)"}}>Notifications</div>
-            {unreadNotifs>0&&<button onClick={markAllRead} style={{background:"var(--gold)",color:"#fff",border:"none",borderRadius:10,padding:"6px 14px",fontSize:11,cursor:"pointer",fontWeight:600}}>Mark all read</button>}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+            <div style={{fontSize:15,fontWeight:700,color:"var(--ink)"}}>
+              🔔 Recent Activity
+              {unreadNotifs>0&&<span style={{background:"var(--rust)",color:"#fff",borderRadius:10,padding:"1px 7px",fontSize:10,fontWeight:700,marginLeft:8}}>{unreadNotifs} new</span>}
+            </div>
+            {unreadNotifs>0&&<button onClick={markNotifsRead} style={{background:"none",border:"none",color:"var(--gold)",fontSize:12,cursor:"pointer"}}>Mark read</button>}
           </div>
-          {notifications.length===0&&(
-            <div style={{textAlign:"center",padding:"40px",color:"#888",background:"var(--card)",border:"1px solid var(--warm)",borderRadius:14}}>
-              <div style={{fontSize:36,marginBottom:10}}>🔔</div>
-              <div style={{fontSize:16,color:"var(--ink)"}}>No notifications yet</div>
-            </div>
-          )}
-          {notifications.map(n=>(
-            <div key={n.id} style={{background:n.read?"var(--card)":"#fffbf0",border:"1px solid "+(n.read?"var(--warm)":"var(--gold)"),borderRadius:11,padding:"13px 16px",marginBottom:8,display:"flex",gap:10,alignItems:"flex-start"}}>
-              <div style={{width:9,height:9,borderRadius:"50%",background:n.read?"#ddd":"var(--gold)",flexShrink:0,marginTop:3}}/>
-              <div style={{flex:1}}>
-                <div style={{fontSize:13,color:"var(--ink)"}}>{n.message}</div>
-                <div style={{fontSize:11,color:"#aaa",marginTop:3}}>{formatTime(n.created_at)}</div>
+          <div style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:12,overflow:"hidden"}}>
+            {recentNotifs.map((n,i)=>(
+              <div key={n.id} style={{padding:"12px 16px",borderBottom:i<recentNotifs.length-1?"1px solid var(--warm)":"none",display:"flex",gap:10,alignItems:"flex-start",opacity:n.read?0.6:1,background:n.read?"transparent":"#fffbf0"}}>
+                <div style={{width:8,height:8,borderRadius:"50%",background:n.read?"#ddd":"var(--gold)",flexShrink:0,marginTop:4}}/>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:13,color:"var(--ink)"}}>{n.message}</div>
+                  <div style={{fontSize:10,color:"#aaa",marginTop:2}}>{formatTime(n.created_at)}</div>
+                </div>
+                {n.link&&<button onClick={()=>onNavigate(n.link==="offers"?"Offers":"Messages")} style={{background:"var(--warm)",border:"none",borderRadius:7,padding:"4px 9px",fontSize:11,cursor:"pointer",color:"var(--ink)",flexShrink:0}}>View →</button>}
               </div>
-              {n.link&&<button onClick={()=>onNavigate(n.link==="offers"?"Offers":"Messages")} style={{background:"var(--warm)",border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,cursor:"pointer",color:"var(--ink)",flexShrink:0}}>View →</button>}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
-      {/* PROFILE */}
-      {activeSection==="profile"&&(
-        <div style={{maxWidth:500}}>
-          <div style={{fontSize:16,fontWeight:700,color:"var(--ink)",marginBottom:16}}>My Profile</div>
-          <div style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:14,padding:"20px 22px",marginBottom:16}}>
-            <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:18}}>
-              <div style={{width:64,height:64,borderRadius:"50%",background:"var(--sage)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:24,flexShrink:0}}>
-                {(profile.full_name||user.email||"?")[0].toUpperCase()}
-              </div>
-              <div>
-                <div style={{fontSize:18,fontWeight:700,color:"var(--ink)"}}>{profile.full_name||"Your Name"}</div>
-                <div style={{fontSize:13,color:"#888"}}>{user.email}</div>
-                <div style={{fontSize:12,color:"var(--sage)",marginTop:2}}>Member since {new Date(user.created_at).toLocaleDateString([],{month:"long",year:"numeric"})}</div>
-              </div>
-            </div>
-            {!editProfile?(
-              <div>
-                <div style={{fontSize:13,color:"#444",lineHeight:1.7,marginBottom:12}}>{profile.bio||"No bio yet."}</div>
-                {profile.phone&&<div style={{fontSize:13,color:"#555",marginBottom:12}}>📞 {profile.phone}</div>}
-                <div style={{display:"flex",gap:12,fontSize:12,color:"#888",marginBottom:16}}>
-                  <span>🏡 {myListings.length} listing{myListings.length!==1?"s":""}</span>
-                  <span>📋 {[...myOffers,...receivedOffers].length} offer{[...myOffers,...receivedOffers].length!==1?"s":""}</span>
-                  <span>❤️ {savedListings.length} saved</span>
-                </div>
-                <button onClick={()=>setEditProfile(true)} style={{background:"var(--warm)",color:"var(--ink)",border:"none",borderRadius:10,padding:"9px 20px",fontSize:13,cursor:"pointer",fontWeight:600}}>✏️ Edit Profile</button>
-              </div>
-            ):(
-              <div style={{display:"flex",flexDirection:"column",gap:11}}>
-                <div>
-                  <label style={{display:"block",fontSize:10,fontWeight:600,color:"#555",marginBottom:3,textTransform:"uppercase"}}>Full Name</label>
-                  <input style={inp} value={profile.full_name} onChange={e=>setProfile(p=>({...p,full_name:e.target.value}))}/>
-                </div>
-                <div>
-                  <label style={{display:"block",fontSize:10,fontWeight:600,color:"#555",marginBottom:3,textTransform:"uppercase"}}>Phone</label>
-                  <input style={inp} type="tel" value={profile.phone} onChange={e=>setProfile(p=>({...p,phone:e.target.value}))} placeholder="(555) 123-4567"/>
-                </div>
-                <div>
-                  <label style={{display:"block",fontSize:10,fontWeight:600,color:"#555",marginBottom:3,textTransform:"uppercase"}}>Bio</label>
-                  <textarea style={{...inp,minHeight:70,resize:"vertical"}} value={profile.bio} onChange={e=>setProfile(p=>({...p,bio:e.target.value}))} placeholder="Tell buyers or sellers a little about yourself..."/>
-                </div>
-                <div style={{display:"flex",gap:8}}>
-                  <button onClick={()=>setEditProfile(false)} style={{flex:1,background:"none",border:"1.5px solid var(--warm)",borderRadius:10,padding:"9px",fontSize:12,cursor:"pointer",color:"var(--ink)"}}>Cancel</button>
-                  <button onClick={saveProfile} disabled={savingProfile} style={{flex:2,background:savingProfile?"#aaa":"var(--sage)",color:"#fff",border:"none",borderRadius:10,padding:"9px",fontSize:12,cursor:"pointer",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>{savingProfile?<Spinner size={13}/>:"Save Profile"}</button>
-                </div>
-              </div>
-            )}
-          </div>
-          <div style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:14,padding:"16px 20px"}}>
-            <div style={{fontSize:13,fontWeight:700,color:"var(--ink)",marginBottom:10}}>Account</div>
-            <div style={{fontSize:12,color:"#666",marginBottom:4}}>Email: {user.email}</div>
-            <div style={{fontSize:12,color:"#aaa"}}>To change your email or password, use the Forgot Password link on the login screen.</div>
-          </div>
-        </div>
-      )}
+      {editListing&&<EditListingModal listing={editListing} onClose={()=>setEditListing(null)} onSaved={updated=>{setMyListings(prev=>prev.map(l=>l.id===updated.id?{...l,...updated}:l));setEditListing(null);}}/>}
     </div>
   );
 }
@@ -1538,8 +1395,8 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
     } else {
       const otherId=isSeller?offer.buyer_id:offer.seller_id;
       const otherEmail=isSeller?offer.buyer_email:offer.listings?.seller_email;
-      await sendNotification(otherId,(isBuyer?"Buyer":"Seller")+" has signed closing documents. Your signature is needed.","offers");
-      await sendEmail(otherEmail,"✍️ Signature needed for closing — DirectDeed",
+      await sendNotification(otherId,(isBuyer?"Buyer":"Seller")+" has signed. Your signature is needed.","offers");
+      await sendEmail(otherEmail,"✍️ Signature needed — DirectDeed",
         emailTemplate("Your signature is needed",`${isBuyer?"The buyer":"The seller"} has signed closing documents for <strong>${offer.listings?.address}</strong>.<br/>Please log in and add your signature.`,"Sign & Complete"));
       onUpdate({...offer,[myField]:true});
     }
@@ -2039,9 +1896,9 @@ function MessagesTab({newThread,user,onRequireAuth}) {
       <div className={"messenger-sidebar"+(mobileView==="list"?" active":"")}
         style={{width:320,minWidth:320,background:"#fff",borderRight:"1px solid #e5e7eb",display:"flex",flexDirection:"column",flexShrink:0}}>
         <div style={{padding:"16px 18px 12px",borderBottom:"1px solid #f0f0f0"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-            <h2 style={{fontSize:20,fontWeight:700,color:"var(--ink)"}}>Messages{totalUnread>0&&<span style={{background:"var(--sage)",color:"#fff",borderRadius:10,padding:"1px 7px",fontSize:10,fontWeight:700,marginLeft:8}}>{totalUnread}</span>}</h2>
-          </div>
+          <h2 style={{fontSize:20,fontWeight:700,color:"var(--ink)",marginBottom:10}}>
+            Messages{totalUnread>0&&<span style={{background:"var(--sage)",color:"#fff",borderRadius:10,padding:"1px 7px",fontSize:10,fontWeight:700,marginLeft:8}}>{totalUnread}</span>}
+          </h2>
           <input placeholder="Search conversations..." style={{width:"100%",padding:"8px 12px",borderRadius:20,border:"none",background:"var(--msg-bg)",fontSize:13,outline:"none",color:"var(--ink)"}}/>
         </div>
         <div style={{flex:1,overflow:"auto"}}>
@@ -2057,7 +1914,7 @@ function MessagesTab({newThread,user,onRequireAuth}) {
             const isActive=activeConv?.key===conv.key;
             return (
               <div key={conv.key} onClick={()=>openConv(conv)}
-                style={{padding:"12px 18px",cursor:"pointer",background:isActive?"#e8f0fe":"transparent",borderBottom:"1px solid #f5f5f5",display:"flex",alignItems:"center",gap:12,transition:"background 0.1s",position:"relative"}}
+                style={{padding:"12px 18px",cursor:"pointer",background:isActive?"#e8f0fe":"transparent",borderBottom:"1px solid #f5f5f5",display:"flex",alignItems:"center",gap:12,transition:"background 0.1s"}}
                 onMouseEnter={e=>{if(!isActive)e.currentTarget.style.background="#f8f9fa";}}
                 onMouseLeave={e=>{if(!isActive)e.currentTarget.style.background="transparent";}}>
                 <div style={{width:46,height:46,borderRadius:"50%",background:isActive?"var(--sage)":"var(--warm)",display:"flex",alignItems:"center",justifyContent:"center",color:isActive?"#fff":"var(--ink)",fontWeight:700,fontSize:17,flexShrink:0,position:"relative"}}>
@@ -2319,7 +2176,7 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
     <div style={{maxWidth:440,margin:"80px auto",textAlign:"center",padding:"0 24px"}}>
       <div style={{fontSize:56,marginBottom:12}}>🎉</div>
       <h2 style={{fontSize:26,marginBottom:9,color:"var(--ink)"}}>Your listing is live!</h2>
-      <p style={{color:"#555",lineHeight:1.8,marginBottom:20,fontSize:13}}>Buyers can now find and contact you. Share your listing to reach more people.</p>
+      <p style={{color:"#555",lineHeight:1.8,marginBottom:20,fontSize:13}}>Buyers can now find and contact you directly.</p>
       <div style={{display:"flex",gap:9}}>
         <button onClick={reset} style={{flex:1,background:"var(--warm)",color:"var(--ink)",border:"none",borderRadius:10,padding:"11px",fontSize:12,cursor:"pointer",fontWeight:600}}>List Another</button>
         <button onClick={()=>setMode("home")} style={{flex:1,background:"var(--sage)",color:"#fff",border:"none",borderRadius:10,padding:"11px",fontSize:12,cursor:"pointer",fontWeight:600}}>Done</button>
@@ -2443,10 +2300,9 @@ function ProfileDropdown({user,onLogout,onRequireAuth,setTab}) {
             <div style={{fontSize:13,fontWeight:700,color:"#fff",marginBottom:1}}>{user.user_metadata?.full_name||"Your Account"}</div>
             <div style={{fontSize:11,color:"rgba(255,255,255,0.5)"}}>{user.email}</div>
           </div>
-          <div style={{padding:"8px 8px"}}>
+          <div style={{padding:"8px"}}>
             {[
               {label:"📊 Dashboard",tab:"Dashboard"},
-              {label:"🏡 My Listings",tab:"Dashboard"},
               {label:"📋 My Offers",tab:"Offers"},
               {label:"💬 Messages",tab:"Messages"},
               {label:"➕ List a Property",tab:"Sell"},
@@ -2487,13 +2343,16 @@ export default function App() {
 
   useEffect(()=>{
     sb.auth.getSession().then(({data:{session}})=>setUser(session?.user||null));
-    const{data:{subscription}}=sb.auth.onAuthStateChange((_,session)=>setUser(session?.user||null));
+    const{data:{subscription}}=sb.auth.onAuthStateChange((event,session)=>{
+      setUser(session?.user||null);
+      if(event==="PASSWORD_RECOVERY"){
+        setShowPasswordReset(true);
+      }
+    });
     return()=>subscription.unsubscribe();
   },[]);
 
   useEffect(()=>{
-    const hash=window.location.hash;
-    if(hash&&hash.includes("type=recovery")){setShowPasswordReset(true);return;}
     const params=new URLSearchParams(window.location.search);
     const id=params.get("listing");
     if(id){setDeepLinkListingId(id);setTab("Browse");window.history.replaceState({},"",window.location.pathname);}
@@ -2539,7 +2398,6 @@ export default function App() {
 
   const NavBtn=({n})=>{
     const badge=n==="Offers"?offerUnread:n==="Messages"?msgUnread:0;
-    const icons={"Browse":"🔍","Sell":"🏡","Offers":"📋","Messages":"💬","Dashboard":"📊"};
     return (
       <button onClick={()=>{setTab(n);setMobileMenuOpen(false);}}
         style={{background:tab===n?"rgba(255,255,255,0.12)":"none",border:"1px solid "+(tab===n?"rgba(255,255,255,0.2)":"transparent"),color:tab===n?"#fff":"rgba(255,255,255,0.65)",borderRadius:8,padding:"5px 13px",fontSize:12,cursor:"pointer",position:"relative",transition:"all 0.15s"}}>
@@ -2578,8 +2436,10 @@ export default function App() {
               {n}{badge>0&&<span style={{background:"var(--rust)",color:"#fff",borderRadius:9,padding:"1px 6px",fontSize:9,fontWeight:700}}>{badge}</span>}
             </button>;
           })}
-          {!user?<button onClick={()=>{setShowAuth(true);setMobileMenuOpen(false);}} style={{background:"var(--gold)",color:"#fff",border:"none",borderRadius:9,padding:"10px 13px",fontSize:13,cursor:"pointer",fontWeight:600}}>Sign In</button>
-                :<button onClick={()=>{handleLogout();setMobileMenuOpen(false);}} style={{background:"none",border:"1px solid rgba(255,255,255,0.2)",color:"rgba(255,255,255,0.6)",borderRadius:9,padding:"10px 13px",fontSize:13,cursor:"pointer"}}>Log Out</button>}
+          {!user
+            ?<button onClick={()=>{setShowAuth(true);setMobileMenuOpen(false);}} style={{background:"var(--gold)",color:"#fff",border:"none",borderRadius:9,padding:"10px 13px",fontSize:13,cursor:"pointer",fontWeight:600}}>Sign In</button>
+            :<button onClick={()=>{handleLogout();setMobileMenuOpen(false);}} style={{background:"none",border:"1px solid rgba(255,255,255,0.2)",color:"rgba(255,255,255,0.6)",borderRadius:9,padding:"10px 13px",fontSize:13,cursor:"pointer"}}>Log Out</button>
+          }
         </div>
       )}
 
