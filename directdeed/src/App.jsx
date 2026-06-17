@@ -69,6 +69,19 @@ function formatDateLabel(ts) {
   return d.toLocaleDateString([],{month:"long",day:"numeric",year:"numeric"});
 }
 
+// Refresh session before any upload to prevent stale JWT errors
+async function refreshSession() {
+  const { data, error } = await sb.auth.getSession();
+  if (error || !data.session) return false;
+  const expiresAt = data.session.expires_at;
+  const now = Math.floor(Date.now() / 1000);
+  if (expiresAt - now < 60) {
+    const { error: refreshError } = await sb.auth.refreshSession();
+    if (refreshError) return false;
+  }
+  return true;
+}
+
 async function callClaude(messages,maxTokens=1000) {
   const res=await fetch("/api/claude",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-5",max_tokens:maxTokens,messages})});
   if(!res.ok) throw new Error("API error "+res.status);
@@ -92,7 +105,7 @@ async function sendEmail(to,subject,html) {
 }
 
 function emailTemplate(title,body,cta="Open DirectDeed",ctaUrl="https://directdeed.vercel.app") {
-  return `<div style="font-family:sans-serif;max-width:500px;margin:0 auto"><div style="background:#1a1208;padding:18px 24px;border-radius:8px 8px 0 0"><span style="color:#fff;font-size:18px;font-weight:700">🏡 DirectDeed</span></div><div style="background:#fff;padding:24px;border-radius:0 0 8px 8px;border:1px solid #eee"><p style="color:#1a1208;font-size:16px;font-weight:600;margin:0 0 12px">${title}</p><div style="color:#444;font-size:14px;line-height:1.7;margin-bottom:20px">${body}</div><a href="${ctaUrl}" style="display:block;background:#4a6741;color:#fff;text-align:center;padding:12px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">${cta} →</a><p style="color:#aaa;font-size:11px;margin-top:16px;text-align:center">DirectDeed · Bondy Technologies LLC · Not a licensed brokerage</p></div></div>`;
+  return `<div style="font-family:sans-serif;max-width:500px;margin:0 auto"><div style="background:#1a1208;padding:18px 24px;border-radius:8px 8px 0 0"><span style="color:#fff;font-size:18px;font-weight:700">🏡 Direct<span style="color:#d4a017">Deed</span></span></div><div style="background:#fff;padding:24px;border-radius:0 0 8px 8px;border:1px solid #eee"><p style="color:#1a1208;font-size:16px;font-weight:600;margin:0 0 12px">${title}</p><div style="color:#444;font-size:14px;line-height:1.7;margin-bottom:20px">${body}</div><a href="${ctaUrl}" style="display:block;background:#4a6741;color:#fff;text-align:center;padding:12px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">${cta} →</a><p style="color:#aaa;font-size:11px;margin-top:16px;text-align:center">DirectDeed · Bondy Technologies LLC · Not a licensed brokerage</p></div></div>`;
 }
 
 function getContractPrompt(name,offer) {
@@ -113,6 +126,26 @@ function getContractPrompt(name,offer) {
 
 function Spinner({size=16,dark}) {
   return <div style={{width:size,height:size,border:`2px solid ${dark?"rgba(0,0,0,0.12)":"rgba(255,255,255,0.25)"}`,borderTop:`2px solid ${dark?"var(--ink)":"#fff"}`,borderRadius:"50%",animation:"spin 0.7s linear infinite",display:"inline-block",flexShrink:0}}/>;
+}
+
+// Logo component matching the new SVG design
+function Logo({size=1}) {
+  return (
+    <div style={{display:"flex",alignItems:"center",gap:7*size}}>
+      <svg width={36*size} height={36*size} viewBox="0 0 100 100">
+        <polygon points="50,8 92,42 8,42" fill="#b8860b"/>
+        <rect x="66" y="12" width="9" height="16" fill="#b8860b"/>
+        <rect x="14" y="41" width="72" height="46" fill="#4a6741"/>
+        <rect x="38" y="62" width="24" height="25" fill="#1a1208" rx="2"/>
+        <circle cx="58" cy="75" r="2.5" fill="#b8860b"/>
+        <rect x="20" y="52" width="16" height="13" fill="#f5f0e8" rx="2"/>
+        <rect x="64" y="52" width="16" height="13" fill="#f5f0e8" rx="2"/>
+      </svg>
+      <span style={{fontSize:18*size,fontWeight:700,color:"#fff",letterSpacing:"-0.3px"}}>
+        Direct<span style={{color:"#d4a017"}}>Deed</span>
+      </span>
+    </div>
+  );
 }
 
 function PasswordResetModal({onClose}) {
@@ -150,9 +183,8 @@ function PasswordResetModal({onClose}) {
     <div style={{position:"fixed",inset:0,background:"rgba(26,18,8,0.65)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
       <div style={{background:"var(--card)",borderRadius:24,maxWidth:400,width:"100%",overflow:"hidden",boxShadow:"0 24px 80px rgba(0,0,0,0.3)"}}>
         <div style={{background:"var(--ink)",padding:"26px 30px 20px",textAlign:"center"}}>
-          <div style={{fontSize:22,marginBottom:6}}>🔑</div>
-          <div style={{fontSize:19,fontWeight:700,color:"#fff",marginBottom:3}}>Set New Password</div>
-          <div style={{fontSize:12,color:"rgba(255,255,255,0.5)"}}>Choose a strong password for your account</div>
+          <div style={{marginBottom:6,display:"flex",justifyContent:"center"}}><Logo size={0.9}/></div>
+          <div style={{fontSize:15,fontWeight:600,color:"rgba(255,255,255,0.7)",marginTop:8}}>Set New Password</div>
         </div>
         <div style={{padding:"24px 28px 28px",display:"flex",flexDirection:"column",gap:13}}>
           <div>
@@ -240,9 +272,8 @@ function AuthModal({onClose,onAuth}) {
       <div style={{background:"var(--card)",borderRadius:24,maxWidth:420,width:"100%",overflow:"hidden",boxShadow:"0 24px 80px rgba(0,0,0,0.3)"}} onClick={e=>e.stopPropagation()}>
         <div style={{background:"var(--ink)",padding:"26px 30px 20px",textAlign:"center",position:"relative"}}>
           <button onClick={onClose} style={{position:"absolute",top:14,right:14,background:"rgba(255,255,255,0.1)",border:"none",color:"#fff",borderRadius:"50%",width:26,height:26,cursor:"pointer",fontSize:12}}>✕</button>
-          <div style={{fontSize:22,marginBottom:6}}>🏡</div>
-          <div style={{fontSize:19,fontWeight:700,color:"#fff",marginBottom:3}}>{mode==="login"?"Welcome back":"Create your account"}</div>
-          <div style={{fontSize:12,color:"rgba(255,255,255,0.5)"}}>{mode==="login"?"Sign in to continue":"Keep more of your money — sell directly"}</div>
+          <div style={{display:"flex",justifyContent:"center",marginBottom:10}}><Logo scale={0.9}/></div>
+          <div style={{fontSize:14,color:"rgba(255,255,255,0.5)",marginTop:4}}>{mode==="login"?"Sign in to continue":"Keep more of your money — sell directly"}</div>
         </div>
         <div style={{display:"flex",borderBottom:"1px solid var(--warm)"}}>
           {["login","signup"].map(m=>(
@@ -377,12 +408,14 @@ function EditListingModal({listing,onClose,onSaved}) {
   const save=async()=>{
     setSaving(true);setError(null);
     try{
+      const ok=await refreshSession();
+      if(!ok) throw new Error("Session expired. Please log in again.");
       const uploadedUrls=[];
       for(const p of newPhotos){
         const ext=p.file.name.split(".").pop();
         const path=Date.now()+"-"+Math.random().toString(36).slice(2)+"."+ext;
         const{error:e}=await sb.storage.from("property-photos").upload(path,p.file,{contentType:p.file.type});
-        if(e) throw new Error("Photo upload failed");
+        if(e) throw new Error("Photo upload failed: "+e.message);
         const{data:{publicUrl}}=sb.storage.from("property-photos").getPublicUrl(path);
         uploadedUrls.push(publicUrl);
       }
@@ -575,7 +608,7 @@ function ListingCard({listing,onClick,onDelete,isOwner,onMessage,onEdit,user,sav
   );
 }
 
-function ListingModal({listing,onClose,onMessage,onOffer,user,saved,onToggleSave,onEdit}) {
+function ListingModal({listing,onClose,onMessage,onOffer,user,saved,onToggleSave,onEdit,existingOffer,onViewOffer}) {
   const [photoIdx,setPhotoIdx]=useState(0);
   const [openHouses,setOpenHouses]=useState([]);
   const [rsvping,setRsvping]=useState(null);
@@ -685,10 +718,19 @@ function ListingModal({listing,onClose,onMessage,onOffer,user,saved,onToggleSave
             </div>
           </div>
           {!listing.sold&&!isOwnListing?(
-            <div style={{display:"flex",gap:9}}>
-              <button onClick={()=>{onMessage(listing);onClose();}} style={{flex:1,background:"var(--warm)",color:"var(--ink)",border:"none",borderRadius:12,padding:"12px",fontSize:13,fontWeight:600,cursor:"pointer"}}>💬 Message Seller</button>
-              <button onClick={()=>{onOffer(listing);onClose();}} style={{flex:2,background:"var(--sage)",color:"#fff",border:"none",borderRadius:12,padding:"12px",fontSize:14,fontWeight:600,cursor:"pointer"}}>Make an Offer</button>
-            </div>
+            existingOffer?(
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                <div style={{background:"#f0fff4",border:"1px solid #9ae6b4",borderRadius:10,padding:"11px 14px",fontSize:13,color:"var(--sage)",fontWeight:500,textAlign:"center"}}>
+                  ✓ You already have an active offer on this property
+                </div>
+                <button onClick={()=>{onClose();onViewOffer&&onViewOffer();}} style={{background:"var(--sage)",color:"#fff",border:"none",borderRadius:12,padding:"12px",fontSize:13,fontWeight:600,cursor:"pointer"}}>View My Offer →</button>
+              </div>
+            ):(
+              <div style={{display:"flex",gap:9}}>
+                <button onClick={()=>{onMessage(listing);onClose();}} style={{flex:1,background:"var(--warm)",color:"var(--ink)",border:"none",borderRadius:12,padding:"12px",fontSize:13,fontWeight:600,cursor:"pointer"}}>💬 Message Seller</button>
+                <button onClick={()=>{onOffer(listing);onClose();}} style={{flex:2,background:"var(--sage)",color:"#fff",border:"none",borderRadius:12,padding:"12px",fontSize:14,fontWeight:600,cursor:"pointer"}}>Make an Offer</button>
+              </div>
+            )
           ):listing.sold?(
             <div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:10,padding:"12px",textAlign:"center",color:"var(--rust)",fontWeight:500}}>This property has been sold.</div>
           ):(
@@ -700,7 +742,7 @@ function ListingModal({listing,onClose,onMessage,onOffer,user,saved,onToggleSave
   );
 }
 
-function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,savedIds,onToggleSave,refreshKey}) {
+function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,savedIds,onToggleSave,refreshKey,onViewOffer}) {
   const [listings,setListings]=useState([]);
   const [loading,setLoading]=useState(true);
   const [search,setSearch]=useState("");
@@ -709,6 +751,7 @@ function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,sav
   const [showSold,setShowSold]=useState(false);
   const [selected,setSelected]=useState(null);
   const [editListing,setEditListing]=useState(null);
+  const [activeOfferMap,setActiveOfferMap]=useState({});
 
   const load=()=>{
     setLoading(true);
@@ -717,6 +760,19 @@ function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,sav
   };
 
   useEffect(()=>{load();},[refreshKey]);
+
+  // Load buyer's active offers to check for duplicates
+  useEffect(()=>{
+    if(!user)return;
+    sb.from("offers").select("listing_id,status,id")
+      .eq("buyer_id",user.id)
+      .in("status",["pending","accepted","countered"])
+      .then(({data})=>{
+        const map={};
+        (data||[]).forEach(o=>map[o.listing_id]=o);
+        setActiveOfferMap(map);
+      });
+  },[user?.id,refreshKey]);
 
   useEffect(()=>{
     if(deepLinkListingId&&listings.length>0){
@@ -764,12 +820,22 @@ function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,sav
           <div style={{fontSize:12}}>Try adjusting your filters.</div>
         </div>
       )}
-      <ListingModal listing={selected} onClose={()=>setSelected(null)} onMessage={onMessage} onOffer={onOffer} user={user} saved={savedIds?.has(selected?.id)} onToggleSave={onToggleSave} onEdit={l=>{setSelected(null);setEditListing(l);}}/>
+      <ListingModal
+        listing={selected}
+        onClose={()=>setSelected(null)}
+        onMessage={onMessage}
+        onOffer={onOffer}
+        user={user}
+        saved={savedIds?.has(selected?.id)}
+        onToggleSave={onToggleSave}
+        onEdit={l=>{setSelected(null);setEditListing(l);}}
+        existingOffer={selected?activeOfferMap[selected.id]:null}
+        onViewOffer={()=>{setSelected(null);onViewOffer&&onViewOffer();}}
+      />
       {editListing&&<EditListingModal listing={editListing} onClose={()=>setEditListing(null)} onSaved={updated=>{handleSaved(updated);setEditListing(null);}}/>}
     </div>
   );
 }
-
 function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMessage,onOffer}) {
   const [myListings,setMyListings]=useState([]);
   const [activeOffers,setActiveOffers]=useState([]);
@@ -828,7 +894,6 @@ function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMes
 
   return (
     <div style={{maxWidth:760,margin:"0 auto",padding:"24px 16px"}}>
-
       {/* Header */}
       <div style={{marginBottom:24}}>
         <h2 style={{fontSize:26,fontWeight:700,color:"var(--ink)",marginBottom:3}}>Hi {firstName} 👋</h2>
@@ -839,7 +904,7 @@ function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMes
         </p>
       </div>
 
-      {/* ACTIVE TRANSACTIONS — the most important thing */}
+      {/* ACTIVE TRANSACTIONS */}
       {activeOffers.length>0&&(
         <div style={{marginBottom:24}}>
           <div style={{fontSize:15,fontWeight:700,color:"var(--ink)",marginBottom:12}}>⚡ Active Transactions</div>
@@ -868,14 +933,12 @@ function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMes
                     }
                   </div>
                 </div>
-                {/* Progress bar */}
                 <div style={{background:"var(--warm)",borderRadius:4,height:6,marginBottom:8,overflow:"hidden"}}>
                   <div style={{background:needsAction?"var(--gold)":"var(--sage)",height:"100%",width:progress+"%",borderRadius:4,transition:"width 0.3s"}}/>
                 </div>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <div style={{fontSize:12,color:needsAction?"var(--gold)":"#666",fontWeight:needsAction?600:400}}>
-                    {cur?.icon} Step {si}/10: {cur?.label}
-                    {needsAction&&" — action needed"}
+                    {cur?.icon} Step {si}/10: {cur?.label}{needsAction&&" — action needed"}
                   </div>
                   <div style={{fontSize:12,color:"var(--sage)",fontWeight:600}}>Continue →</div>
                 </div>
@@ -976,6 +1039,7 @@ function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMes
     </div>
   );
 }
+
 function MakeOfferModal({listing,user,onClose,onRequireAuth}) {
   const [step,setStep]=useState(1);
   const [form,setForm]=useState({
@@ -987,9 +1051,25 @@ function MakeOfferModal({listing,user,onClose,onRequireAuth}) {
   const [submitting,setSubmitting]=useState(false);
   const [submitted,setSubmitted]=useState(false);
   const [error,setError]=useState(null);
+  const [checking,setChecking]=useState(true);
+  const [existingOffer,setExistingOffer]=useState(null);
   const update=(k,v)=>setForm(f=>({...f,[k]:v}));
   const inp={width:"100%",padding:"10px 13px",borderRadius:9,border:"1.5px solid var(--warm)",background:"#fff",fontSize:13,outline:"none",color:"var(--ink)"};
   const lbl={display:"block",fontSize:10,fontWeight:600,color:"#555",marginBottom:4,textTransform:"uppercase"};
+
+  // Check for existing active offer on this listing
+  useEffect(()=>{
+    if(!user||!listing){setChecking(false);return;}
+    sb.from("offers").select("id,status")
+      .eq("buyer_id",user.id)
+      .eq("listing_id",listing.id)
+      .in("status",["pending","accepted","countered"])
+      .maybeSingle()
+      .then(({data})=>{
+        setExistingOffer(data||null);
+        setChecking(false);
+      });
+  },[user?.id,listing?.id]);
 
   if(!user) return (
     <div style={{position:"fixed",inset:0,background:"rgba(26,18,8,0.55)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={onClose}>
@@ -998,6 +1078,30 @@ function MakeOfferModal({listing,user,onClose,onRequireAuth}) {
         <h2 style={{fontSize:22,marginBottom:9,color:"var(--ink)"}}>Sign in to make an offer</h2>
         <p style={{color:"#666",marginBottom:20,lineHeight:1.7,fontSize:13}}>Create a free account to submit and track offers.</p>
         <button onClick={()=>{onClose();onRequireAuth();}} style={{background:"var(--sage)",color:"#fff",border:"none",borderRadius:10,padding:"12px 26px",fontSize:13,cursor:"pointer",fontWeight:600}}>Sign Up Free</button>
+      </div>
+    </div>
+  );
+
+  if(checking) return (
+    <div style={{position:"fixed",inset:0,background:"rgba(26,18,8,0.55)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={onClose}>
+      <div style={{background:"var(--card)",borderRadius:18,padding:"32px",textAlign:"center"}} onClick={e=>e.stopPropagation()}>
+        <Spinner dark size={24}/>
+      </div>
+    </div>
+  );
+
+  if(existingOffer) return (
+    <div style={{position:"fixed",inset:0,background:"rgba(26,18,8,0.55)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={onClose}>
+      <div style={{background:"var(--card)",borderRadius:18,maxWidth:400,width:"100%",padding:"32px 28px",textAlign:"center"}} onClick={e=>e.stopPropagation()}>
+        <div style={{fontSize:40,marginBottom:12}}>📋</div>
+        <h2 style={{fontSize:20,marginBottom:9,color:"var(--ink)"}}>You already have an active offer</h2>
+        <p style={{color:"#666",marginBottom:20,lineHeight:1.7,fontSize:13}}>
+          You have a <strong style={{color:"var(--gold)"}}>{existingOffer.status}</strong> offer on this property. You can only have one active offer per listing.
+        </p>
+        <div style={{display:"flex",gap:9}}>
+          <button onClick={onClose} style={{flex:1,background:"none",border:"1.5px solid var(--warm)",borderRadius:10,padding:"11px",fontSize:13,cursor:"pointer",color:"var(--ink)"}}>Close</button>
+          <button onClick={()=>{onClose();}} style={{flex:2,background:"var(--sage)",color:"#fff",border:"none",borderRadius:10,padding:"11px",fontSize:13,cursor:"pointer",fontWeight:600}}>View My Offer →</button>
+        </div>
       </div>
     </div>
   );
@@ -1109,7 +1213,6 @@ function MakeOfferModal({listing,user,onClose,onRequireAuth}) {
     </div>
   );
 }
-
 function SignaturePad({onSign}) {
   const canvasRef=useRef(null);
   const [drawing,setDrawing]=useState(false);
@@ -1305,13 +1408,17 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
 
   const uploadDoc=async file=>{
     setUploading(true);
-    const ext=file.name.split(".").pop();
-    const path="offers/"+offer.id+"/"+step.key+"-"+Date.now()+"."+ext;
-    const{error}=await sb.storage.from("property-photos").upload(path,file,{contentType:file.type});
-    if(!error){
-      const{data:{publicUrl}}=sb.storage.from("property-photos").getPublicUrl(path);
-      setUploadedFile(publicUrl);
-    }
+    try{
+      const ok=await refreshSession();
+      if(!ok) throw new Error("Session expired. Please log in again.");
+      const ext=file.name.split(".").pop();
+      const path="offers/"+offer.id+"/"+step.key+"-"+Date.now()+"."+ext;
+      const{error}=await sb.storage.from("property-photos").upload(path,file,{contentType:file.type});
+      if(!error){
+        const{data:{publicUrl}}=sb.storage.from("property-photos").getPublicUrl(path);
+        setUploadedFile(publicUrl);
+      }
+    }catch(e){console.error("Upload error:",e);}
     setUploading(false);
   };
 
@@ -1384,8 +1491,7 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
     const sellerDone=isSeller?true:fresh?.step_closing_seller_signed;
     if(buyerDone&&sellerDone){
       await sb.from("offers").update({status:"closed",step_index:10}).eq("id",offer.id);
-      const{error:soldErr}=await sb.from("listings").update({sold:true,sold_at:new Date().toISOString()}).eq("id",offer.listing_id);
-      if(soldErr)console.error("Sold error:",soldErr);
+      await sb.from("listings").update({sold:true,sold_at:new Date().toISOString()}).eq("id",offer.listing_id);
       const otherId=isSeller?offer.buyer_id:offer.seller_id;
       const otherEmail=isSeller?offer.buyer_email:offer.listings?.seller_email;
       await sendNotification(otherId,"🎉 Transaction complete! Congratulations!","offers");
@@ -2055,6 +2161,8 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
   const publish=async()=>{
     setSubmitting(true);setError(null);
     try{
+      const ok=await refreshSession();
+      if(!ok) throw new Error("Session expired. Please log out and back in.");
       const photoUrls=[];
       for(const p of photos){
         const ext=p.file.name.split(".").pop();
@@ -2289,32 +2397,33 @@ function ProfileDropdown({user,onLogout,onRequireAuth,setTab}) {
   return (
     <div ref={ref} style={{position:"relative"}}>
       <button onClick={()=>setOpen(!open)} style={{background:open?"rgba(255,255,255,0.12)":"none",border:"1px solid "+(open?"rgba(255,255,255,0.25)":"transparent"),color:"rgba(255,255,255,0.85)",borderRadius:8,padding:"5px 13px",fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",gap:6,transition:"all 0.15s"}}>
-        <div style={{width:22,height:22,borderRadius:"50%",background:"var(--sage)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:10}}>
+        <div style={{width:22,height:22,borderRadius:"50%",background:"var(--gold)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:10}}>
           {(user.user_metadata?.full_name||user.email||"?")[0].toUpperCase()}
         </div>
         {user.user_metadata?.full_name?.split(" ")[0]||"Account"} {open?"▲":"▼"}
       </button>
       {open&&(
-        <div style={{position:"absolute",right:0,top:42,background:"var(--card)",border:"1px solid var(--warm)",borderRadius:14,width:220,boxShadow:"0 12px 40px rgba(0,0,0,0.18)",zIndex:300,animation:"slideDown 0.2s ease",overflow:"hidden"}}>
+        <div style={{position:"absolute",right:0,top:42,background:"var(--card)",border:"1px solid var(--warm)",borderRadius:14,width:210,boxShadow:"0 12px 40px rgba(0,0,0,0.18)",zIndex:300,animation:"slideDown 0.2s ease",overflow:"hidden"}}>
           <div style={{background:"var(--ink)",padding:"14px 16px"}}>
             <div style={{fontSize:13,fontWeight:700,color:"#fff",marginBottom:1}}>{user.user_metadata?.full_name||"Your Account"}</div>
             <div style={{fontSize:11,color:"rgba(255,255,255,0.5)"}}>{user.email}</div>
           </div>
           <div style={{padding:"8px"}}>
             {[
-              {label:"📊 Dashboard",tab:"Dashboard"},
-              {label:"📋 My Offers",tab:"Offers"},
-              {label:"💬 Messages",tab:"Messages"},
-              {label:"➕ List a Property",tab:"Sell"},
+              {label:"🏡 My Listings",action:()=>{setTab("Dashboard");setOpen(false);}},
+              {label:"➕ List a Property",action:()=>{setTab("Sell");setOpen(false);}},
+              {label:"👤 Account Info",action:()=>{setTab("Dashboard");setOpen(false);}},
             ].map(item=>(
-              <button key={item.label} onClick={()=>{setTab(item.tab);setOpen(false);}} style={{width:"100%",background:"none",border:"none",borderRadius:8,padding:"9px 12px",fontSize:12,cursor:"pointer",color:"var(--ink)",textAlign:"left",display:"block"}}
+              <button key={item.label} onClick={item.action}
+                style={{width:"100%",background:"none",border:"none",borderRadius:8,padding:"9px 12px",fontSize:12,cursor:"pointer",color:"var(--ink)",textAlign:"left",display:"block"}}
                 onMouseEnter={e=>e.currentTarget.style.background="var(--warm)"}
                 onMouseLeave={e=>e.currentTarget.style.background="none"}>
                 {item.label}
               </button>
             ))}
             <div style={{borderTop:"1px solid var(--warm)",margin:"6px 0"}}/>
-            <button onClick={()=>{onLogout();setOpen(false);}} style={{width:"100%",background:"none",border:"none",borderRadius:8,padding:"9px 12px",fontSize:12,cursor:"pointer",color:"var(--rust)",textAlign:"left"}}
+            <button onClick={()=>{onLogout();setOpen(false);}}
+              style={{width:"100%",background:"none",border:"none",borderRadius:8,padding:"9px 12px",fontSize:12,cursor:"pointer",color:"var(--rust)",textAlign:"left"}}
               onMouseEnter={e=>e.currentTarget.style.background="#fff5f5"}
               onMouseLeave={e=>e.currentTarget.style.background="none"}>
               Log Out
@@ -2345,9 +2454,7 @@ export default function App() {
     sb.auth.getSession().then(({data:{session}})=>setUser(session?.user||null));
     const{data:{subscription}}=sb.auth.onAuthStateChange((event,session)=>{
       setUser(session?.user||null);
-      if(event==="PASSWORD_RECOVERY"){
-        setShowPasswordReset(true);
-      }
+      if(event==="PASSWORD_RECOVERY") setShowPasswordReset(true);
     });
     return()=>subscription.unsubscribe();
   },[]);
@@ -2394,7 +2501,11 @@ export default function App() {
     if(listing.user_id===user.id)return;
     setMessageThread(listing);setTab("Messages");
   };
-  const handleLogout=async()=>{await sb.auth.signOut();setUser(null);setTab("Browse");};
+
+  const handleLogout=async()=>{
+    await sb.auth.signOut();
+    setUser(null);setTab("Browse");
+  };
 
   const NavBtn=({n})=>{
     const badge=n==="Offers"?offerUnread:n==="Messages"?msgUnread:0;
@@ -2410,13 +2521,11 @@ export default function App() {
   return (
     <div style={{minHeight:"100vh",background:"var(--cream)"}}>
       <style>{styles}</style>
-      <title>DirectDeed — Buy & Sell Homes and Save Thousands</title>
+      <title>DirectDeed — Buy & Sell Homes Direct</title>
 
       <header style={{background:"var(--ink)",color:"#fff",padding:"0 18px",display:"flex",alignItems:"center",justifyContent:"space-between",height:54,position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 14px rgba(0,0,0,0.25)"}}>
-        <div style={{display:"flex",alignItems:"center",gap:7,cursor:"pointer"}} onClick={()=>setTab("Browse")}>
-          <span style={{fontSize:18}}>🏡</span>
-          <span style={{fontSize:18,fontWeight:700}}>DirectDeed</span>
-          <span style={{fontSize:8,color:"var(--gold-light)",background:"rgba(212,160,23,0.15)",padding:"2px 7px",borderRadius:9,marginLeft:1}}>Save Thousands</span>
+        <div style={{cursor:"pointer"}} onClick={()=>setTab("Browse")}>
+          <Logo/>
         </div>
         <div className="desktop-nav" style={{display:"flex",alignItems:"center",gap:3}}>
           <nav style={{display:"flex",gap:2}}>{NAV.map(n=><NavBtn key={n} n={n}/>)}</nav>
@@ -2432,9 +2541,12 @@ export default function App() {
         <div className="mobile-nav" style={{background:"var(--ink)",padding:"10px 14px",display:"flex",flexDirection:"column",gap:5,borderBottom:"1px solid rgba(255,255,255,0.1)",animation:"slideDown 0.2s ease"}}>
           {NAV.map(n=>{
             const badge=n==="Offers"?offerUnread:n==="Messages"?msgUnread:0;
-            return <button key={n} onClick={()=>{setTab(n);setMobileMenuOpen(false);}} style={{background:tab===n?"rgba(255,255,255,0.1)":"none",border:"none",color:tab===n?"#fff":"rgba(255,255,255,0.7)",borderRadius:9,padding:"10px 13px",fontSize:13,cursor:"pointer",textAlign:"left",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              {n}{badge>0&&<span style={{background:"var(--rust)",color:"#fff",borderRadius:9,padding:"1px 6px",fontSize:9,fontWeight:700}}>{badge}</span>}
-            </button>;
+            return (
+              <button key={n} onClick={()=>{setTab(n);setMobileMenuOpen(false);}}
+                style={{background:tab===n?"rgba(255,255,255,0.1)":"none",border:"none",color:tab===n?"#fff":"rgba(255,255,255,0.7)",borderRadius:9,padding:"10px 13px",fontSize:13,cursor:"pointer",textAlign:"left",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                {n}{badge>0&&<span style={{background:"var(--rust)",color:"#fff",borderRadius:9,padding:"1px 6px",fontSize:9,fontWeight:700}}>{badge}</span>}
+              </button>
+            );
           })}
           {!user
             ?<button onClick={()=>{setShowAuth(true);setMobileMenuOpen(false);}} style={{background:"var(--gold)",color:"#fff",border:"none",borderRadius:9,padding:"10px 13px",fontSize:13,cursor:"pointer",fontWeight:600}}>Sign In</button>
@@ -2455,7 +2567,19 @@ export default function App() {
       )}
 
       <div id="browse-start">
-        {tab==="Browse"&&<BrowseTab onMessage={handleMessage} onOffer={l=>setOfferListing(l)} user={user} deepLinkListingId={deepLinkListingId} onClearDeepLink={()=>setDeepLinkListingId(null)} savedIds={savedIds} onToggleSave={toggleSave} refreshKey={browseRefreshKey}/>}
+        {tab==="Browse"&&(
+          <BrowseTab
+            onMessage={handleMessage}
+            onOffer={l=>setOfferListing(l)}
+            user={user}
+            deepLinkListingId={deepLinkListingId}
+            onClearDeepLink={()=>setDeepLinkListingId(null)}
+            savedIds={savedIds}
+            onToggleSave={toggleSave}
+            refreshKey={browseRefreshKey}
+            onViewOffer={()=>setTab("Offers")}
+          />
+        )}
       </div>
       {tab==="Sell"&&<SellTab user={user} onRequireAuth={()=>setShowAuth(true)} onListingPublished={()=>setBrowseRefreshKey(k=>k+1)}/>}
       {tab==="Offers"&&<OffersTab user={user} onRequireAuth={()=>setShowAuth(true)}/>}
@@ -2469,9 +2593,9 @@ export default function App() {
       {offerListing&&<MakeOfferModal listing={offerListing} user={user} onClose={()=>setOfferListing(null)} onRequireAuth={()=>{setOfferListing(null);setShowAuth(true);}}/>}
 
       <footer style={{background:"var(--ink)",color:"rgba(255,255,255,0.35)",textAlign:"center",padding:"16px",fontSize:10,marginTop:0}}>
-        © 2026 Bondy Technologies LLC. All rights reserved. DirectDeed is not a licensed real estate brokerage. ·
-        <span onClick={()=>setTab("Privacy")} style={{cursor:"pointer",marginLeft:5,textDecoration:"underline"}}>Privacy Policy</span> ·
-        <span onClick={()=>setTab("Terms")} style={{cursor:"pointer",marginLeft:5,textDecoration:"underline"}}>Terms of Service</span> ·
+        © 2026 Bondy Technologies LLC · DirectDeed is not a licensed real estate brokerage ·
+        <span onClick={()=>setTab("Privacy")} style={{cursor:"pointer",marginLeft:5,textDecoration:"underline"}}>Privacy</span> ·
+        <span onClick={()=>setTab("Terms")} style={{cursor:"pointer",marginLeft:5,textDecoration:"underline"}}>Terms</span> ·
         <a href="mailto:maxbondy@hotmail.com" style={{color:"rgba(255,255,255,0.35)",marginLeft:5}}>Contact</a>
       </footer>
     </div>
