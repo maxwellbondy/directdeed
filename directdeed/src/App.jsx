@@ -40,18 +40,97 @@ const styles = `
   }
 `;
 
+// Updated 11-step transaction flow with seller disclosures as Step 2
 const TRANSACTION_STEPS = [
-  { id:1,  key:"offer",               label:"Offer",           icon:"📋", owner:"seller", desc:"Seller reviews and responds to the offer", buyerAction:"Your offer has been submitted. Waiting for the seller to respond.", sellerAction:"Review the offer below. You may accept, counter, or decline.", relatedDocs:["Purchase & Sale Agreement","Counteroffer Addendum"] },
-  { id:2,  key:"preapproval",         label:"Pre-Approval",    icon:"🏦", owner:"buyer",  desc:"Buyer provides proof of financing or funds", buyerAction:"Upload your mortgage pre-approval letter OR proof of funds. Required to advance.", sellerAction:"Waiting for buyer to upload pre-approval or proof of funds.", relatedDocs:[], requiresDoc:true },
-  { id:3,  key:"earnest",             label:"Earnest Money",   icon:"💰", owner:"buyer",  desc:"Buyer deposits earnest money with escrow agent", buyerAction:"Deposit earnest money with a licensed title company. Upload your deposit receipt to advance.", sellerAction:"Waiting for buyer to deposit earnest money and upload confirmation.", relatedDocs:["Earnest Money Agreement"], requiresDoc:true },
-  { id:4,  key:"inspection",          label:"Inspection",      icon:"🔍", owner:"buyer",  desc:"Buyer completes home inspection", buyerAction:"Schedule a licensed home inspector. Upload the inspection report to advance.", sellerAction:"Waiting for buyer to complete inspection and upload the report.", relatedDocs:["Property Disclosure Statement","Lead Paint Disclosure","Inspection Contingency Waiver"], requiresDoc:true },
-  { id:5,  key:"inspection_response", label:"Repair Response", icon:"🔨", owner:"seller", desc:"Seller responds to repair requests", buyerAction:"Waiting for seller to respond to your repair requests.", sellerAction:"Review buyer's repair requests and respond.", relatedDocs:["Counteroffer Addendum","As-Is Addendum"] },
-  { id:6,  key:"appraisal",           label:"Appraisal",       icon:"📊", owner:"buyer",  desc:"Buyer uploads property appraisal", buyerAction:"Your lender will order the appraisal. Upload the report to advance.", sellerAction:"Waiting for buyer to upload the appraisal report.", relatedDocs:[], requiresDoc:true },
-  { id:7,  key:"financing",           label:"Financing",       icon:"✅", owner:"buyer",  desc:"Buyer uploads final loan commitment", buyerAction:"Upload your final loan commitment letter from your lender to advance.", sellerAction:"Waiting for buyer to upload their loan commitment letter.", relatedDocs:["Seller Financing Addendum"], requiresDoc:true },
-  { id:8,  key:"title",               label:"Title Search",    icon:"📜", owner:"seller", desc:"Seller clears title for transfer", buyerAction:"Waiting for seller to clear title.", sellerAction:"Work with your title company to complete the title search. Upload clearance confirmation to advance.", relatedDocs:[], requiresDoc:true },
-  { id:9,  key:"walkthrough",         label:"Walkthrough",     icon:"🚶", owner:"buyer",  desc:"Buyer completes final walkthrough", buyerAction:"Complete your final walkthrough and confirm the property condition below.", sellerAction:"Ensure the property is ready. Buyer will confirm condition.", relatedDocs:[] },
-  { id:10, key:"closing",             label:"Closing",         icon:"🎉", owner:"both",   desc:"Both parties sign and complete the transaction", buyerAction:"Sign the closing documents below. Both parties must sign to complete.", sellerAction:"Sign the closing documents below. Both parties must sign to complete.", relatedDocs:["Purchase & Sale Agreement"] },
+  { id:1,  key:"offer",               label:"Offer",           icon:"📋", owner:"seller",
+    desc:"Seller reviews and responds to the offer",
+    buyerAction:"Your offer has been submitted. Waiting for the seller to respond.",
+    sellerAction:"Review the offer below. You may accept, counter, or decline.",
+    relatedDocs:["Purchase & Sale Agreement","Counteroffer Addendum"] },
+  { id:2,  key:"disclosures",         label:"Disclosures",     icon:"📝", owner:"seller",
+    desc:"Seller provides required property disclosures to buyer",
+    buyerAction:"The seller is preparing required disclosures. Review them carefully before proceeding with your inspection.",
+    sellerAction:"You are required to disclose known property conditions to the buyer. Generate and upload the disclosures below.",
+    relatedDocs:["Property Disclosure Statement","Lead Paint Disclosure"], requiresDoc:true },
+  { id:3,  key:"preapproval",         label:"Pre-Approval",    icon:"🏦", owner:"buyer",
+    desc:"Buyer provides proof of financing or funds",
+    buyerAction:"Upload your mortgage pre-approval letter OR proof of funds. Required to advance.",
+    sellerAction:"Waiting for buyer to upload pre-approval or proof of funds.",
+    relatedDocs:[], requiresDoc:true },
+  { id:4,  key:"earnest",             label:"Earnest Money",   icon:"💰", owner:"buyer",
+    desc:"Buyer deposits earnest money with escrow agent",
+    buyerAction:"Deposit earnest money with a licensed title company. Upload your deposit receipt to advance.",
+    sellerAction:"Waiting for buyer to deposit earnest money and upload confirmation.",
+    relatedDocs:["Earnest Money Agreement"], requiresDoc:true },
+  { id:5,  key:"inspection",          label:"Inspection",      icon:"🔍", owner:"buyer",
+    desc:"Buyer completes home inspection",
+    buyerAction:"Schedule a licensed home inspector. Review the seller's disclosures above before your inspection. Upload the inspection report to advance.",
+    sellerAction:"Waiting for buyer to complete inspection and upload the report.",
+    relatedDocs:["Inspection Contingency Waiver"], requiresDoc:true },
+  { id:6,  key:"inspection_response", label:"Repair Response", icon:"🔨", owner:"seller",
+    desc:"Seller responds to repair requests",
+    buyerAction:"Waiting for seller to respond to your repair requests.",
+    sellerAction:"Review buyer's repair requests and respond.",
+    relatedDocs:["Counteroffer Addendum","As-Is Addendum"] },
+  { id:7,  key:"appraisal",           label:"Appraisal",       icon:"📊", owner:"buyer",
+    desc:"Buyer uploads property appraisal",
+    buyerAction:"Your lender will order the appraisal. Upload the report to advance.",
+    sellerAction:"Waiting for buyer to upload the appraisal report.",
+    relatedDocs:[], requiresDoc:true },
+  { id:8,  key:"financing",           label:"Financing",       icon:"✅", owner:"buyer",
+    desc:"Buyer uploads final loan commitment",
+    buyerAction:"Upload your final loan commitment letter from your lender to advance.",
+    sellerAction:"Waiting for buyer to upload their loan commitment letter.",
+    relatedDocs:["Seller Financing Addendum"], requiresDoc:true },
+  { id:9,  key:"title",               label:"Title Search",    icon:"📜", owner:"seller",
+    desc:"Seller clears title for transfer",
+    buyerAction:"Waiting for seller to clear title.",
+    sellerAction:"Work with your title company to complete the title search. Upload clearance confirmation to advance.",
+    relatedDocs:[], requiresDoc:true },
+  { id:10, key:"walkthrough",         label:"Walkthrough",     icon:"🚶", owner:"buyer",
+    desc:"Buyer completes final walkthrough",
+    buyerAction:"Complete your final walkthrough and confirm the property condition below.",
+    sellerAction:"Ensure the property is ready. Buyer will confirm condition.",
+    relatedDocs:[] },
+  { id:11, key:"closing",             label:"Closing",         icon:"🎉", owner:"both",
+    desc:"Both parties sign and complete the transaction",
+    buyerAction:"Sign the closing documents below. Both parties must sign to complete.",
+    sellerAction:"Sign the closing documents below. Both parties must sign to complete.",
+    relatedDocs:["Purchase & Sale Agreement"] },
 ];
+
+// Verify all required offer columns exist
+async function verifyOfferColumns() {
+  const requiredCols = [
+    "step_disclosures_doc","step_preapproval_doc","step_earnest_doc",
+    "step_inspection_doc","step_appraisal_doc","step_financing_doc",
+    "step_title_doc","step_closing_buyer_signed","step_closing_seller_signed",
+    "counter_price","counter_closing_date","counter_message",
+  ];
+  try {
+    const{data,error}=await sb.from("offers").select(requiredCols.join(",")).limit(1);
+    if(error){
+      console.warn("Missing offer columns — running migrations...");
+      const migrations=[
+        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_disclosures_doc text",
+        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_preapproval_doc text",
+        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_earnest_doc text",
+        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_inspection_doc text",
+        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_appraisal_doc text",
+        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_financing_doc text",
+        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_title_doc text",
+        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_closing_buyer_signed boolean DEFAULT false",
+        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_closing_seller_signed boolean DEFAULT false",
+        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS counter_price numeric",
+        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS counter_closing_date date",
+        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS counter_message text",
+      ];
+      for(const sql of migrations){
+        await sb.rpc("exec_sql",{sql}).catch(()=>{});
+      }
+    }
+  } catch(e){ console.warn("Column check skipped:",e.message); }
+}
 
 function formatPrice(p) { return "$"+Number(p).toLocaleString(); }
 function formatTime(ts) {
@@ -69,15 +148,14 @@ function formatDateLabel(ts) {
   return d.toLocaleDateString([],{month:"long",day:"numeric",year:"numeric"});
 }
 
-// Refresh session before any upload to prevent stale JWT errors
 async function refreshSession() {
-  const { data, error } = await sb.auth.getSession();
-  if (error || !data.session) return false;
-  const expiresAt = data.session.expires_at;
-  const now = Math.floor(Date.now() / 1000);
-  if (expiresAt - now < 60) {
-    const { error: refreshError } = await sb.auth.refreshSession();
-    if (refreshError) return false;
+  const{data,error}=await sb.auth.getSession();
+  if(error||!data.session) return false;
+  const expiresAt=data.session.expires_at;
+  const now=Math.floor(Date.now()/1000);
+  if(expiresAt-now<60){
+    const{error:refreshError}=await sb.auth.refreshSession();
+    if(refreshError) return false;
   }
   return true;
 }
@@ -110,25 +188,24 @@ function emailTemplate(title,body,cta="Open DirectDeed",ctaUrl="https://directde
 
 function getContractPrompt(name,offer) {
   const l=offer.listings||{};
-  const base=`Property: ${l.address||""}, ${l.city||""}, ${l.state||""} ${l.zip||""}. Buyer: ${offer.buyer_name||"___"}. Seller: ${l.seller_name||"___"}. Price: $${offer.offer_price||"___"}. Closing: ${offer.closing_date||"___"}. Earnest: $${offer.earnest_money||"___"}.`;
+  const base=`Property: ${l.address||""}, ${l.city||""}, ${l.state||""} ${l.zip||""}. Built: ${l.year_built||"unknown"}. Buyer: ${offer.buyer_name||"___"}. Seller: ${l.seller_name||"___"}. Price: $${offer.offer_price||"___"}. Closing: ${offer.closing_date||"___"}. Earnest: $${offer.earnest_money||"___"}.`;
   const p={
     "Purchase & Sale Agreement":`Generate a complete residential Purchase and Sale Agreement. ${base} Sections: 1)Parties 2)Price 3)Earnest 4)Financing Contingency 5)Inspection Contingency 6)Appraisal Contingency 7)Title 8)Closing 9)Possession 10)Inclusions 11)Condition 12)Costs 13)Default 14)Disputes 15)Entire Agreement. Signature blocks. Plain English. No markdown.`,
     "Counteroffer Addendum":`Generate a Counteroffer Addendum. ${base} Include reference to original offer, modified terms, expiration, unchanged terms, signatures. No markdown.`,
     "Earnest Money Agreement":`Generate an Earnest Money Agreement. ${base} Include deposit amount, escrow holder, deadline, return conditions, forfeiture, dispute resolution, signatures. No markdown.`,
-    "Property Disclosure Statement":`Generate a Seller Disclosure. ${base} Yes/No/Unknown for: roof, foundation, water, plumbing, electrical, HVAC, pests, environmental, HOA, legal disputes, unpermitted work, defects. Seller certification and signatures. No markdown.`,
-    "Lead Paint Disclosure":`Generate a Lead Paint Disclosure per 42 USC 4852d. ${base} Federal requirement, seller checkboxes, records, EPA pamphlet, 10-day inspection right, signatures. No markdown.`,
-    "Inspection Contingency Waiver":`Generate an Inspection Contingency Waiver. ${base} Voluntary waiver, as-is, no warranties, risks acknowledged, other terms remain, signatures. No markdown.`,
-    "As-Is Addendum":`Generate an As-Is Addendum. ${base} As-is, no warranties, no repairs, buyer acknowledgment, survivability, signatures. No markdown.`,
-    "Seller Financing Addendum":`Generate a Seller Financing Addendum. ${base} Loan amount, interest, term, payment, late penalty, default, due-on-sale, security interest, signatures. No markdown.`,
+    "Property Disclosure Statement":`Generate a Michigan Seller's Disclosure Statement. ${base} Cover all required Michigan disclosure categories: structural, roof, foundation, water/plumbing, electrical, HVAC, environmental hazards, pest/termite, HOA, legal issues, unpermitted work, flood zone, known defects. Yes/No/Unknown checkboxes. Seller certification. Signature blocks. Plain English. No markdown.`,
+    "Lead Paint Disclosure":`Generate a Lead-Based Paint Disclosure per 42 USC 4852d. ${base} This is federally required for homes built before 1978. Include: seller disclosure of known lead paint, records and reports, EPA pamphlet acknowledgment, buyer's 10-day inspection right, agent acknowledgment if applicable, signatures from all parties. Plain English. No markdown.`,
+    "Inspection Contingency Waiver":`Generate an Inspection Contingency Waiver. ${base} Buyer voluntarily waives inspection contingency, as-is acknowledgment, no warranties, risks acknowledged, other contract terms remain, signatures. Plain English. No markdown.`,
+    "As-Is Addendum":`Generate an As-Is Addendum. ${base} As-is sale, no warranties, no repairs, buyer acknowledgment, survivability clause, signatures. Plain English. No markdown.`,
+    "Seller Financing Addendum":`Generate a Seller Financing Addendum. ${base} Loan amount, interest rate, term, monthly payment, late penalty, default provisions, due-on-sale clause, security interest, signatures. Plain English. No markdown.`,
   };
-  return p[name]||`Generate a professional ${name}. ${base} No markdown.`;
+  return p[name]||`Generate a professional ${name} for a Michigan real estate transaction. ${base} Plain English. No markdown.`;
 }
 
 function Spinner({size=16,dark}) {
   return <div style={{width:size,height:size,border:`2px solid ${dark?"rgba(0,0,0,0.12)":"rgba(255,255,255,0.25)"}`,borderTop:`2px solid ${dark?"var(--ink)":"#fff"}`,borderRadius:"50%",animation:"spin 0.7s linear infinite",display:"inline-block",flexShrink:0}}/>;
 }
 
-// Logo component matching the new SVG design
 function Logo({size=1}) {
   return (
     <div style={{display:"flex",alignItems:"center",gap:7*size}}>
@@ -183,8 +260,8 @@ function PasswordResetModal({onClose}) {
     <div style={{position:"fixed",inset:0,background:"rgba(26,18,8,0.65)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
       <div style={{background:"var(--card)",borderRadius:24,maxWidth:400,width:"100%",overflow:"hidden",boxShadow:"0 24px 80px rgba(0,0,0,0.3)"}}>
         <div style={{background:"var(--ink)",padding:"26px 30px 20px",textAlign:"center"}}>
-          <div style={{marginBottom:6,display:"flex",justifyContent:"center"}}><Logo size={0.9}/></div>
-          <div style={{fontSize:15,fontWeight:600,color:"rgba(255,255,255,0.7)",marginTop:8}}>Set New Password</div>
+          <div style={{display:"flex",justifyContent:"center",marginBottom:10}}><Logo size={0.9}/></div>
+          <div style={{fontSize:14,color:"rgba(255,255,255,0.6)",marginTop:4}}>Set New Password</div>
         </div>
         <div style={{padding:"24px 28px 28px",display:"flex",flexDirection:"column",gap:13}}>
           <div>
@@ -237,7 +314,7 @@ function AuthModal({onClose,onAuth}) {
   const sendPasswordReset=async()=>{
     if(!email){setError("Enter your email address above first.");return;}
     setLoading(true);setError(null);
-    const{error:e}=await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
+    const{error:e}=await sb.auth.resetPasswordForEmail(email,{redirectTo:"https://directdeed.vercel.app"});
     if(e){setError(e.message);}else{setResetSent(true);}
     setLoading(false);
   };
@@ -272,8 +349,8 @@ function AuthModal({onClose,onAuth}) {
       <div style={{background:"var(--card)",borderRadius:24,maxWidth:420,width:"100%",overflow:"hidden",boxShadow:"0 24px 80px rgba(0,0,0,0.3)"}} onClick={e=>e.stopPropagation()}>
         <div style={{background:"var(--ink)",padding:"26px 30px 20px",textAlign:"center",position:"relative"}}>
           <button onClick={onClose} style={{position:"absolute",top:14,right:14,background:"rgba(255,255,255,0.1)",border:"none",color:"#fff",borderRadius:"50%",width:26,height:26,cursor:"pointer",fontSize:12}}>✕</button>
-          <div style={{display:"flex",justifyContent:"center",marginBottom:10}}><Logo scale={0.9}/></div>
-          <div style={{fontSize:14,color:"rgba(255,255,255,0.5)",marginTop:4}}>{mode==="login"?"Sign in to continue":"Keep more of your money — sell directly"}</div>
+          <div style={{display:"flex",justifyContent:"center",marginBottom:8}}><Logo size={0.85}/></div>
+          <div style={{fontSize:13,color:"rgba(255,255,255,0.5)"}}>{mode==="login"?"Sign in to continue":"Keep more of your money — sell directly"}</div>
         </div>
         <div style={{display:"flex",borderBottom:"1px solid var(--warm)"}}>
           {["login","signup"].map(m=>(
@@ -377,6 +454,7 @@ function EditListingModal({listing,onClose,onSaved}) {
   const [form,setForm]=useState({
     address:listing.address||"",city:listing.city||"",state:listing.state||"",zip:listing.zip||"",
     price:listing.price||"",beds:listing.beds||"",baths:listing.baths||"",sqft:listing.sqft||"",
+    year_built:listing.year_built||"",
     type:listing.type||"Single Family",description:listing.description||"",
     seller_name:listing.seller_name||"",seller_email:listing.seller_email||"",seller_phone:listing.seller_phone||"",
     price_reduced:listing.price_reduced||false,
@@ -423,6 +501,7 @@ function EditListingModal({listing,onClose,onSaved}) {
       const updates={
         address:form.address,city:form.city,state:form.state,zip:form.zip,
         price:Number(form.price),beds:Number(form.beds),baths:Number(form.baths),sqft:Number(form.sqft),
+        year_built:form.year_built?Number(form.year_built):null,
         type:form.type,description:form.description,seller_name:form.seller_name,
         seller_email:form.seller_email,seller_phone:form.seller_phone,
         photos:allPhotos,price_reduced:form.price_reduced,
@@ -448,6 +527,8 @@ function EditListingModal({listing,onClose,onSaved}) {
     setOpenHouses(prev=>prev.filter(oh=>oh.id!==id));
   };
 
+  const preBuilt=form.year_built&&Number(form.year_built)<1978;
+
   return (
     <div style={{position:"fixed",inset:0,background:"rgba(26,18,8,0.6)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={onClose}>
       <div style={{background:"var(--card)",borderRadius:20,maxWidth:600,width:"100%",maxHeight:"90vh",overflow:"auto",boxShadow:"0 24px 80px rgba(0,0,0,0.3)"}} onClick={e=>e.stopPropagation()}>
@@ -471,16 +552,25 @@ function EditListingModal({listing,onClose,onSaved}) {
               </label>
             </div>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:9}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr",gap:9}}>
             <div><label style={lbl}>Beds</label><input style={inp} type="number" value={form.beds} onChange={e=>setForm(f=>({...f,beds:e.target.value}))}/></div>
             <div><label style={lbl}>Baths</label><input style={inp} type="number" value={form.baths} onChange={e=>setForm(f=>({...f,baths:e.target.value}))}/></div>
             <div><label style={lbl}>Sq Ft</label><input style={inp} type="number" value={form.sqft} onChange={e=>setForm(f=>({...f,sqft:e.target.value}))}/></div>
+            <div>
+              <label style={lbl}>Year Built</label>
+              <input style={inp} type="number" value={form.year_built} onChange={e=>setForm(f=>({...f,year_built:e.target.value}))} placeholder="1995"/>
+            </div>
             <div><label style={lbl}>Type</label>
               <select style={{...inp,cursor:"pointer"}} value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))}>
                 <option>Single Family</option><option>Condo</option><option>Townhome</option><option>Multi-Family</option><option>Land</option>
               </select>
             </div>
           </div>
+          {preBuilt&&(
+            <div style={{background:"#fff8f0",border:"1px solid #fcd",borderRadius:8,padding:"9px 13px",fontSize:12,color:"var(--rust)"}}>
+              ⚠️ Homes built before 1978 require a Lead Paint Disclosure — this will be required at Step 2 of any transaction.
+            </div>
+          )}
           <div><label style={lbl}>Description</label><textarea style={{...inp,minHeight:80,resize:"vertical"}} value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/></div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
             <div><label style={lbl}>Contact Name</label><input style={inp} value={form.seller_name} onChange={e=>setForm(f=>({...f,seller_name:e.target.value}))}/></div>
@@ -594,6 +684,7 @@ function ListingCard({listing,onClick,onDelete,isOwner,onMessage,onEdit,user,sav
         </div>
         <div style={{display:"flex",gap:12,fontSize:12,color:"#555",marginBottom:4}}>
           <span>{listing.beds} bd</span><span>{listing.baths} ba</span><span>{Number(listing.sqft).toLocaleString()} sqft</span>
+          {listing.year_built&&<span>Built {listing.year_built}</span>}
         </div>
         {listing.views>0&&<div style={{fontSize:10,color:"#bbb"}}>👁 {listing.views} view{listing.views!==1?"s":""}</div>}
       </div>
@@ -632,6 +723,7 @@ function ListingModal({listing,onClose,onMessage,onOffer,user,saved,onToggleSave
   const photos=listing.photos||[];
   const shareUrl=window.location.origin+"?listing="+listing.id;
   const isOwnListing=user?.id===listing.user_id;
+  const preBuilt=listing.year_built&&Number(listing.year_built)<1978;
 
   const handleShare=async()=>{
     if(navigator.share){try{await navigator.share({title:listing.address+" — DirectDeed",text:formatPrice(listing.price)+" · "+listing.city+", "+listing.state,url:shareUrl});}catch{}}
@@ -673,7 +765,11 @@ function ListingModal({listing,onClose,onMessage,onOffer,user,saved,onToggleSave
               <button onClick={onClose} style={{background:"none",border:"none",fontSize:18,cursor:"pointer",color:"#888",marginLeft:4}}>✕</button>
             </div>
           </div>
-          <div style={{color:"#666",fontSize:12,marginBottom:10}}>{listing.city}, {listing.state} {listing.zip} · {listing.type}</div>
+          <div style={{color:"#666",fontSize:12,marginBottom:10}}>
+            {listing.city}, {listing.state} {listing.zip} · {listing.type}
+            {listing.year_built&&<span> · Built {listing.year_built}</span>}
+            {preBuilt&&<span style={{color:"var(--rust)",marginLeft:6,fontSize:10,fontWeight:600}}>⚠️ Pre-1978</span>}
+          </div>
           <div style={{display:"flex",alignItems:"baseline",gap:10,marginBottom:13}}>
             <div style={{fontSize:28,fontWeight:700,color:"var(--gold)"}}>{formatPrice(listing.price)}</div>
             {listing.price_reduced&&listing.original_price&&<div style={{fontSize:16,color:"#aaa",textDecoration:"line-through"}}>{formatPrice(listing.original_price)}</div>}
@@ -682,6 +778,11 @@ function ListingModal({listing,onClose,onMessage,onOffer,user,saved,onToggleSave
             <span>{listing.beds} Beds</span><span>{listing.baths} Baths</span><span>{Number(listing.sqft).toLocaleString()} sqft</span>
             {listing.views>0&&<span style={{marginLeft:"auto",fontSize:11,color:"#aaa"}}>👁 {listing.views} views</span>}
           </div>
+          {preBuilt&&(
+            <div style={{background:"#fff8f0",border:"1px solid #fcd",borderRadius:9,padding:"10px 13px",marginBottom:13,fontSize:12,color:"var(--rust)"}}>
+              ⚠️ This home was built before 1978. Federal law requires a Lead-Based Paint Disclosure. The seller will provide this before your inspection.
+            </div>
+          )}
           {listing.description&&<p style={{fontSize:13,lineHeight:1.8,color:"#444",marginBottom:13}}>{listing.description}</p>}
           <div style={{background:"var(--warm)",borderRadius:10,padding:"10px 14px",marginBottom:13,display:"flex",alignItems:"center",gap:9}}>
             <span style={{fontSize:19}}>👤</span>
@@ -761,7 +862,6 @@ function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,sav
 
   useEffect(()=>{load();},[refreshKey]);
 
-  // Load buyer's active offers to check for duplicates
   useEffect(()=>{
     if(!user)return;
     sb.from("offers").select("listing_id,status,id")
@@ -836,6 +936,7 @@ function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,sav
     </div>
   );
 }
+
 function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMessage,onOffer}) {
   const [myListings,setMyListings]=useState([]);
   const [activeOffers,setActiveOffers]=useState([]);
@@ -894,7 +995,6 @@ function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMes
 
   return (
     <div style={{maxWidth:760,margin:"0 auto",padding:"24px 16px"}}>
-      {/* Header */}
       <div style={{marginBottom:24}}>
         <h2 style={{fontSize:26,fontWeight:700,color:"var(--ink)",marginBottom:3}}>Hi {firstName} 👋</h2>
         <p style={{fontSize:13,color:"#666"}}>
@@ -904,7 +1004,6 @@ function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMes
         </p>
       </div>
 
-      {/* ACTIVE TRANSACTIONS */}
       {activeOffers.length>0&&(
         <div style={{marginBottom:24}}>
           <div style={{fontSize:15,fontWeight:700,color:"var(--ink)",marginBottom:12}}>⚡ Active Transactions</div>
@@ -926,19 +1025,17 @@ function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMes
                     <div style={{fontSize:16,fontWeight:700,color:"var(--ink)",marginBottom:2}}>{o.listings?.address}</div>
                     <div style={{fontSize:12,color:"#888"}}>{o.listings?.city}, {o.listings?.state} · {isBuyer?"Buying":"Selling"} · {formatPrice(o.offer_price)}</div>
                   </div>
-                  <div style={{textAlign:"right"}}>
-                    {needsAction
-                      ?<span style={{background:"var(--gold)",color:"#fff",fontSize:10,fontWeight:700,padding:"3px 9px",borderRadius:10}}>Your Turn</span>
-                      :<span style={{background:"#eee",color:"#888",fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:10}}>Waiting</span>
-                    }
-                  </div>
+                  {needsAction
+                    ?<span style={{background:"var(--gold)",color:"#fff",fontSize:10,fontWeight:700,padding:"3px 9px",borderRadius:10}}>Your Turn</span>
+                    :<span style={{background:"#eee",color:"#888",fontSize:10,fontWeight:600,padding:"3px 9px",borderRadius:10}}>Waiting</span>
+                  }
                 </div>
                 <div style={{background:"var(--warm)",borderRadius:4,height:6,marginBottom:8,overflow:"hidden"}}>
                   <div style={{background:needsAction?"var(--gold)":"var(--sage)",height:"100%",width:progress+"%",borderRadius:4,transition:"width 0.3s"}}/>
                 </div>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <div style={{fontSize:12,color:needsAction?"var(--gold)":"#666",fontWeight:needsAction?600:400}}>
-                    {cur?.icon} Step {si}/10: {cur?.label}{needsAction&&" — action needed"}
+                    {cur?.icon} Step {si}/{TRANSACTION_STEPS.length}: {cur?.label}{needsAction&&" — action needed"}
                   </div>
                   <div style={{fontSize:12,color:"var(--sage)",fontWeight:600}}>Continue →</div>
                 </div>
@@ -948,7 +1045,6 @@ function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMes
         </div>
       )}
 
-      {/* MY LISTINGS */}
       <div style={{marginBottom:24}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
           <div style={{fontSize:15,fontWeight:700,color:"var(--ink)"}}>🏡 My Listings</div>
@@ -974,6 +1070,7 @@ function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMes
                   {l.price_reduced&&<span style={{background:"var(--rust)",color:"#fff",fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:7}}>REDUCED</span>}
                   {l.sold&&<span style={{background:"#aaa",color:"#fff",fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:7}}>SOLD</span>}
                   <span style={{fontSize:11,color:"#aaa"}}>👁 {l.views||0}</span>
+                  {l.year_built&&<span style={{fontSize:11,color:"#aaa"}}>Built {l.year_built}</span>}
                 </div>
               </div>
               <div style={{display:"flex",gap:6,flexShrink:0}}>
@@ -985,14 +1082,12 @@ function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMes
         )}
       </div>
 
-      {/* SAVED HOMES */}
       {savedListings.length>0&&(
         <div style={{marginBottom:24}}>
           <div style={{fontSize:15,fontWeight:700,color:"var(--ink)",marginBottom:12}}>❤️ Saved Homes</div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>
             {savedListings.map(l=>(
-              <div key={l.id} style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:12,overflow:"hidden",cursor:"pointer"}}
-                onClick={()=>onNavigate("Browse")}>
+              <div key={l.id} style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:12,overflow:"hidden",cursor:"pointer"}} onClick={()=>onNavigate("Browse")}>
                 <div style={{height:110,background:"linear-gradient(135deg,var(--warm),var(--mist))",position:"relative",overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30}}>
                   {l.photos?.[0]?<img src={l.photos[0]} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>:"🏡"}
                   {l.sold&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{color:"#fff",fontWeight:700,fontSize:12}}>SOLD</span></div>}
@@ -1010,7 +1105,6 @@ function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMes
         </div>
       )}
 
-      {/* RECENT ACTIVITY */}
       {recentNotifs.length>0&&(
         <div>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
@@ -1039,7 +1133,6 @@ function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMes
     </div>
   );
 }
-
 function MakeOfferModal({listing,user,onClose,onRequireAuth}) {
   const [step,setStep]=useState(1);
   const [form,setForm]=useState({
@@ -1057,18 +1150,13 @@ function MakeOfferModal({listing,user,onClose,onRequireAuth}) {
   const inp={width:"100%",padding:"10px 13px",borderRadius:9,border:"1.5px solid var(--warm)",background:"#fff",fontSize:13,outline:"none",color:"var(--ink)"};
   const lbl={display:"block",fontSize:10,fontWeight:600,color:"#555",marginBottom:4,textTransform:"uppercase"};
 
-  // Check for existing active offer on this listing
   useEffect(()=>{
     if(!user||!listing){setChecking(false);return;}
     sb.from("offers").select("id,status")
-      .eq("buyer_id",user.id)
-      .eq("listing_id",listing.id)
+      .eq("buyer_id",user.id).eq("listing_id",listing.id)
       .in("status",["pending","accepted","countered"])
       .maybeSingle()
-      .then(({data})=>{
-        setExistingOffer(data||null);
-        setChecking(false);
-      });
+      .then(({data})=>{setExistingOffer(data||null);setChecking(false);});
   },[user?.id,listing?.id]);
 
   if(!user) return (
@@ -1100,7 +1188,7 @@ function MakeOfferModal({listing,user,onClose,onRequireAuth}) {
         </p>
         <div style={{display:"flex",gap:9}}>
           <button onClick={onClose} style={{flex:1,background:"none",border:"1.5px solid var(--warm)",borderRadius:10,padding:"11px",fontSize:13,cursor:"pointer",color:"var(--ink)"}}>Close</button>
-          <button onClick={()=>{onClose();}} style={{flex:2,background:"var(--sage)",color:"#fff",border:"none",borderRadius:10,padding:"11px",fontSize:13,cursor:"pointer",fontWeight:600}}>View My Offer →</button>
+          <button onClick={onClose} style={{flex:2,background:"var(--sage)",color:"#fff",border:"none",borderRadius:10,padding:"11px",fontSize:13,cursor:"pointer",fontWeight:600}}>View My Offer →</button>
         </div>
       </div>
     </div>
@@ -1213,6 +1301,7 @@ function MakeOfferModal({listing,user,onClose,onRequireAuth}) {
     </div>
   );
 }
+
 function SignaturePad({onSign}) {
   const canvasRef=useRef(null);
   const [drawing,setDrawing]=useState(false);
@@ -1405,6 +1494,7 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
 
   const needsDoc=!!step.requiresDoc&&isMyTurn;
   const canAdvance=!needsDoc||!!uploadedFile;
+  const preBuilt=offer.listings?.year_built&&Number(offer.listings.year_built)<1978;
 
   const uploadDoc=async file=>{
     setUploading(true);
@@ -1443,13 +1533,13 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
   const respondToOffer=async status=>{
     setLoading(true);
     const updates={status};
-    if(status==="accepted"){updates.step="preapproval";updates.step_index=2;}
+    if(status==="accepted"){updates.step="disclosures";updates.step_index=2;}
     const{error}=await sb.from("offers").update(updates).eq("id",offer.id);
     if(!error){
-      await sendNotification(offer.buyer_id,status==="accepted"?"Your offer was accepted! Upload pre-approval to continue.":"Your offer was declined.","offers");
+      await sendNotification(offer.buyer_id,status==="accepted"?"Your offer was accepted! The seller is preparing disclosures.":"Your offer was declined.","offers");
       await sendEmail(offer.buyer_email,status==="accepted"?"✅ Your offer was accepted! — DirectDeed":"❌ Offer declined — DirectDeed",
         emailTemplate(status==="accepted"?"Your offer was accepted!":"Your offer was declined",
-          status==="accepted"?`Your offer on <strong>${offer.listings?.address}</strong> was accepted.<br/>Next: Upload pre-approval or proof of funds.`:`Your offer on <strong>${offer.listings?.address}</strong> was declined.`,
+          status==="accepted"?`Your offer on <strong>${offer.listings?.address}</strong> was accepted.<br/>Next: The seller will provide required property disclosures before your inspection.`:`Your offer on <strong>${offer.listings?.address}</strong> was declined.`,
           status==="accepted"?"Continue Transaction":"Browse More Homes"));
       onUpdate({...offer,...updates});
     }
@@ -1471,12 +1561,12 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
 
   const acceptCounter=async()=>{
     setLoading(true);
-    const updates={status:"accepted",offer_price:offer.counter_price||offer.offer_price,closing_date:offer.counter_closing_date||offer.closing_date,step:"preapproval",step_index:2,counter_price:null,counter_closing_date:null,counter_message:null};
+    const updates={status:"accepted",offer_price:offer.counter_price||offer.offer_price,closing_date:offer.counter_closing_date||offer.closing_date,step:"disclosures",step_index:2,counter_price:null,counter_closing_date:null,counter_message:null};
     const{error}=await sb.from("offers").update(updates).eq("id",offer.id);
     if(!error){
-      await sendNotification(offer.seller_id,"Buyer accepted your counter. Next: pre-approval.","offers");
+      await sendNotification(offer.seller_id,"Buyer accepted your counter. Next: provide property disclosures.","offers");
       await sendEmail(offer.listings?.seller_email,"✅ Counter accepted — DirectDeed",
-        emailTemplate("The buyer accepted your counteroffer!",`Buyer accepted your counter on <strong>${offer.listings?.address}</strong>.<br/>Next: Buyer will upload pre-approval.`,"View Transaction"));
+        emailTemplate("The buyer accepted your counteroffer!",`Buyer accepted your counter on <strong>${offer.listings?.address}</strong>.<br/>Next: Please provide the required property disclosures.`,"View Transaction"));
       onUpdate({...offer,...updates});
     }
     setLoading(false);
@@ -1490,14 +1580,14 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
     const buyerDone=isBuyer?true:fresh?.step_closing_buyer_signed;
     const sellerDone=isSeller?true:fresh?.step_closing_seller_signed;
     if(buyerDone&&sellerDone){
-      await sb.from("offers").update({status:"closed",step_index:10}).eq("id",offer.id);
+      await sb.from("offers").update({status:"closed",step_index:TRANSACTION_STEPS.length}).eq("id",offer.id);
       await sb.from("listings").update({sold:true,sold_at:new Date().toISOString()}).eq("id",offer.listing_id);
       const otherId=isSeller?offer.buyer_id:offer.seller_id;
       const otherEmail=isSeller?offer.buyer_email:offer.listings?.seller_email;
       await sendNotification(otherId,"🎉 Transaction complete! Congratulations!","offers");
       await sendEmail(otherEmail,"🎉 Transaction Complete — DirectDeed",
         emailTemplate("Congratulations! Transaction complete!",`The sale of <strong>${offer.listings?.address}</strong> is complete. Both parties have signed.<br/><br/>Thank you for using DirectDeed!`,"View Completed Transaction"));
-      onUpdate({...offer,[myField]:true,status:"closed",step_index:10});
+      onUpdate({...offer,[myField]:true,status:"closed",step_index:TRANSACTION_STEPS.length});
     } else {
       const otherId=isSeller?offer.buyer_id:offer.seller_id;
       const otherEmail=isSeller?offer.buyer_email:offer.listings?.seller_email;
@@ -1561,31 +1651,90 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
       <div style={{background:"var(--cream)",borderRadius:7,padding:"9px 12px",marginBottom:10,fontSize:12,color:"var(--ink)",lineHeight:1.7,border:"1px solid var(--warm)"}}>
         {isBuyer?step.buyerAction:step.sellerAction}
       </div>
+
+      {/* STEP 2 — DISCLOSURES (seller uploads) */}
+      {step.key==="disclosures"&&isSeller&&(
+        <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:10}}>
+          <div style={{background:"#f0f6ff",border:"1px solid #90c0f0",borderRadius:9,padding:"12px 14px",fontSize:12,color:"#1d4ed8",lineHeight:1.8}}>
+            <strong>📝 Required Disclosures</strong><br/>
+            You are legally required to disclose known property conditions to the buyer. Generate the documents below, review them carefully, and upload the completed disclosures.
+          </div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            <button onClick={()=>setActiveDoc("Property Disclosure Statement")} style={{background:"var(--warm)",border:"1px solid var(--gold)",borderRadius:8,padding:"8px 12px",fontSize:11,cursor:"pointer",color:"var(--ink)",fontWeight:600}}>
+              📋 Generate Property Disclosure
+            </button>
+            {preBuilt&&(
+              <button onClick={()=>setActiveDoc("Lead Paint Disclosure")} style={{background:"#fff8f0",border:"1px solid var(--rust)",borderRadius:8,padding:"8px 12px",fontSize:11,cursor:"pointer",color:"var(--rust)",fontWeight:600}}>
+                ⚠️ Generate Lead Paint Disclosure
+              </button>
+            )}
+          </div>
+          {preBuilt&&(
+            <div style={{background:"#fff8f0",border:"1px solid #fcd",borderRadius:8,padding:"9px 12px",fontSize:11,color:"var(--rust)"}}>
+              This home was built before 1978 — a Lead-Based Paint Disclosure is federally required.
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* STEP 2 — DISCLOSURES (buyer view) */}
+      {step.key==="disclosures"&&isBuyer&&offer.step_disclosures_doc&&(
+        <div style={{background:"#f0fff4",border:"1px solid #9ae6b4",borderRadius:9,padding:"11px 14px",marginBottom:10}}>
+          <div style={{fontSize:12,fontWeight:600,color:"var(--sage)",marginBottom:5}}>✓ Seller disclosures available</div>
+          <a href={offer.step_disclosures_doc} target="_blank" rel="noopener noreferrer" style={{color:"var(--gold)",fontSize:12,textDecoration:"underline"}}>View Disclosure Documents ↗</a>
+          <div style={{fontSize:11,color:"#555",marginTop:5}}>Review these carefully before proceeding with your inspection.</div>
+        </div>
+      )}
+
+      {/* STEP 3 — PRE-APPROVAL */}
       {step.key==="preapproval"&&isBuyer&&(
         <div style={{background:"#f0f6ff",border:"1px solid #90c0f0",borderRadius:8,padding:"10px 12px",marginBottom:10,fontSize:11,color:"#444",lineHeight:1.8}}>
           <strong style={{color:"#1d4ed8"}}>🏦 What to Upload</strong><br/>
-          <strong>Mortgage:</strong> Pre-approval letter from your lender.<br/>
-          <strong>Cash:</strong> Bank statement or proof of funds letter.
+          <strong>Mortgage buyer:</strong> Pre-approval letter from your lender (dated within 60 days).<br/>
+          <strong>Cash buyer:</strong> Bank statement or proof of funds letter showing sufficient balance.
         </div>
       )}
+
+      {/* STEP 4 — EARNEST */}
       {step.key==="earnest"&&isBuyer&&(
         <div style={{background:"#fffbf0",border:"1px solid #f0d080",borderRadius:8,padding:"10px 12px",marginBottom:10,fontSize:11,color:"#555",lineHeight:1.8}}>
-          <strong style={{color:"var(--gold)"}}>💰 How to Deposit</strong><br/>
-          1. Find a title company or real estate attorney in the property's state.<br/>
-          2. Contact them with address, price, and both party names.<br/>
-          3. Wire funds — <strong style={{color:"var(--rust)"}}>never directly to the seller.</strong><br/>
-          4. Upload your wire receipt below.
+          <strong style={{color:"var(--gold)"}}>💰 How to Deposit Earnest Money</strong><br/>
+          1. Find a licensed title company or real estate attorney in Michigan.<br/>
+          2. Contact them with the property address, purchase price, and both party names.<br/>
+          3. Wire your earnest money — <strong style={{color:"var(--rust)"}}>never send directly to the seller.</strong><br/>
+          4. Upload your wire confirmation receipt below.
         </div>
       )}
+
+      {/* STEP 5 — INSPECTION */}
+      {step.key==="inspection"&&isBuyer&&(
+        <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:10}}>
+          <div style={{background:"#f0f6ff",border:"1px solid #90c0f0",borderRadius:8,padding:"10px 12px",fontSize:11,color:"#444",lineHeight:1.8}}>
+            <strong style={{color:"#1d4ed8"}}>🔍 Before Your Inspection</strong><br/>
+            Review the seller's disclosures from Step 2 before your inspection so you know what to look for.
+          </div>
+          <div style={{background:"var(--cream)",border:"1px solid var(--warm)",borderRadius:8,padding:"10px 12px",fontSize:11,color:"#555",lineHeight:1.8}}>
+            <strong>Documents available at this step:</strong><br/>
+            <button onClick={()=>setActiveDoc("Inspection Contingency Waiver")} style={{background:"none",border:"none",color:"var(--gold)",cursor:"pointer",fontSize:11,padding:0,textDecoration:"underline"}}>
+              Inspection Contingency Waiver
+            </button>
+            {" "}— Only sign this if you agree to waive your right to request repairs after inspection.
+          </div>
+        </div>
+      )}
+
+      {/* STEP 9 — TITLE */}
       {step.key==="title"&&isSeller&&(
         <div style={{background:"#f5f0ff",border:"1px solid #c0a0f0",borderRadius:8,padding:"10px 12px",marginBottom:10,fontSize:11,color:"#444",lineHeight:1.8}}>
           <strong style={{color:"#6d28d9"}}>📜 Clearing Title</strong><br/>
-          1. Contact a title company to order a title search.<br/>
-          2. Resolve any liens, unpaid mortgages, or judgments.<br/>
-          3. Title insurance will be issued to the buyer.<br/>
-          4. Upload clearance confirmation below.
+          1. Contact a Michigan title company to order a title search.<br/>
+          2. Resolve any liens, unpaid mortgages, or judgments on the property.<br/>
+          3. Title insurance will be issued to the buyer at closing.<br/>
+          4. Upload your title clearance confirmation below.
         </div>
       )}
+
+      {/* STEP 1 — OFFER ACTIONS */}
       {step.key==="offer"&&offer.status==="pending"&&isSeller&&(
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:7}}>
@@ -1644,6 +1793,8 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
       {step.key==="offer"&&offer.status==="countered"&&isSeller&&(
         <div style={{background:"var(--cream)",borderRadius:7,padding:"10px",fontSize:12,color:"#555",textAlign:"center",border:"1px solid var(--warm)"}}>Waiting for buyer to respond to your counter...</div>
       )}
+
+      {/* CLOSING STEP */}
       {step.key==="closing"&&(
         <div style={{display:"flex",flexDirection:"column",gap:9}}>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
@@ -1670,6 +1821,8 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
           )}
         </div>
       )}
+
+      {/* GENERIC UPLOAD FOR NON-SPECIAL STEPS */}
       {step.key!=="offer"&&step.key!=="closing"&&isMyTurn&&(
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
           <label style={{display:"flex",alignItems:"center",gap:8,border:"1.5px dashed "+(uploadedFile?"var(--sage)":needsDoc?"var(--gold)":"var(--warm)"),borderRadius:9,padding:"9px 12px",cursor:"pointer",background:uploadedFile?"#f0fff4":"#fff"}}>
@@ -1682,7 +1835,7 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
             </div>
             <input type="file" style={{display:"none"}} onChange={e=>e.target.files[0]&&uploadDoc(e.target.files[0])}/>
           </label>
-          {step.relatedDocs?.length>0&&(
+          {step.key!=="disclosures"&&step.relatedDocs?.length>0&&(
             <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
               {step.relatedDocs.map(d=><button key={d} onClick={()=>setActiveDoc(d)} style={{background:"var(--warm)",border:"none",borderRadius:6,padding:"4px 8px",fontSize:10,cursor:"pointer",color:"var(--ink)"}}>📋 {d}</button>)}
             </div>
@@ -1720,7 +1873,7 @@ function OffersTab({user,onRequireAuth}) {
 
   const loadOffers=async()=>{
     const{data}=await sb.from("offers")
-      .select("*, listings(address,city,state,zip,seller_name,price,user_id,seller_email)")
+      .select("*, listings(address,city,state,zip,seller_name,price,user_id,seller_email,year_built)")
       .or("buyer_id.eq."+user.id+",seller_id.eq."+user.id)
       .order("created_at",{ascending:false});
     setOffers(data||[]);setLoading(false);
@@ -1769,14 +1922,22 @@ function OffersTab({user,onRequireAuth}) {
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:11}}>
             <div>
               <div style={{fontSize:17,fontWeight:700,marginBottom:2,color:"var(--ink)"}}>{activeOffer.listings?.address}</div>
-              <div style={{fontSize:11,color:"#666"}}>{activeOffer.listings?.city}, {activeOffer.listings?.state} {activeOffer.listings?.zip}</div>
+              <div style={{fontSize:11,color:"#666"}}>
+                {activeOffer.listings?.city}, {activeOffer.listings?.state} {activeOffer.listings?.zip}
+                {activeOffer.listings?.year_built&&<span> · Built {activeOffer.listings.year_built}</span>}
+              </div>
             </div>
             <span style={{background:isClosed?"var(--sage)":activeOffer.status==="accepted"?"var(--sage)":activeOffer.status==="declined"?"#aaa":activeOffer.status==="countered"?"var(--rust)":"var(--gold)",color:"#fff",fontSize:9,fontWeight:700,padding:"3px 9px",borderRadius:12,textTransform:"uppercase"}}>
               {isClosed?"Closed":activeOffer.status}
             </span>
           </div>
           <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
-            {[["Offer",formatPrice(activeOffer.offer_price),"var(--gold)"],["Earnest",formatPrice(activeOffer.earnest_money),"var(--ink)"],["Closing",activeOffer.closing_date||"TBD","var(--ink)"],["Contingencies",[activeOffer.financing_contingency&&"Fin.",activeOffer.inspection_contingency&&"Insp.",activeOffer.appraisal_contingency&&"Appr."].filter(Boolean).join(" · ")||"None","#666"]].map(([l,v,c])=>(
+            {[
+              ["Offer",formatPrice(activeOffer.offer_price),"var(--gold)"],
+              ["Earnest",formatPrice(activeOffer.earnest_money),"var(--ink)"],
+              ["Closing",activeOffer.closing_date||"TBD","var(--ink)"],
+              ["Contingencies",[activeOffer.financing_contingency&&"Fin.",activeOffer.inspection_contingency&&"Insp.",activeOffer.appraisal_contingency&&"Appr."].filter(Boolean).join(" · ")||"None","#666"]
+            ].map(([l,v,c])=>(
               <div key={l} style={{background:"var(--warm)",borderRadius:7,padding:"7px 10px",flex:1,minWidth:75}}>
                 <div style={{fontSize:8,color:"#777",textTransform:"uppercase",marginBottom:2}}>{l}</div>
                 <div style={{fontSize:11,fontWeight:700,color:c}}>{v}</div>
@@ -1784,22 +1945,27 @@ function OffersTab({user,onRequireAuth}) {
             ))}
           </div>
         </div>
+
+        {/* Progress tracker */}
         <div style={{overflowX:"auto",marginBottom:14,paddingBottom:3}}>
-          <div style={{display:"flex",minWidth:500}}>
+          <div style={{display:"flex",minWidth:600}}>
             {TRANSACTION_STEPS.map((s,i)=>(
               <div key={s.id} style={{display:"flex",alignItems:"center",flexShrink:0}}>
-                <div style={{textAlign:"center",width:48}}>
+                <div style={{textAlign:"center",width:52}}>
                   <div style={{width:24,height:24,borderRadius:"50%",background:stepIndex>s.id?"var(--sage)":stepIndex===s.id?"var(--gold)":"var(--warm)",color:stepIndex>=s.id?"#fff":"#aaa",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 2px",fontSize:10}}>
                     {stepIndex>s.id?"✓":s.icon}
                   </div>
-                  <div style={{fontSize:6.5,color:stepIndex===s.id?"var(--gold)":"#aaa",lineHeight:1.2,fontWeight:stepIndex===s.id?700:400}}>{s.label}</div>
+                  <div style={{fontSize:6,color:stepIndex===s.id?"var(--gold)":"#aaa",lineHeight:1.2,fontWeight:stepIndex===s.id?700:400}}>{s.label}</div>
                 </div>
-                {i<TRANSACTION_STEPS.length-1&&<div style={{width:9,height:2,background:stepIndex>s.id?"var(--sage)":"var(--warm)",flexShrink:0,marginBottom:13}}/>}
+                {i<TRANSACTION_STEPS.length-1&&<div style={{width:8,height:2,background:stepIndex>s.id?"var(--sage)":"var(--warm)",flexShrink:0,marginBottom:13}}/>}
               </div>
             ))}
           </div>
         </div>
-        {activeOffer.status==="declined"&&<div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:10,padding:"14px",textAlign:"center",color:"var(--rust)",marginBottom:12}}>This offer was declined.</div>}
+
+        {activeOffer.status==="declined"&&(
+          <div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:10,padding:"14px",textAlign:"center",color:"var(--rust)",marginBottom:12}}>This offer was declined.</div>
+        )}
         {isClosed&&(
           <div style={{background:"linear-gradient(135deg,var(--sage),#3a5530)",color:"#fff",borderRadius:14,padding:"20px",textAlign:"center",marginBottom:12}}>
             <div style={{fontSize:32,marginBottom:7}}>🎉</div>
@@ -1870,8 +2036,18 @@ function OffersTab({user,onRequireAuth}) {
           <div style={{fontSize:12}}>Browse homes and make an offer, or list your home to receive offers.</div>
         </div>
       )}
-      {sellerOffers.length>0&&<div style={{marginBottom:24}}><h3 style={{fontSize:14,fontWeight:700,marginBottom:9,color:"var(--ink)"}}>Offers on My Listings</h3>{sellerOffers.map(o=><OfferRow key={o.id} o={o}/>)}</div>}
-      {buyerOffers.length>0&&<div><h3 style={{fontSize:14,fontWeight:700,marginBottom:9,color:"var(--ink)"}}>My Offers</h3>{buyerOffers.map(o=><OfferRow key={o.id} o={o}/>)}</div>}
+      {sellerOffers.length>0&&(
+        <div style={{marginBottom:24}}>
+          <h3 style={{fontSize:14,fontWeight:700,marginBottom:9,color:"var(--ink)"}}>Offers on My Listings</h3>
+          {sellerOffers.map(o=><OfferRow key={o.id} o={o}/>)}
+        </div>
+      )}
+      {buyerOffers.length>0&&(
+        <div>
+          <h3 style={{fontSize:14,fontWeight:700,marginBottom:9,color:"var(--ink)"}}>My Offers</h3>
+          {buyerOffers.map(o=><OfferRow key={o.id} o={o}/>)}
+        </div>
+      )}
     </div>
   );
 }
@@ -2040,6 +2216,7 @@ function MessagesTab({newThread,user,onRequireAuth}) {
           })}
         </div>
       </div>
+
       <div className={"messenger-chat"+(mobileView==="chat"?" active":"")}
         style={{flex:1,display:"flex",flexDirection:"column",background:"var(--msg-bg)",minWidth:0}}>
         {activeConv?(
@@ -2113,7 +2290,7 @@ function MessagesTab({newThread,user,onRequireAuth}) {
 function SellTab({user,onRequireAuth,onListingPublished}) {
   const [mode,setMode]=useState("home");
   const [step,setStep]=useState(1);
-  const [form,setForm]=useState({address:"",city:"",state:"",zip:"",price:"",beds:"",baths:"",sqft:"",type:"Single Family",description:"",seller_name:"",seller_email:"",seller_phone:""});
+  const [form,setForm]=useState({address:"",city:"",state:"",zip:"",price:"",beds:"",baths:"",sqft:"",year_built:"",type:"Single Family",description:"",seller_name:"",seller_email:"",seller_phone:""});
   const [photos,setPhotos]=useState([]);
   const [submitting,setSubmitting]=useState(false);
   const [submitted,setSubmitted]=useState(false);
@@ -2125,6 +2302,7 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
   const updateVal=(k,v)=>setValForm(f=>({...f,[k]:v}));
   const inp={width:"100%",padding:"10px 13px",borderRadius:9,border:"1.5px solid var(--warm)",background:"#fff",fontSize:13,outline:"none",color:"var(--ink)"};
   const lbl={display:"block",fontSize:10,fontWeight:600,color:"#555",marginBottom:4,textTransform:"uppercase"};
+  const preBuilt=form.year_built&&Number(form.year_built)<1978;
 
   useEffect(()=>{
     if(user)setForm(f=>({...f,seller_name:user.user_metadata?.full_name||"",seller_email:user.email||""}));
@@ -2176,6 +2354,7 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
         address:form.address,city:form.city,state:form.state,zip:form.zip,
         price:Number(form.price),beds:Number(form.beds),baths:Number(form.baths),
         sqft:Number(form.sqft),type:form.type,description:form.description,
+        year_built:form.year_built?Number(form.year_built):null,
         seller_name:form.seller_name,seller_email:form.seller_email,seller_phone:form.seller_phone,
         photos:photoUrls,tags:[],user_id:user.id,sold:false,views:0,
       }]).select();
@@ -2188,7 +2367,7 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
 
   const reset=()=>{
     setSubmitted(false);setStep(1);setPhotos([]);setError(null);setMode("home");
-    setForm({address:"",city:"",state:"",zip:"",price:"",beds:"",baths:"",sqft:"",type:"Single Family",description:"",seller_name:user?.user_metadata?.full_name||"",seller_email:user?.email||"",seller_phone:""});
+    setForm({address:"",city:"",state:"",zip:"",price:"",beds:"",baths:"",sqft:"",year_built:"",type:"Single Family",description:"",seller_name:user?.user_metadata?.full_name||"",seller_email:user?.email||"",seller_phone:""});
   };
 
   if(mode==="home") return (
@@ -2227,7 +2406,7 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
       <p style={{color:"#666",fontSize:12,marginBottom:18}}>Free instant estimate — no agent required.</p>
       <div style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:13,padding:"18px",marginBottom:13}}>
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          <div><label style={lbl}>Property Address</label><input style={inp} value={valForm.address} onChange={e=>updateVal("address",e.target.value)} placeholder="123 Main St, Austin TX 78701"/></div>
+          <div><label style={lbl}>Property Address</label><input style={inp} value={valForm.address} onChange={e=>updateVal("address",e.target.value)} placeholder="123 Main St, Monroe MI 48161"/></div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:9}}>
             <div><label style={lbl}>Beds</label><input style={inp} type="number" value={valForm.beds} onChange={e=>updateVal("beds",Number(e.target.value))}/></div>
             <div><label style={lbl}>Baths</label><input style={inp} type="number" value={valForm.baths} onChange={e=>updateVal("baths",Number(e.target.value))}/></div>
@@ -2305,33 +2484,44 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
           </div>
         ))}
       </div>
+
       {step===1&&(
         <div style={{display:"flex",flexDirection:"column",gap:13}}>
           <div><label style={lbl}>Street Address</label><input style={inp} value={form.address} onChange={e=>update("address",e.target.value)} placeholder="123 Main Street"/></div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:9}}>
-            <div><label style={lbl}>City</label><input style={inp} value={form.city} onChange={e=>update("city",e.target.value)} placeholder="Austin"/></div>
-            <div><label style={lbl}>State</label><input style={inp} value={form.state} onChange={e=>update("state",e.target.value)} placeholder="TX"/></div>
-            <div><label style={lbl}>ZIP</label><input style={inp} value={form.zip} onChange={e=>update("zip",e.target.value)} placeholder="78701"/></div>
+            <div><label style={lbl}>City</label><input style={inp} value={form.city} onChange={e=>update("city",e.target.value)} placeholder="Monroe"/></div>
+            <div><label style={lbl}>State</label><input style={inp} value={form.state} onChange={e=>update("state",e.target.value)} placeholder="MI"/></div>
+            <div><label style={lbl}>ZIP</label><input style={inp} value={form.zip} onChange={e=>update("zip",e.target.value)} placeholder="48161"/></div>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:9}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr",gap:9}}>
             <div><label style={lbl}>Beds</label><input style={inp} type="number" value={form.beds} onChange={e=>update("beds",e.target.value)} placeholder="3"/></div>
             <div><label style={lbl}>Baths</label><input style={inp} type="number" value={form.baths} onChange={e=>update("baths",e.target.value)} placeholder="2"/></div>
             <div><label style={lbl}>Sq Ft</label><input style={inp} type="number" value={form.sqft} onChange={e=>update("sqft",e.target.value)} placeholder="1800"/></div>
+            <div>
+              <label style={lbl}>Year Built</label>
+              <input style={inp} type="number" value={form.year_built} onChange={e=>update("year_built",e.target.value)} placeholder="1995"/>
+            </div>
             <div><label style={lbl}>Type</label>
               <select style={{...inp,cursor:"pointer"}} value={form.type} onChange={e=>update("type",e.target.value)}>
                 <option>Single Family</option><option>Condo</option><option>Townhome</option><option>Multi-Family</option><option>Land</option>
               </select>
             </div>
           </div>
+          {preBuilt&&(
+            <div style={{background:"#fff8f0",border:"1px solid #fcd",borderRadius:8,padding:"9px 13px",fontSize:12,color:"var(--rust)"}}>
+              ⚠️ Homes built before 1978 require a Lead Paint Disclosure — you'll generate this as part of the transaction process.
+            </div>
+          )}
           <button onClick={()=>{if(!form.address||!form.city||!form.state||!form.zip){alert("Please fill in the complete address.");return;}setStep(2);}} style={{background:"var(--gold)",color:"#fff",border:"none",borderRadius:10,padding:"11px",fontSize:13,cursor:"pointer",fontWeight:600}}>Continue</button>
         </div>
       )}
+
       {step===2&&(
         <div style={{display:"flex",flexDirection:"column",gap:13}}>
           <label htmlFor="photo-upload" style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",border:"2px dashed var(--warm)",borderRadius:11,padding:"24px 16px",cursor:"pointer",background:"var(--cream)"}}>
             <span style={{fontSize:28,marginBottom:6}}>📷</span>
             <span style={{fontWeight:600,fontSize:13,marginBottom:2,color:"var(--ink)"}}>Click to upload photos</span>
-            <span style={{fontSize:11,color:"#888"}}>JPG, PNG, WEBP · Multiple allowed</span>
+            <span style={{fontSize:11,color:"#888"}}>JPG, PNG, WEBP · Multiple allowed · First photo is cover</span>
             <input id="photo-upload" type="file" accept="image/*" multiple style={{display:"none"}} onChange={e=>addPhotos(e.target.files)}/>
           </label>
           {photos.length>0&&(
@@ -2351,9 +2541,10 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
           </div>
         </div>
       )}
+
       {step===3&&(
         <div style={{display:"flex",flexDirection:"column",gap:13}}>
-          <div><label style={lbl}>Asking Price</label><input style={inp} type="number" value={form.price} onChange={e=>update("price",e.target.value)} placeholder="485000"/></div>
+          <div><label style={lbl}>Asking Price</label><input style={inp} type="number" value={form.price} onChange={e=>update("price",e.target.value)} placeholder="299000"/></div>
           <div><label style={lbl}>Description</label><textarea style={{...inp,minHeight:90,resize:"vertical"}} value={form.description} onChange={e=>update("description",e.target.value)} placeholder="Describe your home — highlights, updates, neighborhood..."/></div>
           <div style={{display:"flex",gap:7}}>
             <button onClick={()=>setStep(2)} style={{flex:1,background:"none",border:"1.5px solid var(--warm)",borderRadius:10,padding:"10px",fontSize:12,cursor:"pointer",color:"var(--ink)"}}>Back</button>
@@ -2361,6 +2552,7 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
           </div>
         </div>
       )}
+
       {step===4&&(
         <div style={{display:"flex",flexDirection:"column",gap:13}}>
           <div><label style={lbl}>Your Name</label><input style={inp} value={form.seller_name} onChange={e=>update("seller_name",e.target.value)} placeholder="Jane Smith"/></div>
@@ -2451,6 +2643,7 @@ export default function App() {
   const NAV=["Browse","Sell","Offers","Messages","Dashboard"];
 
   useEffect(()=>{
+    verifyOfferColumns();
     sb.auth.getSession().then(({data:{session}})=>setUser(session?.user||null));
     const{data:{subscription}}=sb.auth.onAuthStateChange((event,session)=>{
       setUser(session?.user||null);
@@ -2581,6 +2774,7 @@ export default function App() {
           />
         )}
       </div>
+
       {tab==="Sell"&&<SellTab user={user} onRequireAuth={()=>setShowAuth(true)} onListingPublished={()=>setBrowseRefreshKey(k=>k+1)}/>}
       {tab==="Offers"&&<OffersTab user={user} onRequireAuth={()=>setShowAuth(true)}/>}
       {tab==="Messages"&&<MessagesTab newThread={messageThread} user={user} onRequireAuth={()=>setShowAuth(true)}/>}
