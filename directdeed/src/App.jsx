@@ -40,96 +40,26 @@ const styles = `
   }
 `;
 
-// Updated 11-step transaction flow with seller disclosures as Step 2
 const TRANSACTION_STEPS = [
-  { id:1,  key:"offer",               label:"Offer",           icon:"📋", owner:"seller",
-    desc:"Seller reviews and responds to the offer",
-    buyerAction:"Your offer has been submitted. Waiting for the seller to respond.",
-    sellerAction:"Review the offer below. You may accept, counter, or decline.",
-    relatedDocs:["Purchase & Sale Agreement","Counteroffer Addendum"] },
-  { id:2,  key:"disclosures",         label:"Disclosures",     icon:"📝", owner:"seller",
-    desc:"Seller provides required property disclosures to buyer",
-    buyerAction:"The seller is preparing required disclosures. Review them carefully before proceeding with your inspection.",
-    sellerAction:"You are required to disclose known property conditions to the buyer. Generate and upload the disclosures below.",
-    relatedDocs:["Property Disclosure Statement","Lead Paint Disclosure"], requiresDoc:true },
-  { id:3,  key:"preapproval",         label:"Pre-Approval",    icon:"🏦", owner:"buyer",
-    desc:"Buyer provides proof of financing or funds",
-    buyerAction:"Upload your mortgage pre-approval letter OR proof of funds. Required to advance.",
-    sellerAction:"Waiting for buyer to upload pre-approval or proof of funds.",
-    relatedDocs:[], requiresDoc:true },
-  { id:4,  key:"earnest",             label:"Earnest Money",   icon:"💰", owner:"buyer",
-    desc:"Buyer deposits earnest money with escrow agent",
-    buyerAction:"Deposit earnest money with a licensed title company. Upload your deposit receipt to advance.",
-    sellerAction:"Waiting for buyer to deposit earnest money and upload confirmation.",
-    relatedDocs:["Earnest Money Agreement"], requiresDoc:true },
-  { id:5,  key:"inspection",          label:"Inspection",      icon:"🔍", owner:"buyer",
-    desc:"Buyer completes home inspection",
-    buyerAction:"Schedule a licensed home inspector. Review the seller's disclosures above before your inspection. Upload the inspection report to advance.",
-    sellerAction:"Waiting for buyer to complete inspection and upload the report.",
-    relatedDocs:["Inspection Contingency Waiver"], requiresDoc:true },
-  { id:6,  key:"inspection_response", label:"Repair Response", icon:"🔨", owner:"seller",
-    desc:"Seller responds to repair requests",
-    buyerAction:"Waiting for seller to respond to your repair requests.",
-    sellerAction:"Review buyer's repair requests and respond.",
-    relatedDocs:["Counteroffer Addendum","As-Is Addendum"] },
-  { id:7,  key:"appraisal",           label:"Appraisal",       icon:"📊", owner:"buyer",
-    desc:"Buyer uploads property appraisal",
-    buyerAction:"Your lender will order the appraisal. Upload the report to advance.",
-    sellerAction:"Waiting for buyer to upload the appraisal report.",
-    relatedDocs:[], requiresDoc:true },
-  { id:8,  key:"financing",           label:"Financing",       icon:"✅", owner:"buyer",
-    desc:"Buyer uploads final loan commitment",
-    buyerAction:"Upload your final loan commitment letter from your lender to advance.",
-    sellerAction:"Waiting for buyer to upload their loan commitment letter.",
-    relatedDocs:["Seller Financing Addendum"], requiresDoc:true },
-  { id:9,  key:"title",               label:"Title Search",    icon:"📜", owner:"seller",
-    desc:"Seller clears title for transfer",
-    buyerAction:"Waiting for seller to clear title.",
-    sellerAction:"Work with your title company to complete the title search. Upload clearance confirmation to advance.",
-    relatedDocs:[], requiresDoc:true },
-  { id:10, key:"walkthrough",         label:"Walkthrough",     icon:"🚶", owner:"buyer",
-    desc:"Buyer completes final walkthrough",
-    buyerAction:"Complete your final walkthrough and confirm the property condition below.",
-    sellerAction:"Ensure the property is ready. Buyer will confirm condition.",
-    relatedDocs:[] },
-  { id:11, key:"closing",             label:"Closing",         icon:"🎉", owner:"both",
-    desc:"Both parties sign and complete the transaction",
-    buyerAction:"Sign the closing documents below. Both parties must sign to complete.",
-    sellerAction:"Sign the closing documents below. Both parties must sign to complete.",
-    relatedDocs:["Purchase & Sale Agreement"] },
+  { id:1,  key:"offer",               label:"Offer",           icon:"📋", owner:"seller", desc:"Seller reviews and responds to the offer", buyerAction:"Your offer has been submitted. Waiting for the seller to respond.", sellerAction:"Review the offer below. You may accept, counter, or decline.", relatedDocs:["Purchase & Sale Agreement","Counteroffer Addendum"] },
+  { id:2,  key:"disclosures",         label:"Disclosures",     icon:"📝", owner:"seller", desc:"Seller provides required property disclosures to buyer", buyerAction:"The seller is preparing required disclosures. Review them carefully before proceeding with your inspection.", sellerAction:"You are required to disclose known property conditions to the buyer. Generate and upload the disclosures below.", relatedDocs:["Property Disclosure Statement","Lead Paint Disclosure"], requiresDoc:true },
+  { id:3,  key:"preapproval",         label:"Pre-Approval",    icon:"🏦", owner:"buyer",  desc:"Buyer provides proof of financing or funds", buyerAction:"Upload your mortgage pre-approval letter OR proof of funds. Required to advance.", sellerAction:"Waiting for buyer to upload pre-approval or proof of funds.", relatedDocs:[], requiresDoc:true },
+  { id:4,  key:"earnest",             label:"Earnest Money",   icon:"💰", owner:"buyer",  desc:"Buyer deposits earnest money with escrow agent", buyerAction:"Deposit earnest money with a licensed title company. Upload your deposit receipt to advance.", sellerAction:"Waiting for buyer to deposit earnest money and upload confirmation.", relatedDocs:["Earnest Money Agreement"], requiresDoc:true },
+  { id:5,  key:"inspection",          label:"Inspection",      icon:"🔍", owner:"buyer",  desc:"Buyer completes home inspection", buyerAction:"Schedule a licensed home inspector. Review the seller's disclosures before your inspection. Upload the inspection report to advance.", sellerAction:"Waiting for buyer to complete inspection and upload the report.", relatedDocs:["Inspection Contingency Waiver"], requiresDoc:true },
+  { id:6,  key:"inspection_response", label:"Repair Response", icon:"🔨", owner:"seller", desc:"Seller responds to repair requests", buyerAction:"Waiting for seller to respond to your repair requests.", sellerAction:"Review buyer's repair requests and respond.", relatedDocs:["Counteroffer Addendum","As-Is Addendum"] },
+  { id:7,  key:"appraisal",           label:"Appraisal",       icon:"📊", owner:"buyer",  desc:"Buyer uploads property appraisal", buyerAction:"Your lender will order the appraisal. Upload the report to advance.", sellerAction:"Waiting for buyer to upload the appraisal report.", relatedDocs:[], requiresDoc:true },
+  { id:8,  key:"financing",           label:"Financing",       icon:"✅", owner:"buyer",  desc:"Buyer uploads final loan commitment", buyerAction:"Upload your final loan commitment letter from your lender to advance.", sellerAction:"Waiting for buyer to upload their loan commitment letter.", relatedDocs:["Seller Financing Addendum"], requiresDoc:true },
+  { id:9,  key:"title",               label:"Title Search",    icon:"📜", owner:"seller", desc:"Seller clears title for transfer", buyerAction:"Waiting for seller to clear title.", sellerAction:"Work with your title company to complete the title search. Upload clearance confirmation to advance.", relatedDocs:[], requiresDoc:true },
+  { id:10, key:"walkthrough",         label:"Walkthrough",     icon:"🚶", owner:"buyer",  desc:"Buyer completes final walkthrough", buyerAction:"Complete your final walkthrough and confirm the property condition below.", sellerAction:"Ensure the property is ready. Buyer will confirm condition.", relatedDocs:[] },
+  { id:11, key:"closing",             label:"Closing",         icon:"🎉", owner:"both",   desc:"Both parties sign and complete the transaction", buyerAction:"Sign the closing documents below. Both parties must sign to complete.", sellerAction:"Sign the closing documents below. Both parties must sign to complete.", relatedDocs:["Purchase & Sale Agreement"] },
 ];
 
-// Verify all required offer columns exist
 async function verifyOfferColumns() {
-  const requiredCols = [
-    "step_disclosures_doc","step_preapproval_doc","step_earnest_doc",
-    "step_inspection_doc","step_appraisal_doc","step_financing_doc",
-    "step_title_doc","step_closing_buyer_signed","step_closing_seller_signed",
-    "counter_price","counter_closing_date","counter_message",
-  ];
   try {
-    const{data,error}=await sb.from("offers").select(requiredCols.join(",")).limit(1);
-    if(error){
-      console.warn("Missing offer columns — running migrations...");
-      const migrations=[
-        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_disclosures_doc text",
-        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_preapproval_doc text",
-        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_earnest_doc text",
-        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_inspection_doc text",
-        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_appraisal_doc text",
-        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_financing_doc text",
-        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_title_doc text",
-        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_closing_buyer_signed boolean DEFAULT false",
-        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS step_closing_seller_signed boolean DEFAULT false",
-        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS counter_price numeric",
-        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS counter_closing_date date",
-        "ALTER TABLE offers ADD COLUMN IF NOT EXISTS counter_message text",
-      ];
-      for(const sql of migrations){
-        await sb.rpc("exec_sql",{sql}).catch(()=>{});
-      }
-    }
-  } catch(e){ console.warn("Column check skipped:",e.message); }
+    const cols=["step_disclosures_doc","step_preapproval_doc","step_earnest_doc","step_inspection_doc","step_appraisal_doc","step_financing_doc","step_title_doc","step_closing_buyer_signed","step_closing_seller_signed","counter_price","counter_closing_date","counter_message"];
+    const{error}=await sb.from("offers").select(cols.join(",")).limit(1);
+    if(error) console.warn("Some offer columns may be missing. Run migrations in Supabase SQL editor.");
+  } catch(e){ console.warn("Column check:",e.message); }
 }
 
 function formatPrice(p) { return "$"+Number(p).toLocaleString(); }
@@ -194,7 +124,7 @@ function getContractPrompt(name,offer) {
     "Counteroffer Addendum":`Generate a Counteroffer Addendum. ${base} Include reference to original offer, modified terms, expiration, unchanged terms, signatures. No markdown.`,
     "Earnest Money Agreement":`Generate an Earnest Money Agreement. ${base} Include deposit amount, escrow holder, deadline, return conditions, forfeiture, dispute resolution, signatures. No markdown.`,
     "Property Disclosure Statement":`Generate a Michigan Seller's Disclosure Statement. ${base} Cover all required Michigan disclosure categories: structural, roof, foundation, water/plumbing, electrical, HVAC, environmental hazards, pest/termite, HOA, legal issues, unpermitted work, flood zone, known defects. Yes/No/Unknown checkboxes. Seller certification. Signature blocks. Plain English. No markdown.`,
-    "Lead Paint Disclosure":`Generate a Lead-Based Paint Disclosure per 42 USC 4852d. ${base} This is federally required for homes built before 1978. Include: seller disclosure of known lead paint, records and reports, EPA pamphlet acknowledgment, buyer's 10-day inspection right, agent acknowledgment if applicable, signatures from all parties. Plain English. No markdown.`,
+    "Lead Paint Disclosure":`Generate a Lead-Based Paint Disclosure per 42 USC 4852d. ${base} Federally required for homes built before 1978. Include: seller disclosure of known lead paint, records and reports, EPA pamphlet acknowledgment, buyer's 10-day inspection right, signatures from all parties. Plain English. No markdown.`,
     "Inspection Contingency Waiver":`Generate an Inspection Contingency Waiver. ${base} Buyer voluntarily waives inspection contingency, as-is acknowledgment, no warranties, risks acknowledged, other contract terms remain, signatures. Plain English. No markdown.`,
     "As-Is Addendum":`Generate an As-Is Addendum. ${base} As-is sale, no warranties, no repairs, buyer acknowledgment, survivability clause, signatures. Plain English. No markdown.`,
     "Seller Financing Addendum":`Generate a Seller Financing Addendum. ${base} Loan amount, interest rate, term, monthly payment, late penalty, default provisions, due-on-sale clause, security interest, signatures. Plain English. No markdown.`,
@@ -231,6 +161,8 @@ function PasswordResetModal({onClose}) {
   const [loading,setLoading]=useState(false);
   const [done,setDone]=useState(false);
   const [error,setError]=useState(null);
+  const inp={width:"100%",padding:"12px 16px",borderRadius:12,border:"1.5px solid var(--warm)",background:"#fff",fontSize:15,outline:"none",color:"var(--ink)"};
+  const lbl={display:"block",fontSize:12,fontWeight:600,color:"#555",marginBottom:6};
 
   const submit=async()=>{
     if(password!==confirm){setError("Passwords do not match.");return;}
@@ -241,9 +173,6 @@ function PasswordResetModal({onClose}) {
     setDone(true);setLoading(false);
     window.history.replaceState({},"",window.location.pathname);
   };
-
-  const inp={width:"100%",padding:"12px 16px",borderRadius:12,border:"1.5px solid var(--warm)",background:"#fff",fontSize:15,outline:"none",color:"var(--ink)"};
-  const lbl={display:"block",fontSize:12,fontWeight:600,color:"#555",marginBottom:6};
 
   if(done) return (
     <div style={{position:"fixed",inset:0,background:"rgba(26,18,8,0.65)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
@@ -299,7 +228,6 @@ function AuthModal({onClose,onAuth}) {
   const [emailSent,setEmailSent]=useState(false);
   const [resent,setResent]=useState(false);
   const [resetSent,setResetSent]=useState(false);
-
   const inp={width:"100%",padding:"12px 16px",borderRadius:12,border:"1.5px solid var(--warm)",background:"#fff",fontSize:15,outline:"none",color:"var(--ink)"};
   const lbl={display:"block",fontSize:12,fontWeight:600,color:"#555",marginBottom:6};
 
@@ -349,8 +277,8 @@ function AuthModal({onClose,onAuth}) {
       <div style={{background:"var(--card)",borderRadius:24,maxWidth:420,width:"100%",overflow:"hidden",boxShadow:"0 24px 80px rgba(0,0,0,0.3)"}} onClick={e=>e.stopPropagation()}>
         <div style={{background:"var(--ink)",padding:"26px 30px 20px",textAlign:"center",position:"relative"}}>
           <button onClick={onClose} style={{position:"absolute",top:14,right:14,background:"rgba(255,255,255,0.1)",border:"none",color:"#fff",borderRadius:"50%",width:26,height:26,cursor:"pointer",fontSize:12}}>✕</button>
-          <div style={{display:"flex",justifyContent:"center",marginBottom:8}}><Logo size={0.85}/></div>
-          <div style={{fontSize:13,color:"rgba(255,255,255,0.5)"}}>{mode==="login"?"Sign in to continue":"Keep more of your money — sell directly"}</div>
+          <div style={{display:"flex",justifyContent:"center",marginBottom:8}}><Logo scale={0.85}/></div>
+          <div style={{fontSize:13,color:"rgba(255,255,255,0.5)",marginTop:4}}>{mode==="login"?"Sign in to continue":"Keep more of your money — sell directly"}</div>
         </div>
         <div style={{display:"flex",borderBottom:"1px solid var(--warm)"}}>
           {["login","signup"].map(m=>(
@@ -454,8 +382,7 @@ function EditListingModal({listing,onClose,onSaved}) {
   const [form,setForm]=useState({
     address:listing.address||"",city:listing.city||"",state:listing.state||"",zip:listing.zip||"",
     price:listing.price||"",beds:listing.beds||"",baths:listing.baths||"",sqft:listing.sqft||"",
-    year_built:listing.year_built||"",
-    type:listing.type||"Single Family",description:listing.description||"",
+    year_built:listing.year_built||"",type:listing.type||"Single Family",description:listing.description||"",
     seller_name:listing.seller_name||"",seller_email:listing.seller_email||"",seller_phone:listing.seller_phone||"",
     price_reduced:listing.price_reduced||false,
   });
@@ -469,6 +396,7 @@ function EditListingModal({listing,onClose,onSaved}) {
   const [savingOH,setSavingOH]=useState(false);
   const inp={width:"100%",padding:"9px 12px",borderRadius:8,border:"1.5px solid var(--warm)",background:"#fff",fontSize:13,outline:"none",color:"var(--ink)"};
   const lbl={display:"block",fontSize:10,fontWeight:600,color:"#555",marginBottom:3,textTransform:"uppercase"};
+  const preBuilt=form.year_built&&Number(form.year_built)<1978;
 
   useEffect(()=>{
     sb.from("open_houses").select("*,open_house_rsvps(id,name,email,phone)").eq("listing_id",listing.id).order("date")
@@ -527,8 +455,6 @@ function EditListingModal({listing,onClose,onSaved}) {
     setOpenHouses(prev=>prev.filter(oh=>oh.id!==id));
   };
 
-  const preBuilt=form.year_built&&Number(form.year_built)<1978;
-
   return (
     <div style={{position:"fixed",inset:0,background:"rgba(26,18,8,0.6)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={onClose}>
       <div style={{background:"var(--card)",borderRadius:20,maxWidth:600,width:"100%",maxHeight:"90vh",overflow:"auto",boxShadow:"0 24px 80px rgba(0,0,0,0.3)"}} onClick={e=>e.stopPropagation()}>
@@ -556,10 +482,7 @@ function EditListingModal({listing,onClose,onSaved}) {
             <div><label style={lbl}>Beds</label><input style={inp} type="number" value={form.beds} onChange={e=>setForm(f=>({...f,beds:e.target.value}))}/></div>
             <div><label style={lbl}>Baths</label><input style={inp} type="number" value={form.baths} onChange={e=>setForm(f=>({...f,baths:e.target.value}))}/></div>
             <div><label style={lbl}>Sq Ft</label><input style={inp} type="number" value={form.sqft} onChange={e=>setForm(f=>({...f,sqft:e.target.value}))}/></div>
-            <div>
-              <label style={lbl}>Year Built</label>
-              <input style={inp} type="number" value={form.year_built} onChange={e=>setForm(f=>({...f,year_built:e.target.value}))} placeholder="1995"/>
-            </div>
+            <div><label style={lbl}>Year Built</label><input style={inp} type="number" value={form.year_built} onChange={e=>setForm(f=>({...f,year_built:e.target.value}))} placeholder="1995"/></div>
             <div><label style={lbl}>Type</label>
               <select style={{...inp,cursor:"pointer"}} value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))}>
                 <option>Single Family</option><option>Condo</option><option>Townhome</option><option>Multi-Family</option><option>Land</option>
@@ -704,7 +627,8 @@ function ListingModal({listing,onClose,onMessage,onOffer,user,saved,onToggleSave
   const [openHouses,setOpenHouses]=useState([]);
   const [rsvping,setRsvping]=useState(null);
   const [rsvpDone,setRsvpDone]=useState({});
-  const [rsvpForm]=useState({name:user?.user_metadata?.full_name||"",email:user?.email||"",phone:""});
+  const rsvpName=user?.user_metadata?.full_name||"";
+  const rsvpEmail=user?.email||"";
 
   useEffect(()=>{
     if(!listing) return;
@@ -733,8 +657,10 @@ function ListingModal({listing,onClose,onMessage,onOffer,user,saved,onToggleSave
   const submitRsvp=async ohId=>{
     if(!user){alert("Please sign in to RSVP.");return;}
     setRsvping(ohId);
-    const{error}=await sb.from("open_house_rsvps").insert([{open_house_id:ohId,user_id:user.id,name:rsvpForm.name,email:rsvpForm.email,phone:rsvpForm.phone}]);
-    if(!error) setRsvpDone(prev=>({...prev,[ohId]:true}));
+    try{
+      const{error}=await sb.from("open_house_rsvps").insert([{open_house_id:ohId,user_id:user.id,name:rsvpName,email:rsvpEmail,phone:""}]);
+      if(!error) setRsvpDone(prev=>({...prev,[ohId]:true}));
+    }catch(e){console.error(e);}
     setRsvping(null);
   };
 
@@ -847,7 +773,7 @@ function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,sav
   const [listings,setListings]=useState([]);
   const [loading,setLoading]=useState(true);
   const [search,setSearch]=useState("");
-  const [maxPrice,setMaxPrice]=useState(2000000);
+  const [maxPrice,setMaxPrice]=useState(99000000);
   const [minBeds,setMinBeds]=useState(0);
   const [showSold,setShowSold]=useState(false);
   const [selected,setSelected]=useState(null);
@@ -857,13 +783,17 @@ function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,sav
   const load=()=>{
     setLoading(true);
     sb.from("listings").select("*").order("created_at",{ascending:false})
-      .then(({data})=>{setListings(data||[]);setLoading(false);});
+      .then(({data,error})=>{
+        if(error) console.error("Browse load error:",error);
+        setListings(data||[]);
+        setLoading(false);
+      });
   };
 
   useEffect(()=>{load();},[refreshKey]);
 
   useEffect(()=>{
-    if(!user)return;
+    if(!user) return;
     sb.from("offers").select("listing_id,status,id")
       .eq("buyer_id",user.id)
       .in("status",["pending","accepted","countered"])
@@ -886,30 +816,43 @@ function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,sav
     if(selected?.id===updated.id)setSelected(s=>({...s,...updated}));
   };
 
-  const filtered=listings.filter(l=>
-    (l.address+" "+l.city+" "+l.state+" "+(l.zip||"")).toLowerCase().includes(search.toLowerCase())&&
-    Number(l.price)<=maxPrice&&Number(l.beds)>=minBeds&&(showSold||!l.sold)
-  );
+  const filtered=listings.filter(l=>{
+    const searchMatch=(l.address+" "+l.city+" "+l.state+" "+(l.zip||"")).toLowerCase().includes(search.toLowerCase());
+    const priceMatch=Number(l.price)<=maxPrice;
+    const bedsMatch=Number(l.beds)>=minBeds;
+    const soldMatch=showSold||!l.sold;
+    return searchMatch&&priceMatch&&bedsMatch&&soldMatch;
+  });
 
   return (
     <div style={{maxWidth:1100,margin:"0 auto",padding:"20px 16px"}}>
       <div style={{display:"flex",gap:9,marginBottom:18,flexWrap:"wrap"}}>
-        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search address, city, or ZIP..." style={{flex:2,minWidth:150,padding:"9px 13px",borderRadius:9,border:"1.5px solid var(--warm)",background:"var(--card)",fontSize:13,outline:"none",color:"var(--ink)"}}/>
-        <select value={minBeds} onChange={e=>setMinBeds(Number(e.target.value))} style={{padding:"9px 11px",borderRadius:9,border:"1.5px solid var(--warm)",background:"var(--card)",fontSize:12,cursor:"pointer",color:"var(--ink)"}}>
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search address, city, or ZIP..."
+          style={{flex:2,minWidth:150,padding:"9px 13px",borderRadius:9,border:"1.5px solid var(--warm)",background:"var(--card)",fontSize:13,outline:"none",color:"var(--ink)"}}/>
+        <select value={minBeds} onChange={e=>setMinBeds(Number(e.target.value))}
+          style={{padding:"9px 11px",borderRadius:9,border:"1.5px solid var(--warm)",background:"var(--card)",fontSize:12,cursor:"pointer",color:"var(--ink)"}}>
           <option value={0}>Any beds</option><option value={2}>2+</option><option value={3}>3+</option><option value={4}>4+</option>
         </select>
-        <select value={maxPrice} onChange={e=>setMaxPrice(Number(e.target.value))} style={{padding:"9px 11px",borderRadius:9,border:"1.5px solid var(--warm)",background:"var(--card)",fontSize:12,cursor:"pointer",color:"var(--ink)"}}>
-          <option value={2000000}>Any price</option><option value={400000}>Under $400k</option><option value={600000}>Under $600k</option><option value={800000}>Under $800k</option><option value={1000000}>Under $1M</option>
+        <select value={maxPrice} onChange={e=>setMaxPrice(Number(e.target.value))}
+          style={{padding:"9px 11px",borderRadius:9,border:"1.5px solid var(--warm)",background:"var(--card)",fontSize:12,cursor:"pointer",color:"var(--ink)"}}>
+          <option value={99000000}>Any price</option>
+          <option value={300000}>Under $300k</option>
+          <option value={400000}>Under $400k</option>
+          <option value={600000}>Under $600k</option>
+          <option value={800000}>Under $800k</option>
+          <option value={1000000}>Under $1M</option>
+          <option value={2000000}>Under $2M</option>
         </select>
         <label style={{display:"flex",alignItems:"center",gap:5,fontSize:12,color:"#555",cursor:"pointer"}}>
           <input type="checkbox" checked={showSold} onChange={e=>setShowSold(e.target.checked)}/>Show sold
         </label>
       </div>
       {loading&&<div style={{textAlign:"center",padding:"56px",color:"#888"}}>Loading listings...</div>}
-      {!loading&&(
+      {!loading&&filtered.length>0&&(
         <div className="listing-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(270px,1fr))",gap:18}}>
           {filtered.map(l=>(
-            <ListingCard key={l.id} listing={l} onClick={setSelected} onDelete={()=>{}} isOwner={user?.id===l.user_id} onMessage={onMessage} onEdit={l=>setEditListing(l)} user={user} saved={savedIds?.has(l.id)} onToggleSave={onToggleSave}/>
+            <ListingCard key={l.id} listing={l} onClick={setSelected} onDelete={()=>{}} isOwner={user?.id===l.user_id}
+              onMessage={onMessage} onEdit={l=>setEditListing(l)} user={user} saved={savedIds?.has(l.id)} onToggleSave={onToggleSave}/>
           ))}
         </div>
       )}
@@ -932,12 +875,15 @@ function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,sav
         existingOffer={selected?activeOfferMap[selected.id]:null}
         onViewOffer={()=>{setSelected(null);onViewOffer&&onViewOffer();}}
       />
-      {editListing&&<EditListingModal listing={editListing} onClose={()=>setEditListing(null)} onSaved={updated=>{handleSaved(updated);setEditListing(null);}}/>}
+      {editListing&&(
+        <EditListingModal listing={editListing} onClose={()=>setEditListing(null)}
+          onSaved={updated=>{handleSaved(updated);setEditListing(null);}}/>
+      )}
     </div>
   );
 }
 
-function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMessage,onOffer}) {
+function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave}) {
   const [myListings,setMyListings]=useState([]);
   const [activeOffers,setActiveOffers]=useState([]);
   const [savedListings,setSavedListings]=useState([]);
@@ -1070,7 +1016,7 @@ function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMes
                   {l.price_reduced&&<span style={{background:"var(--rust)",color:"#fff",fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:7}}>REDUCED</span>}
                   {l.sold&&<span style={{background:"#aaa",color:"#fff",fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:7}}>SOLD</span>}
                   <span style={{fontSize:11,color:"#aaa"}}>👁 {l.views||0}</span>
-                  {l.year_built&&<span style={{fontSize:11,color:"#aaa"}}>Built {l.year_built}</span>}
+                  {l.year_built&&<span style={{fontSize:11,color:"#aaa"}}>· Built {l.year_built}</span>}
                 </div>
               </div>
               <div style={{display:"flex",gap:6,flexShrink:0}}>
@@ -1129,7 +1075,10 @@ function DashboardTab({user,onRequireAuth,onNavigate,savedIds,onToggleSave,onMes
         </div>
       )}
 
-      {editListing&&<EditListingModal listing={editListing} onClose={()=>setEditListing(null)} onSaved={updated=>{setMyListings(prev=>prev.map(l=>l.id===updated.id?{...l,...updated}:l));setEditListing(null);}}/>}
+      {editListing&&(
+        <EditListingModal listing={editListing} onClose={()=>setEditListing(null)}
+          onSaved={updated=>{setMyListings(prev=>prev.map(l=>l.id===updated.id?{...l,...updated}:l));setEditListing(null);}}/>
+      )}
     </div>
   );
 }
@@ -1174,6 +1123,7 @@ function MakeOfferModal({listing,user,onClose,onRequireAuth}) {
     <div style={{position:"fixed",inset:0,background:"rgba(26,18,8,0.55)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={onClose}>
       <div style={{background:"var(--card)",borderRadius:18,padding:"32px",textAlign:"center"}} onClick={e=>e.stopPropagation()}>
         <Spinner dark size={24}/>
+        <div style={{fontSize:12,color:"#888",marginTop:12}}>Checking...</div>
       </div>
     </div>
   );
@@ -1195,13 +1145,14 @@ function MakeOfferModal({listing,user,onClose,onRequireAuth}) {
   );
 
   const submit=async()=>{
+    if(!form.offer_price){setError("Please enter an offer price.");return;}
     setSubmitting(true);setError(null);
     try{
       const{error:e}=await sb.from("offers").insert([{
         listing_id:listing.id,buyer_id:user.id,seller_id:listing.user_id,
         buyer_name:form.buyer_name,buyer_email:form.buyer_email,buyer_phone:form.buyer_phone,
-        offer_price:Number(form.offer_price),earnest_money:Number(form.earnest_money),
-        closing_date:form.closing_date,financing_contingency:form.financing_contingency,
+        offer_price:Number(form.offer_price),earnest_money:Number(form.earnest_money)||0,
+        closing_date:form.closing_date||null,financing_contingency:form.financing_contingency,
         inspection_contingency:form.inspection_contingency,appraisal_contingency:form.appraisal_contingency,
         message:form.message,status:"pending",step:"offer",step_index:1,
       }]);
@@ -1247,14 +1198,19 @@ function MakeOfferModal({listing,user,onClose,onRequireAuth}) {
               <div>
                 <label style={lbl}>Offer Price</label>
                 <input style={inp} type="number" value={form.offer_price} onChange={e=>update("offer_price",e.target.value)} placeholder="480000"/>
-                {listing.price&&Number(form.offer_price)>0&&Number(form.offer_price)<Number(listing.price)&&<div style={{fontSize:10,color:"var(--rust)",marginTop:2}}>{Math.round((1-Number(form.offer_price)/Number(listing.price))*100)}% below asking</div>}
-                {listing.price&&Number(form.offer_price)>Number(listing.price)&&<div style={{fontSize:10,color:"var(--sage)",marginTop:2}}>{Math.round((Number(form.offer_price)/Number(listing.price)-1)*100)}% above asking</div>}
+                {listing.price&&Number(form.offer_price)>0&&Number(form.offer_price)<Number(listing.price)&&(
+                  <div style={{fontSize:10,color:"var(--rust)",marginTop:2}}>{Math.round((1-Number(form.offer_price)/Number(listing.price))*100)}% below asking</div>
+                )}
+                {listing.price&&Number(form.offer_price)>Number(listing.price)&&(
+                  <div style={{fontSize:10,color:"var(--sage)",marginTop:2}}>{Math.round((Number(form.offer_price)/Number(listing.price)-1)*100)}% above asking</div>
+                )}
               </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
                 <div><label style={lbl}>Earnest Money</label><input style={inp} type="number" value={form.earnest_money} onChange={e=>update("earnest_money",e.target.value)} placeholder="5000"/></div>
                 <div><label style={lbl}>Closing Date</label><input style={inp} type="date" value={form.closing_date} onChange={e=>update("closing_date",e.target.value)}/></div>
               </div>
-              <div><label style={lbl}>Message to Seller <span style={{fontWeight:400,textTransform:"none",color:"#aaa"}}>optional</span></label>
+              <div>
+                <label style={lbl}>Message to Seller <span style={{fontWeight:400,textTransform:"none",color:"#aaa"}}>optional</span></label>
                 <textarea style={{...inp,minHeight:60,resize:"vertical"}} value={form.message} onChange={e=>update("message",e.target.value)} placeholder="Introduce yourself..."/>
               </div>
               <button onClick={()=>setStep(2)} style={{background:"var(--gold)",color:"#fff",border:"none",borderRadius:10,padding:"11px",fontSize:13,cursor:"pointer",fontWeight:600}}>Continue</button>
@@ -1268,9 +1224,16 @@ function MakeOfferModal({listing,user,onClose,onRequireAuth}) {
                 {key:"inspection_contingency",label:"Inspection Contingency",desc:"Lets you negotiate or walk away after inspection."},
                 {key:"appraisal_contingency",label:"Appraisal Contingency",desc:"Protects you if home appraises below offer price."},
               ].map(c=>(
-                <div key={c.key} style={{background:form[c.key]?"#f0fff4":"#fff5f5",border:"1px solid "+(form[c.key]?"#9ae6b4":"#fcc"),borderRadius:10,padding:"11px 13px",display:"flex",alignItems:"flex-start",gap:10,cursor:"pointer"}} onClick={()=>update(c.key,!form[c.key])}>
-                  <div style={{width:17,height:17,borderRadius:4,background:form[c.key]?"var(--sage)":"#ddd",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2}}>{form[c.key]&&<span style={{color:"#fff",fontSize:10,fontWeight:700}}>✓</span>}</div>
-                  <div><div style={{fontWeight:600,fontSize:12,marginBottom:1,color:"var(--ink)"}}>{c.label}</div><div style={{fontSize:11,color:"#666"}}>{c.desc}</div></div>
+                <div key={c.key}
+                  style={{background:form[c.key]?"#f0fff4":"#fff5f5",border:"1px solid "+(form[c.key]?"#9ae6b4":"#fcc"),borderRadius:10,padding:"11px 13px",display:"flex",alignItems:"flex-start",gap:10,cursor:"pointer"}}
+                  onClick={()=>update(c.key,!form[c.key])}>
+                  <div style={{width:17,height:17,borderRadius:4,background:form[c.key]?"var(--sage)":"#ddd",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2}}>
+                    {form[c.key]&&<span style={{color:"#fff",fontSize:10,fontWeight:700}}>✓</span>}
+                  </div>
+                  <div>
+                    <div style={{fontWeight:600,fontSize:12,marginBottom:1,color:"var(--ink)"}}>{c.label}</div>
+                    <div style={{fontSize:11,color:"#666"}}>{c.desc}</div>
+                  </div>
                 </div>
               ))}
               <div style={{display:"flex",gap:8}}>
@@ -1285,7 +1248,7 @@ function MakeOfferModal({listing,user,onClose,onRequireAuth}) {
               <div><label style={lbl}>Email</label><input style={inp} type="email" value={form.buyer_email} onChange={e=>update("buyer_email",e.target.value)}/></div>
               <div><label style={lbl}>Phone</label><input style={inp} type="tel" value={form.buyer_phone} onChange={e=>update("buyer_phone",e.target.value)} placeholder="(555) 123-4567"/></div>
               <div style={{background:"var(--warm)",borderRadius:8,padding:"10px 13px",fontSize:11,color:"var(--ink)",lineHeight:1.7}}>
-                <strong>Summary:</strong> {formatPrice(form.offer_price)} · Earnest: {formatPrice(form.earnest_money)} · Closing: {form.closing_date||"TBD"}
+                <strong>Summary:</strong> {formatPrice(form.offer_price)} · Earnest: {formatPrice(form.earnest_money||0)} · Closing: {form.closing_date||"TBD"}
               </div>
               {error&&<div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:8,padding:"9px 12px",color:"var(--rust)",fontSize:12}}>{error}</div>}
               <div style={{display:"flex",gap:8}}>
@@ -1306,22 +1269,46 @@ function SignaturePad({onSign}) {
   const canvasRef=useRef(null);
   const [drawing,setDrawing]=useState(false);
   const [signed,setSigned]=useState(false);
-  const getPos=(e,c)=>{const r=c.getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX;const cy=e.touches?e.touches[0].clientY:e.clientY;return{x:cx-r.left,y:cy-r.top};};
-  const start=e=>{const c=canvasRef.current;const ctx=c.getContext("2d");const p=getPos(e,c);ctx.beginPath();ctx.moveTo(p.x,p.y);setDrawing(true);};
-  const draw=e=>{if(!drawing)return;const c=canvasRef.current;const ctx=c.getContext("2d");const p=getPos(e,c);ctx.lineTo(p.x,p.y);ctx.strokeStyle="#1a1208";ctx.lineWidth=2;ctx.lineCap="round";ctx.stroke();setSigned(true);};
+  const getPos=(e,c)=>{
+    const r=c.getBoundingClientRect();
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    const cy=e.touches?e.touches[0].clientY:e.clientY;
+    return{x:cx-r.left,y:cy-r.top};
+  };
+  const start=e=>{
+    const c=canvasRef.current;
+    const ctx=c.getContext("2d");
+    const p=getPos(e,c);
+    ctx.beginPath();ctx.moveTo(p.x,p.y);
+    setDrawing(true);
+  };
+  const draw=e=>{
+    if(!drawing)return;
+    const c=canvasRef.current;
+    const ctx=c.getContext("2d");
+    const p=getPos(e,c);
+    ctx.lineTo(p.x,p.y);
+    ctx.strokeStyle="#1a1208";ctx.lineWidth=2;ctx.lineCap="round";
+    ctx.stroke();setSigned(true);
+  };
   const stop=()=>setDrawing(false);
   const clear=()=>{canvasRef.current.getContext("2d").clearRect(0,0,460,100);setSigned(false);};
+
   return (
     <div>
       <div style={{border:"1.5px solid var(--warm)",borderRadius:9,background:"#fff",marginBottom:6}}>
-        <canvas ref={canvasRef} width={460} height={100} style={{display:"block",cursor:"crosshair",width:"100%",height:100}}
+        <canvas ref={canvasRef} width={460} height={100}
+          style={{display:"block",cursor:"crosshair",width:"100%",height:100}}
           onMouseDown={start} onMouseMove={draw} onMouseUp={stop} onMouseLeave={stop}
           onTouchStart={start} onTouchMove={draw} onTouchEnd={stop}/>
       </div>
       <div style={{fontSize:10,color:"#888",marginBottom:6}}>Sign using mouse or finger</div>
       <div style={{display:"flex",gap:6}}>
         <button onClick={clear} style={{flex:1,background:"none",border:"1.5px solid var(--warm)",borderRadius:7,padding:"6px",fontSize:11,cursor:"pointer",color:"var(--ink)"}}>Clear</button>
-        <button onClick={()=>signed&&onSign(canvasRef.current.toDataURL())} disabled={!signed} style={{flex:2,background:signed?"var(--sage)":"#ccc",color:"#fff",border:"none",borderRadius:7,padding:"6px",fontSize:11,cursor:signed?"pointer":"default"}}>Apply Signature</button>
+        <button onClick={()=>signed&&onSign(canvasRef.current.toDataURL())} disabled={!signed}
+          style={{flex:2,background:signed?"var(--sage)":"#ccc",color:"#fff",border:"none",borderRadius:7,padding:"6px",fontSize:11,cursor:signed?"pointer":"default"}}>
+          Apply Signature
+        </button>
       </div>
     </div>
   );
@@ -1330,11 +1317,13 @@ function SignaturePad({onSign}) {
 function DocGenerator({templateName,offer,onClose}) {
   const [loading,setLoading]=useState(true);
   const [text,setText]=useState("");
+
   useEffect(()=>{
     callClaude([{role:"user",content:getContractPrompt(templateName,offer)}],2000)
       .then(t=>{setText(t);setLoading(false);})
-      .catch(e=>{setText("Error: "+e.message);setLoading(false);});
+      .catch(e=>{setText("Error generating document: "+e.message);setLoading(false);});
   },[]);
+
   return (
     <div style={{position:"fixed",inset:0,background:"rgba(26,18,8,0.65)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={onClose}>
       <div style={{background:"var(--card)",borderRadius:18,maxWidth:560,width:"100%",maxHeight:"85vh",overflow:"auto",padding:"22px"}} onClick={e=>e.stopPropagation()}>
@@ -1343,14 +1332,27 @@ function DocGenerator({templateName,offer,onClose}) {
           <button onClick={onClose} style={{background:"none",border:"none",fontSize:17,cursor:"pointer",color:"#888"}}>✕</button>
         </div>
         {loading?(
-          <div style={{textAlign:"center",padding:"36px",color:"#888"}}><Spinner dark size={24}/><br/><br/>Preparing document...<br/><span style={{fontSize:11}}>~15 seconds</span></div>
+          <div style={{textAlign:"center",padding:"36px",color:"#888"}}>
+            <Spinner dark size={24}/>
+            <div style={{marginTop:12,fontSize:12}}>Preparing document...<br/><span style={{color:"#aaa"}}>~15 seconds</span></div>
+          </div>
         ):(
           <>
-            <div style={{background:"#fffbf0",border:"1px solid var(--warm)",borderRadius:7,padding:"8px 12px",fontSize:11,color:"var(--rust)",marginBottom:11}}>Review carefully. Consult a licensed attorney before signing.</div>
+            <div style={{background:"#fffbf0",border:"1px solid var(--warm)",borderRadius:7,padding:"8px 12px",fontSize:11,color:"var(--rust)",marginBottom:11}}>
+              Review carefully. Consult a licensed attorney before signing.
+            </div>
             <div style={{background:"var(--cream)",borderRadius:9,padding:"13px",fontSize:11,lineHeight:1.9,color:"#333",whiteSpace:"pre-wrap",fontFamily:"Georgia, serif",maxHeight:360,overflow:"auto",marginBottom:13}}>{text}</div>
             <div style={{display:"flex",gap:8}}>
               <button onClick={onClose} style={{flex:1,background:"none",border:"1.5px solid var(--warm)",borderRadius:9,padding:"9px",fontSize:12,cursor:"pointer",color:"var(--ink)"}}>Close</button>
-              <button onClick={()=>{const b=new Blob([text],{type:"text/plain"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=templateName.replace(/\s/g,"_")+".txt";a.click();}} style={{flex:2,background:"var(--gold)",color:"#fff",border:"none",borderRadius:9,padding:"9px",fontSize:12,cursor:"pointer",fontWeight:600}}>Download Document</button>
+              <button onClick={()=>{
+                const b=new Blob([text],{type:"text/plain"});
+                const u=URL.createObjectURL(b);
+                const a=document.createElement("a");
+                a.href=u;a.download=templateName.replace(/\s/g,"_")+".txt";a.click();
+                URL.revokeObjectURL(u);
+              }} style={{flex:2,background:"var(--gold)",color:"#fff",border:"none",borderRadius:9,padding:"9px",fontSize:12,cursor:"pointer",fontWeight:600}}>
+                Download Document
+              </button>
             </div>
           </>
         )}
@@ -1413,17 +1415,21 @@ function OfferMessages({offer,user}) {
     const recipientEmail=user.id===offer.buyer_id?(offer.listings?.seller_email||""):offer.buyer_email;
     setSending(true);
     const body=input.trim();setInput("");
-    const{data,error}=await sb.from("direct_messages").insert([{
-      listing_id:offer.listing_id,user_id:user.id,recipient_id:recipientId,
-      sender_name:user.user_metadata?.full_name||user.email,
-      recipient_name:recipientName,body,read:false,
-    }]).select();
-    if(!error&&data?.[0]){
-      setMsgs(prev=>prev.find(m=>m.id===data[0].id)?prev:[...prev,data[0]]);
-      await sendNotification(recipientId,"New message about "+(offer.listings?.address||"your transaction"),"messages");
-      await sendEmail(recipientEmail,"💬 New message from "+(user.user_metadata?.full_name||user.email)+" — DirectDeed",
-        emailTemplate((user.user_metadata?.full_name||"Someone")+" sent you a message",`<div style="background:#f5f0e8;border-radius:8px;padding:12px;font-size:15px;margin-bottom:12px">${body}</div>About: <strong>${offer.listings?.address||"your listing"}</strong>`,"Reply on DirectDeed"));
-    }
+    try{
+      const{data,error}=await sb.from("direct_messages").insert([{
+        listing_id:offer.listing_id,user_id:user.id,recipient_id:recipientId,
+        sender_name:user.user_metadata?.full_name||user.email,
+        recipient_name:recipientName,body,read:false,
+      }]).select();
+      if(!error&&data?.[0]){
+        setMsgs(prev=>prev.find(m=>m.id===data[0].id)?prev:[...prev,data[0]]);
+        await sendNotification(recipientId,"New message about "+(offer.listings?.address||"your transaction"),"messages");
+        await sendEmail(recipientEmail,"💬 New message from "+(user.user_metadata?.full_name||user.email)+" — DirectDeed",
+          emailTemplate((user.user_metadata?.full_name||"Someone")+" sent you a message",
+            `<div style="background:#f5f0e8;border-radius:8px;padding:12px;font-size:15px;margin-bottom:12px">${body}</div>About: <strong>${offer.listings?.address||"your listing"}</strong>`,
+            "Reply on DirectDeed"));
+      }
+    }catch(e){console.error("Send error:",e);}
     setSending(false);
   };
 
@@ -1431,14 +1437,17 @@ function OfferMessages({offer,user}) {
 
   return (
     <div style={{marginTop:10,borderTop:"1px solid var(--warm)",paddingTop:10}}>
-      <button onClick={()=>setOpen(!open)} style={{display:"flex",alignItems:"center",gap:7,background:open?"var(--sage)":"var(--warm)",color:open?"#fff":"var(--ink)",border:"none",borderRadius:18,padding:"6px 14px",fontSize:12,cursor:"pointer",fontWeight:600,position:"relative"}}>
+      <button onClick={()=>setOpen(!open)}
+        style={{display:"flex",alignItems:"center",gap:7,background:open?"var(--sage)":"var(--warm)",color:open?"#fff":"var(--ink)",border:"none",borderRadius:18,padding:"6px 14px",fontSize:12,cursor:"pointer",fontWeight:600,position:"relative"}}>
         💬 {open?"Hide chat":"Chat with"} {otherName}
         {unread>0&&!open&&<span style={{background:"var(--rust)",color:"#fff",borderRadius:"50%",width:15,height:15,fontSize:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700}}>{unread}</span>}
       </button>
       {open&&(
         <div style={{marginTop:9,borderRadius:12,overflow:"hidden",border:"1px solid var(--warm)",animation:"fadeIn 0.2s ease"}}>
           <div style={{background:"var(--sage)",padding:"9px 14px",display:"flex",alignItems:"center",gap:8}}>
-            <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"#fff",fontWeight:700}}>{otherName[0]?.toUpperCase()}</div>
+            <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"#fff",fontWeight:700}}>
+              {otherName[0]?.toUpperCase()}
+            </div>
             <div style={{fontSize:13,fontWeight:600,color:"#fff"}}>{otherName}</div>
             <div style={{fontSize:11,color:"rgba(255,255,255,0.65)",marginLeft:"auto"}}>{offer.listings?.address}</div>
           </div>
@@ -1491,7 +1500,6 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
   const [activeDoc,setActiveDoc]=useState(null);
   const [counterForm,setCounterForm]=useState({counter_price:"",counter_closing_date:"",counter_message:""});
   const inp={width:"100%",padding:"8px 12px",borderRadius:8,border:"1.5px solid var(--warm)",background:"#fff",fontSize:12,outline:"none",color:"var(--ink)"};
-
   const needsDoc=!!step.requiresDoc&&isMyTurn;
   const canAdvance=!needsDoc||!!uploadedFile;
   const preBuilt=offer.listings?.year_built&&Number(offer.listings.year_built)<1978;
@@ -1507,95 +1515,113 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
       if(!error){
         const{data:{publicUrl}}=sb.storage.from("property-photos").getPublicUrl(path);
         setUploadedFile(publicUrl);
+      } else {
+        console.error("Upload error:",error);
       }
-    }catch(e){console.error("Upload error:",e);}
+    }catch(e){console.error("Upload exception:",e);}
     setUploading(false);
   };
 
   const advance=async()=>{
     setLoading(true);
-    const nextIndex=Math.min(offer.step_index+1,TRANSACTION_STEPS.length);
-    const nextStep=TRANSACTION_STEPS[nextIndex-1];
-    const updates={step_index:nextIndex,step:nextStep?.key||"closing"};
-    if(uploadedFile)updates["step_"+step.key+"_doc"]=uploadedFile;
-    const{error}=await sb.from("offers").update(updates).eq("id",offer.id);
-    if(!error){
-      const otherId=isSeller?offer.buyer_id:offer.seller_id;
-      const otherEmail=isSeller?offer.buyer_email:offer.listings?.seller_email;
-      await sendNotification(otherId,step.label+" complete. Next: "+nextStep?.label,"offers");
-      await sendEmail(otherEmail,"📋 Transaction Update: "+step.label+" Complete — DirectDeed",
-        emailTemplate(step.label+" has been completed",`Next step: <strong>${nextStep?.label}</strong>.<br/>Property: ${offer.listings?.address||""}<br/><br/>Log in to continue.`,"View Transaction"));
-      onUpdate({...offer,...updates});
-    }
+    try{
+      const nextIndex=Math.min(offer.step_index+1,TRANSACTION_STEPS.length);
+      const nextStep=TRANSACTION_STEPS[nextIndex-1];
+      const updates={step_index:nextIndex,step:nextStep?.key||"closing"};
+      if(uploadedFile) updates["step_"+step.key+"_doc"]=uploadedFile;
+      const{error}=await sb.from("offers").update(updates).eq("id",offer.id);
+      if(!error){
+        const otherId=isSeller?offer.buyer_id:offer.seller_id;
+        const otherEmail=isSeller?offer.buyer_email:offer.listings?.seller_email;
+        await sendNotification(otherId,step.label+" complete. Next: "+nextStep?.label,"offers");
+        await sendEmail(otherEmail,"📋 Transaction Update: "+step.label+" Complete — DirectDeed",
+          emailTemplate(step.label+" has been completed",`Next step: <strong>${nextStep?.label}</strong>.<br/>Property: ${offer.listings?.address||""}<br/><br/>Log in to continue.`,"View Transaction"));
+        onUpdate({...offer,...updates});
+      }
+    }catch(e){console.error("Advance error:",e);}
     setLoading(false);
   };
 
   const respondToOffer=async status=>{
     setLoading(true);
-    const updates={status};
-    if(status==="accepted"){updates.step="disclosures";updates.step_index=2;}
-    const{error}=await sb.from("offers").update(updates).eq("id",offer.id);
-    if(!error){
-      await sendNotification(offer.buyer_id,status==="accepted"?"Your offer was accepted! The seller is preparing disclosures.":"Your offer was declined.","offers");
-      await sendEmail(offer.buyer_email,status==="accepted"?"✅ Your offer was accepted! — DirectDeed":"❌ Offer declined — DirectDeed",
-        emailTemplate(status==="accepted"?"Your offer was accepted!":"Your offer was declined",
-          status==="accepted"?`Your offer on <strong>${offer.listings?.address}</strong> was accepted.<br/>Next: The seller will provide required property disclosures before your inspection.`:`Your offer on <strong>${offer.listings?.address}</strong> was declined.`,
-          status==="accepted"?"Continue Transaction":"Browse More Homes"));
-      onUpdate({...offer,...updates});
-    }
+    try{
+      const updates={status};
+      if(status==="accepted"){updates.step="disclosures";updates.step_index=2;}
+      const{error}=await sb.from("offers").update(updates).eq("id",offer.id);
+      if(!error){
+        await sendNotification(offer.buyer_id,
+          status==="accepted"?"Your offer was accepted! The seller is preparing disclosures.":"Your offer was declined.","offers");
+        await sendEmail(offer.buyer_email,
+          status==="accepted"?"✅ Your offer was accepted! — DirectDeed":"❌ Offer declined — DirectDeed",
+          emailTemplate(status==="accepted"?"Your offer was accepted!":"Your offer was declined",
+            status==="accepted"
+              ?`Your offer on <strong>${offer.listings?.address}</strong> was accepted.<br/>Next: The seller will provide required property disclosures.`
+              :`Your offer on <strong>${offer.listings?.address}</strong> was declined.`,
+            status==="accepted"?"Continue Transaction":"Browse More Homes"));
+        onUpdate({...offer,...updates});
+      }
+    }catch(e){console.error("Respond error:",e);}
     setLoading(false);
   };
 
   const submitCounter=async()=>{
     setLoading(true);
-    const updates={status:"countered",counter_price:Number(counterForm.counter_price)||null,counter_closing_date:counterForm.counter_closing_date||null,counter_message:counterForm.counter_message};
-    const{error}=await sb.from("offers").update(updates).eq("id",offer.id);
-    if(!error){
-      await sendNotification(offer.buyer_id,"The seller countered your offer.","offers");
-      await sendEmail(offer.buyer_email,"🔄 Counteroffer received — DirectDeed",
-        emailTemplate("The seller sent a counteroffer",`${counterForm.counter_price?`Counter price: <strong>${formatPrice(counterForm.counter_price)}</strong><br/>`:""}${counterForm.counter_closing_date?`Counter closing: <strong>${counterForm.counter_closing_date}</strong><br/>`:""}${counterForm.counter_message?`<br/>Message: "${counterForm.counter_message}"`:""}`, "View & Respond"));
-      onUpdate({...offer,...updates});setShowCounter(false);
-    }
+    try{
+      const updates={status:"countered",counter_price:Number(counterForm.counter_price)||null,counter_closing_date:counterForm.counter_closing_date||null,counter_message:counterForm.counter_message||null};
+      const{error}=await sb.from("offers").update(updates).eq("id",offer.id);
+      if(!error){
+        await sendNotification(offer.buyer_id,"The seller countered your offer.","offers");
+        await sendEmail(offer.buyer_email,"🔄 Counteroffer received — DirectDeed",
+          emailTemplate("The seller sent a counteroffer",
+            `${counterForm.counter_price?`Counter price: <strong>${formatPrice(counterForm.counter_price)}</strong><br/>`:""}${counterForm.counter_closing_date?`Counter closing: <strong>${counterForm.counter_closing_date}</strong><br/>`:""}${counterForm.counter_message?`<br/>Message: "${counterForm.counter_message}"`:""}`,
+            "View & Respond"));
+        onUpdate({...offer,...updates});setShowCounter(false);
+      }
+    }catch(e){console.error("Counter error:",e);}
     setLoading(false);
   };
 
   const acceptCounter=async()=>{
     setLoading(true);
-    const updates={status:"accepted",offer_price:offer.counter_price||offer.offer_price,closing_date:offer.counter_closing_date||offer.closing_date,step:"disclosures",step_index:2,counter_price:null,counter_closing_date:null,counter_message:null};
-    const{error}=await sb.from("offers").update(updates).eq("id",offer.id);
-    if(!error){
-      await sendNotification(offer.seller_id,"Buyer accepted your counter. Next: provide property disclosures.","offers");
-      await sendEmail(offer.listings?.seller_email,"✅ Counter accepted — DirectDeed",
-        emailTemplate("The buyer accepted your counteroffer!",`Buyer accepted your counter on <strong>${offer.listings?.address}</strong>.<br/>Next: Please provide the required property disclosures.`,"View Transaction"));
-      onUpdate({...offer,...updates});
-    }
+    try{
+      const updates={status:"accepted",offer_price:offer.counter_price||offer.offer_price,closing_date:offer.counter_closing_date||offer.closing_date,step:"disclosures",step_index:2,counter_price:null,counter_closing_date:null,counter_message:null};
+      const{error}=await sb.from("offers").update(updates).eq("id",offer.id);
+      if(!error){
+        await sendNotification(offer.seller_id,"Buyer accepted your counter. Next: provide property disclosures.","offers");
+        await sendEmail(offer.listings?.seller_email,"✅ Counter accepted — DirectDeed",
+          emailTemplate("The buyer accepted your counteroffer!",`Buyer accepted your counter on <strong>${offer.listings?.address}</strong>.<br/>Next: Please provide the required property disclosures.`,"View Transaction"));
+        onUpdate({...offer,...updates});
+      }
+    }catch(e){console.error("Accept counter error:",e);}
     setLoading(false);
   };
 
   const handleClosing=async()=>{
     setLoading(true);
-    const myField=isBuyer?"step_closing_buyer_signed":"step_closing_seller_signed";
-    await sb.from("offers").update({[myField]:true}).eq("id",offer.id);
-    const{data:fresh}=await sb.from("offers").select("step_closing_buyer_signed,step_closing_seller_signed").eq("id",offer.id).single();
-    const buyerDone=isBuyer?true:fresh?.step_closing_buyer_signed;
-    const sellerDone=isSeller?true:fresh?.step_closing_seller_signed;
-    if(buyerDone&&sellerDone){
-      await sb.from("offers").update({status:"closed",step_index:TRANSACTION_STEPS.length}).eq("id",offer.id);
-      await sb.from("listings").update({sold:true,sold_at:new Date().toISOString()}).eq("id",offer.listing_id);
-      const otherId=isSeller?offer.buyer_id:offer.seller_id;
-      const otherEmail=isSeller?offer.buyer_email:offer.listings?.seller_email;
-      await sendNotification(otherId,"🎉 Transaction complete! Congratulations!","offers");
-      await sendEmail(otherEmail,"🎉 Transaction Complete — DirectDeed",
-        emailTemplate("Congratulations! Transaction complete!",`The sale of <strong>${offer.listings?.address}</strong> is complete. Both parties have signed.<br/><br/>Thank you for using DirectDeed!`,"View Completed Transaction"));
-      onUpdate({...offer,[myField]:true,status:"closed",step_index:TRANSACTION_STEPS.length});
-    } else {
-      const otherId=isSeller?offer.buyer_id:offer.seller_id;
-      const otherEmail=isSeller?offer.buyer_email:offer.listings?.seller_email;
-      await sendNotification(otherId,(isBuyer?"Buyer":"Seller")+" has signed. Your signature is needed.","offers");
-      await sendEmail(otherEmail,"✍️ Signature needed — DirectDeed",
-        emailTemplate("Your signature is needed",`${isBuyer?"The buyer":"The seller"} has signed closing documents for <strong>${offer.listings?.address}</strong>.<br/>Please log in and add your signature.`,"Sign & Complete"));
-      onUpdate({...offer,[myField]:true});
-    }
+    try{
+      const myField=isBuyer?"step_closing_buyer_signed":"step_closing_seller_signed";
+      await sb.from("offers").update({[myField]:true}).eq("id",offer.id);
+      const{data:fresh}=await sb.from("offers").select("step_closing_buyer_signed,step_closing_seller_signed").eq("id",offer.id).single();
+      const buyerDone=isBuyer?true:fresh?.step_closing_buyer_signed;
+      const sellerDone=isSeller?true:fresh?.step_closing_seller_signed;
+      if(buyerDone&&sellerDone){
+        await sb.from("offers").update({status:"closed",step_index:TRANSACTION_STEPS.length}).eq("id",offer.id);
+        await sb.from("listings").update({sold:true,sold_at:new Date().toISOString()}).eq("id",offer.listing_id);
+        const otherId=isSeller?offer.buyer_id:offer.seller_id;
+        const otherEmail=isSeller?offer.buyer_email:offer.listings?.seller_email;
+        await sendNotification(otherId,"🎉 Transaction complete! Congratulations!","offers");
+        await sendEmail(otherEmail,"🎉 Transaction Complete — DirectDeed",
+          emailTemplate("Congratulations! Transaction complete!",`The sale of <strong>${offer.listings?.address}</strong> is complete. Both parties have signed.<br/><br/>Thank you for using DirectDeed!`,"View Completed Transaction"));
+        onUpdate({...offer,[myField]:true,status:"closed",step_index:TRANSACTION_STEPS.length});
+      } else {
+        const otherId=isSeller?offer.buyer_id:offer.seller_id;
+        const otherEmail=isSeller?offer.buyer_email:offer.listings?.seller_email;
+        await sendNotification(otherId,(isBuyer?"Buyer":"Seller")+" has signed. Your signature is needed.","offers");
+        await sendEmail(otherEmail,"✍️ Signature needed — DirectDeed",
+          emailTemplate("Your signature is needed",`${isBuyer?"The buyer":"The seller"} has signed closing documents for <strong>${offer.listings?.address}</strong>.<br/>Please log in and add your signature.`,"Sign & Complete"));
+        onUpdate({...offer,[myField]:true});
+      }
+    }catch(e){console.error("Closing error:",e);}
     setLoading(false);
   };
 
@@ -1612,8 +1638,8 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
       {isExpanded&&(
         <div style={{padding:"0 14px 11px",borderTop:"1px solid #9ae6b4"}}>
           <div style={{background:"rgba(255,255,255,0.7)",borderRadius:7,padding:"8px 11px",marginTop:8,fontSize:11,color:"#444",lineHeight:1.7}}>
-            <strong>Summary:</strong> {step.desc}<br/>
-            {offer["step_"+step.key+"_doc"]&&<><strong>Document:</strong> <a href={offer["step_"+step.key+"_doc"]} target="_blank" rel="noopener noreferrer" style={{color:"var(--gold)"}}>View ↗</a></>}
+            <strong>Summary:</strong> {step.desc}
+            {offer["step_"+step.key+"_doc"]&&<><br/><strong>Document:</strong> <a href={offer["step_"+step.key+"_doc"]} target="_blank" rel="noopener noreferrer" style={{color:"var(--gold)"}}>View ↗</a></>}
           </div>
           {step.relatedDocs?.length>0&&(
             <div style={{marginTop:8,display:"flex",gap:5,flexWrap:"wrap"}}>
@@ -1630,7 +1656,10 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
     <div style={{background:"var(--card)",border:"1px solid var(--warm)",borderRadius:10,padding:"10px 14px",marginBottom:6,opacity:0.4}}>
       <div style={{display:"flex",alignItems:"center",gap:8}}>
         <span style={{fontSize:14}}>{step.icon}</span>
-        <div style={{flex:1}}><div style={{fontWeight:500,fontSize:12,color:"var(--ink)"}}>Step {step.id}: {step.label}</div><div style={{fontSize:10,color:"#aaa"}}>Complete previous steps first</div></div>
+        <div style={{flex:1}}>
+          <div style={{fontWeight:500,fontSize:12,color:"var(--ink)"}}>Step {step.id}: {step.label}</div>
+          <div style={{fontSize:10,color:"#aaa"}}>Complete previous steps first</div>
+        </div>
         <span style={{fontSize:12}}>🔒</span>
       </div>
     </div>
@@ -1645,26 +1674,30 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
           <div style={{fontWeight:700,fontSize:13,color:"var(--ink)"}}>Step {step.id}: {step.label}</div>
           <div style={{fontSize:11,color:"#666"}}>{step.desc}</div>
         </div>
-        {isMyTurn?<span style={{background:"var(--gold)",color:"#fff",fontSize:8,padding:"2px 7px",borderRadius:8,fontWeight:700}}>YOUR TURN</span>
-                 :<span style={{background:"#eee",color:"#777",fontSize:8,padding:"2px 7px",borderRadius:8,fontWeight:700}}>WAITING</span>}
+        {isMyTurn
+          ?<span style={{background:"var(--gold)",color:"#fff",fontSize:8,padding:"2px 7px",borderRadius:8,fontWeight:700}}>YOUR TURN</span>
+          :<span style={{background:"#eee",color:"#777",fontSize:8,padding:"2px 7px",borderRadius:8,fontWeight:700}}>WAITING</span>
+        }
       </div>
       <div style={{background:"var(--cream)",borderRadius:7,padding:"9px 12px",marginBottom:10,fontSize:12,color:"var(--ink)",lineHeight:1.7,border:"1px solid var(--warm)"}}>
         {isBuyer?step.buyerAction:step.sellerAction}
       </div>
 
-      {/* STEP 2 — DISCLOSURES (seller uploads) */}
+      {/* DISCLOSURES STEP */}
       {step.key==="disclosures"&&isSeller&&(
         <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:10}}>
           <div style={{background:"#f0f6ff",border:"1px solid #90c0f0",borderRadius:9,padding:"12px 14px",fontSize:12,color:"#1d4ed8",lineHeight:1.8}}>
             <strong>📝 Required Disclosures</strong><br/>
-            You are legally required to disclose known property conditions to the buyer. Generate the documents below, review them carefully, and upload the completed disclosures.
+            You are legally required to disclose known property conditions. Generate each document, review it, then upload the completed disclosures below.
           </div>
           <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-            <button onClick={()=>setActiveDoc("Property Disclosure Statement")} style={{background:"var(--warm)",border:"1px solid var(--gold)",borderRadius:8,padding:"8px 12px",fontSize:11,cursor:"pointer",color:"var(--ink)",fontWeight:600}}>
+            <button onClick={()=>setActiveDoc("Property Disclosure Statement")}
+              style={{background:"var(--warm)",border:"1px solid var(--gold)",borderRadius:8,padding:"8px 12px",fontSize:11,cursor:"pointer",color:"var(--ink)",fontWeight:600}}>
               📋 Generate Property Disclosure
             </button>
             {preBuilt&&(
-              <button onClick={()=>setActiveDoc("Lead Paint Disclosure")} style={{background:"#fff8f0",border:"1px solid var(--rust)",borderRadius:8,padding:"8px 12px",fontSize:11,cursor:"pointer",color:"var(--rust)",fontWeight:600}}>
+              <button onClick={()=>setActiveDoc("Lead Paint Disclosure")}
+                style={{background:"#fff8f0",border:"1px solid var(--rust)",borderRadius:8,padding:"8px 12px",fontSize:11,cursor:"pointer",color:"var(--rust)",fontWeight:600}}>
                 ⚠️ Generate Lead Paint Disclosure
               </button>
             )}
@@ -1676,8 +1709,6 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
           )}
         </div>
       )}
-
-      {/* STEP 2 — DISCLOSURES (buyer view) */}
       {step.key==="disclosures"&&isBuyer&&offer.step_disclosures_doc&&(
         <div style={{background:"#f0fff4",border:"1px solid #9ae6b4",borderRadius:9,padding:"11px 14px",marginBottom:10}}>
           <div style={{fontSize:12,fontWeight:600,color:"var(--sage)",marginBottom:5}}>✓ Seller disclosures available</div>
@@ -1686,7 +1717,7 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
         </div>
       )}
 
-      {/* STEP 3 — PRE-APPROVAL */}
+      {/* PRE-APPROVAL STEP */}
       {step.key==="preapproval"&&isBuyer&&(
         <div style={{background:"#f0f6ff",border:"1px solid #90c0f0",borderRadius:8,padding:"10px 12px",marginBottom:10,fontSize:11,color:"#444",lineHeight:1.8}}>
           <strong style={{color:"#1d4ed8"}}>🏦 What to Upload</strong><br/>
@@ -1695,7 +1726,7 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
         </div>
       )}
 
-      {/* STEP 4 — EARNEST */}
+      {/* EARNEST STEP */}
       {step.key==="earnest"&&isBuyer&&(
         <div style={{background:"#fffbf0",border:"1px solid #f0d080",borderRadius:8,padding:"10px 12px",marginBottom:10,fontSize:11,color:"#555",lineHeight:1.8}}>
           <strong style={{color:"var(--gold)"}}>💰 How to Deposit Earnest Money</strong><br/>
@@ -1706,16 +1737,17 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
         </div>
       )}
 
-      {/* STEP 5 — INSPECTION */}
+      {/* INSPECTION STEP */}
       {step.key==="inspection"&&isBuyer&&(
         <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:10}}>
           <div style={{background:"#f0f6ff",border:"1px solid #90c0f0",borderRadius:8,padding:"10px 12px",fontSize:11,color:"#444",lineHeight:1.8}}>
             <strong style={{color:"#1d4ed8"}}>🔍 Before Your Inspection</strong><br/>
-            Review the seller's disclosures from Step 2 before your inspection so you know what to look for.
+            Review the seller's disclosures from Step 2 before your inspection so you know what to look for. Schedule a licensed home inspector.
           </div>
           <div style={{background:"var(--cream)",border:"1px solid var(--warm)",borderRadius:8,padding:"10px 12px",fontSize:11,color:"#555",lineHeight:1.8}}>
-            <strong>Documents available at this step:</strong><br/>
-            <button onClick={()=>setActiveDoc("Inspection Contingency Waiver")} style={{background:"none",border:"none",color:"var(--gold)",cursor:"pointer",fontSize:11,padding:0,textDecoration:"underline"}}>
+            <strong>Optional document:</strong><br/>
+            <button onClick={()=>setActiveDoc("Inspection Contingency Waiver")}
+              style={{background:"none",border:"none",color:"var(--gold)",cursor:"pointer",fontSize:11,padding:0,textDecoration:"underline"}}>
               Inspection Contingency Waiver
             </button>
             {" "}— Only sign this if you agree to waive your right to request repairs after inspection.
@@ -1723,7 +1755,7 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
         </div>
       )}
 
-      {/* STEP 9 — TITLE */}
+      {/* TITLE STEP */}
       {step.key==="title"&&isSeller&&(
         <div style={{background:"#f5f0ff",border:"1px solid #c0a0f0",borderRadius:8,padding:"10px 12px",marginBottom:10,fontSize:11,color:"#444",lineHeight:1.8}}>
           <strong style={{color:"#6d28d9"}}>📜 Clearing Title</strong><br/>
@@ -1734,23 +1766,34 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
         </div>
       )}
 
-      {/* STEP 1 — OFFER ACTIONS */}
+      {/* OFFER STEP — SELLER ACTIONS */}
       {step.key==="offer"&&offer.status==="pending"&&isSeller&&(
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:7}}>
-            {[["Offer",formatPrice(offer.offer_price),"var(--gold)"],["Earnest",formatPrice(offer.earnest_money),"var(--ink)"],["Closing",offer.closing_date||"TBD","var(--ink)"]].map(([l,v,c])=>(
+            {[["Offer",formatPrice(offer.offer_price),"var(--gold)"],["Earnest",formatPrice(offer.earnest_money||0),"var(--ink)"],["Closing",offer.closing_date||"TBD","var(--ink)"]].map(([l,v,c])=>(
               <div key={l} style={{background:"var(--warm)",borderRadius:7,padding:"8px",textAlign:"center"}}>
                 <div style={{fontSize:8,color:"#666",textTransform:"uppercase",marginBottom:2}}>{l}</div>
                 <div style={{fontSize:13,fontWeight:700,color:c}}>{v}</div>
               </div>
             ))}
           </div>
-          <div style={{fontSize:11,color:"#666"}}>Contingencies: {[offer.financing_contingency&&"Financing",offer.inspection_contingency&&"Inspection",offer.appraisal_contingency&&"Appraisal"].filter(Boolean).join(", ")||"None"}</div>
+          <div style={{fontSize:11,color:"#666"}}>
+            Contingencies: {[offer.financing_contingency&&"Financing",offer.inspection_contingency&&"Inspection",offer.appraisal_contingency&&"Appraisal"].filter(Boolean).join(", ")||"None"}
+          </div>
           {offer.message&&<div style={{background:"var(--cream)",borderRadius:7,padding:"8px 10px",fontSize:11,color:"#555",fontStyle:"italic",border:"1px solid var(--warm)"}}>"{offer.message}"</div>}
           <div style={{display:"flex",gap:6}}>
-            <button onClick={()=>respondToOffer("accepted")} disabled={loading} style={{flex:2,background:"var(--sage)",color:"#fff",border:"none",borderRadius:8,padding:"9px",fontSize:12,cursor:"pointer",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>{loading?<Spinner size={13}/>:"Accept Offer"}</button>
-            <button onClick={()=>setShowCounter(!showCounter)} style={{flex:1,background:"var(--gold)",color:"#fff",border:"none",borderRadius:8,padding:"9px",fontSize:11,cursor:"pointer",fontWeight:600}}>Counter</button>
-            <button onClick={()=>respondToOffer("declined")} disabled={loading} style={{flex:1,background:"#fff5f5",color:"var(--rust)",border:"1px solid #fcc",borderRadius:8,padding:"9px",fontSize:11,cursor:"pointer"}}>Decline</button>
+            <button onClick={()=>respondToOffer("accepted")} disabled={loading}
+              style={{flex:2,background:"var(--sage)",color:"#fff",border:"none",borderRadius:8,padding:"9px",fontSize:12,cursor:"pointer",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:5}}>
+              {loading?<Spinner size={13}/>:"Accept Offer"}
+            </button>
+            <button onClick={()=>setShowCounter(!showCounter)}
+              style={{flex:1,background:"var(--gold)",color:"#fff",border:"none",borderRadius:8,padding:"9px",fontSize:11,cursor:"pointer",fontWeight:600}}>
+              Counter
+            </button>
+            <button onClick={()=>respondToOffer("declined")} disabled={loading}
+              style={{flex:1,background:"#fff5f5",color:"var(--rust)",border:"1px solid #fcc",borderRadius:8,padding:"9px",fontSize:11,cursor:"pointer"}}>
+              Decline
+            </button>
           </div>
           {showCounter&&(
             <div style={{background:"var(--cream)",borderRadius:9,padding:"12px",border:"1px solid var(--warm)"}}>
@@ -1791,7 +1834,9 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
         </div>
       )}
       {step.key==="offer"&&offer.status==="countered"&&isSeller&&(
-        <div style={{background:"var(--cream)",borderRadius:7,padding:"10px",fontSize:12,color:"#555",textAlign:"center",border:"1px solid var(--warm)"}}>Waiting for buyer to respond to your counter...</div>
+        <div style={{background:"var(--cream)",borderRadius:7,padding:"10px",fontSize:12,color:"#555",textAlign:"center",border:"1px solid var(--warm)"}}>
+          Waiting for buyer to respond to your counter...
+        </div>
       )}
 
       {/* CLOSING STEP */}
@@ -1810,19 +1855,22 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
               <div style={{fontSize:11,color:"#555"}}>Sign below to complete your portion:</div>
               <SignaturePad onSign={isBuyer?()=>setBuyerSigned(true):()=>setSellerSigned(true)}/>
               {((isBuyer&&buyerSigned)||(isSeller&&sellerSigned))&&(
-                <button onClick={handleClosing} disabled={loading} style={{background:"var(--sage)",color:"#fff",border:"none",borderRadius:9,padding:"11px",fontSize:13,cursor:"pointer",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:7}}>
+                <button onClick={handleClosing} disabled={loading}
+                  style={{background:"var(--sage)",color:"#fff",border:"none",borderRadius:9,padding:"11px",fontSize:13,cursor:"pointer",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:7}}>
                   {loading?<Spinner/>:"Submit My Signature"}
                 </button>
               )}
             </>
           )}
           {(isBuyer?offer.step_closing_buyer_signed:offer.step_closing_seller_signed)&&(
-            <div style={{background:"#f0fff4",border:"1px solid #9ae6b4",borderRadius:7,padding:"9px 12px",fontSize:12,color:"var(--sage)",fontWeight:500}}>✓ You have signed. Waiting for the other party.</div>
+            <div style={{background:"#f0fff4",border:"1px solid #9ae6b4",borderRadius:7,padding:"9px 12px",fontSize:12,color:"var(--sage)",fontWeight:500}}>
+              ✓ You have signed. Waiting for the other party.
+            </div>
           )}
         </div>
       )}
 
-      {/* GENERIC UPLOAD FOR NON-SPECIAL STEPS */}
+      {/* GENERIC UPLOAD for non-special steps */}
       {step.key!=="offer"&&step.key!=="closing"&&isMyTurn&&(
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
           <label style={{display:"flex",alignItems:"center",gap:8,border:"1.5px dashed "+(uploadedFile?"var(--sage)":needsDoc?"var(--gold)":"var(--warm)"),borderRadius:9,padding:"9px 12px",cursor:"pointer",background:uploadedFile?"#f0fff4":"#fff"}}>
@@ -1872,16 +1920,22 @@ function OffersTab({user,onRequireAuth}) {
   },[user]);
 
   const loadOffers=async()=>{
-    const{data}=await sb.from("offers")
-      .select("*, listings(address,city,state,zip,seller_name,price,user_id,seller_email,year_built)")
-      .or("buyer_id.eq."+user.id+",seller_id.eq."+user.id)
-      .order("created_at",{ascending:false});
-    setOffers(data||[]);setLoading(false);
+    try{
+      const{data,error}=await sb.from("offers")
+        .select("*, listings(address,city,state,zip,seller_name,price,user_id,seller_email,year_built)")
+        .or("buyer_id.eq."+user.id+",seller_id.eq."+user.id)
+        .order("created_at",{ascending:false});
+      if(error) console.error("Load offers error:",error);
+      setOffers(data||[]);
+    }catch(e){console.error("Load offers exception:",e);}
+    setLoading(false);
   };
 
   const loadUnread=async()=>{
-    const{count}=await sb.from("notifications").select("id",{count:"exact"}).eq("user_id",user.id).eq("read",false);
-    setUnreadCount(count||0);
+    try{
+      const{count}=await sb.from("notifications").select("id",{count:"exact"}).eq("user_id",user.id).eq("read",false);
+      setUnreadCount(count||0);
+    }catch(e){console.error("Load unread error:",e);}
   };
 
   useEffect(()=>{
@@ -1934,7 +1988,7 @@ function OffersTab({user,onRequireAuth}) {
           <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
             {[
               ["Offer",formatPrice(activeOffer.offer_price),"var(--gold)"],
-              ["Earnest",formatPrice(activeOffer.earnest_money),"var(--ink)"],
+              ["Earnest",formatPrice(activeOffer.earnest_money||0),"var(--ink)"],
               ["Closing",activeOffer.closing_date||"TBD","var(--ink)"],
               ["Contingencies",[activeOffer.financing_contingency&&"Fin.",activeOffer.inspection_contingency&&"Insp.",activeOffer.appraisal_contingency&&"Appr."].filter(Boolean).join(" · ")||"None","#666"]
             ].map(([l,v,c])=>(
@@ -1946,7 +2000,7 @@ function OffersTab({user,onRequireAuth}) {
           </div>
         </div>
 
-        {/* Progress tracker */}
+        {/* Step progress tracker */}
         <div style={{overflowX:"auto",marginBottom:14,paddingBottom:3}}>
           <div style={{display:"flex",minWidth:600}}>
             {TRANSACTION_STEPS.map((s,i)=>(
@@ -1964,7 +2018,9 @@ function OffersTab({user,onRequireAuth}) {
         </div>
 
         {activeOffer.status==="declined"&&(
-          <div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:10,padding:"14px",textAlign:"center",color:"var(--rust)",marginBottom:12}}>This offer was declined.</div>
+          <div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:10,padding:"14px",textAlign:"center",color:"var(--rust)",marginBottom:12}}>
+            This offer was declined.
+          </div>
         )}
         {isClosed&&(
           <div style={{background:"linear-gradient(135deg,var(--sage),#3a5530)",color:"#fff",borderRadius:14,padding:"20px",textAlign:"center",marginBottom:12}}>
@@ -2026,7 +2082,11 @@ function OffersTab({user,onRequireAuth}) {
           <h2 style={{fontSize:24,fontWeight:700,color:"var(--ink)",marginBottom:2}}>Offers</h2>
           <p style={{color:"#666",fontSize:12}}>Track every offer through the full transaction.</p>
         </div>
-        {unreadCount>0&&<div onClick={markRead} style={{background:"var(--gold)",color:"#fff",borderRadius:18,padding:"5px 13px",fontSize:11,fontWeight:700,cursor:"pointer"}}>{unreadCount} new · Mark read</div>}
+        {unreadCount>0&&(
+          <div onClick={markRead} style={{background:"var(--gold)",color:"#fff",borderRadius:18,padding:"5px 13px",fontSize:11,fontWeight:700,cursor:"pointer"}}>
+            {unreadCount} new · Mark read
+          </div>
+        )}
       </div>
       {loading&&<div style={{textAlign:"center",padding:"36px",color:"#888"}}>Loading...</div>}
       {!loading&&offers.length===0&&(
@@ -2071,31 +2131,38 @@ function MessagesTab({newThread,user,onRequireAuth}) {
   },[user]);
 
   const loadConversations=async()=>{
-    const{data}=await sb.from("direct_messages")
-      .select("*, listings(address,city,state,zip,seller_name,seller_email,user_id)")
-      .or("user_id.eq."+user.id+",recipient_id.eq."+user.id)
-      .order("created_at",{ascending:false});
-    if(!data){setLoading(false);return;}
-    const map={};let unread=0;
-    data.filter(m=>m.user_id!==m.recipient_id).forEach(msg=>{
-      const otherId=msg.user_id===user.id?msg.recipient_id:msg.user_id;
-      const key=msg.listing_id+"-"+[msg.user_id,msg.recipient_id].sort().join("-");
-      if(!map[key]){
-        map[key]={key,listing_id:msg.listing_id,listing:msg.listings,other_user_id:otherId,
-          other_name:msg.user_id===user.id?msg.recipient_name:msg.sender_name,
-          other_email:msg.user_id===user.id?(msg.listings?.seller_email||""):user.email,
-          last_message:msg.body,last_time:msg.created_at,unread:0};
-      }
-      if(msg.recipient_id===user.id&&!msg.read){map[key].unread++;unread++;}
-    });
-    setTotalUnread(unread);
-    setConversations(Object.values(map).sort((a,b)=>new Date(b.last_time)-new Date(a.last_time)));
+    try{
+      const{data}=await sb.from("direct_messages")
+        .select("*, listings(address,city,state,zip,seller_name,seller_email,user_id)")
+        .or("user_id.eq."+user.id+",recipient_id.eq."+user.id)
+        .order("created_at",{ascending:false});
+      if(!data){setLoading(false);return;}
+      const map={};let unread=0;
+      data.filter(m=>m.user_id!==m.recipient_id).forEach(msg=>{
+        const otherId=msg.user_id===user.id?msg.recipient_id:msg.user_id;
+        const key=msg.listing_id+"-"+[msg.user_id,msg.recipient_id].sort().join("-");
+        if(!map[key]){
+          map[key]={key,listing_id:msg.listing_id,listing:msg.listings,other_user_id:otherId,
+            other_name:msg.user_id===user.id?msg.recipient_name:msg.sender_name,
+            other_email:msg.user_id===user.id?(msg.listings?.seller_email||""):user.email,
+            last_message:msg.body,last_time:msg.created_at,unread:0};
+        }
+        if(msg.recipient_id===user.id&&!msg.read){map[key].unread++;unread++;}
+      });
+      setTotalUnread(unread);
+      setConversations(Object.values(map).sort((a,b)=>new Date(b.last_time)-new Date(a.last_time)));
+    }catch(e){console.error("Load conversations error:",e);}
     setLoading(false);
   };
 
   useEffect(()=>{
     if(newThread&&user&&newThread.user_id!==user.id){
-      const conv={key:newThread.id+"-"+[user.id,newThread.user_id].sort().join("-"),listing_id:newThread.id,listing:newThread,other_user_id:newThread.user_id,other_name:newThread.seller_name,other_email:newThread.seller_email||"",last_message:"",last_time:new Date().toISOString(),unread:0};
+      const conv={
+        key:newThread.id+"-"+[user.id,newThread.user_id].sort().join("-"),
+        listing_id:newThread.id,listing:newThread,other_user_id:newThread.user_id,
+        other_name:newThread.seller_name,other_email:newThread.seller_email||"",
+        last_message:"",last_time:new Date().toISOString(),unread:0
+      };
       openConv(conv);
     }
   },[newThread,user]);
@@ -2120,13 +2187,15 @@ function MessagesTab({newThread,user,onRequireAuth}) {
 
   const loadMessages=async()=>{
     if(!activeConv||!user)return;
-    const{data}=await sb.from("direct_messages").select("*")
-      .eq("listing_id",activeConv.listing_id)
-      .or("and(user_id.eq."+user.id+",recipient_id.eq."+activeConv.other_user_id+"),and(user_id.eq."+activeConv.other_user_id+",recipient_id.eq."+user.id+")")
-      .order("created_at",{ascending:true});
-    setMessages((data||[]).filter(m=>m.user_id!==m.recipient_id));
-    await sb.from("direct_messages").update({read:true}).eq("listing_id",activeConv.listing_id).eq("recipient_id",user.id).eq("read",false);
-    loadConversations();
+    try{
+      const{data}=await sb.from("direct_messages").select("*")
+        .eq("listing_id",activeConv.listing_id)
+        .or("and(user_id.eq."+user.id+",recipient_id.eq."+activeConv.other_user_id+"),and(user_id.eq."+activeConv.other_user_id+",recipient_id.eq."+user.id+")")
+        .order("created_at",{ascending:true});
+      setMessages((data||[]).filter(m=>m.user_id!==m.recipient_id));
+      await sb.from("direct_messages").update({read:true}).eq("listing_id",activeConv.listing_id).eq("recipient_id",user.id).eq("read",false);
+      loadConversations();
+    }catch(e){console.error("Load messages error:",e);}
   };
 
   useEffect(()=>{bottomRef.current?.scrollIntoView({behavior:"smooth"});},[messages]);
@@ -2146,12 +2215,15 @@ function MessagesTab({newThread,user,onRequireAuth}) {
         setMessages(prev=>prev.find(m=>m.id===data[0].id)?prev:[...prev,data[0]]);
         await sendNotification(activeConv.other_user_id,"New message from "+(user.user_metadata?.full_name||user.email),"messages");
         if(activeConv.other_email){
-          await sendEmail(activeConv.other_email,"💬 New message from "+(user.user_metadata?.full_name||user.email)+" — DirectDeed",
-            emailTemplate((user.user_metadata?.full_name||"Someone")+" sent you a message",`<div style="background:#f5f0e8;border-radius:8px;padding:12px;font-size:15px;line-height:1.6;margin-bottom:12px">${body}</div>About: <strong>${activeConv.listing?.address||"your listing"}</strong>`,"Reply on DirectDeed"));
+          await sendEmail(activeConv.other_email,
+            "💬 New message from "+(user.user_metadata?.full_name||user.email)+" — DirectDeed",
+            emailTemplate((user.user_metadata?.full_name||"Someone")+" sent you a message",
+              `<div style="background:#f5f0e8;border-radius:8px;padding:12px;font-size:15px;line-height:1.6;margin-bottom:12px">${body}</div>About: <strong>${activeConv.listing?.address||"your listing"}</strong>`,
+              "Reply on DirectDeed"));
         }
         loadConversations();
       }
-    }catch(e){console.error(e);}
+    }catch(e){console.error("Send exception:",e);}
     setSending(false);
   };
 
@@ -2179,9 +2251,11 @@ function MessagesTab({newThread,user,onRequireAuth}) {
         style={{width:320,minWidth:320,background:"#fff",borderRight:"1px solid #e5e7eb",display:"flex",flexDirection:"column",flexShrink:0}}>
         <div style={{padding:"16px 18px 12px",borderBottom:"1px solid #f0f0f0"}}>
           <h2 style={{fontSize:20,fontWeight:700,color:"var(--ink)",marginBottom:10}}>
-            Messages{totalUnread>0&&<span style={{background:"var(--sage)",color:"#fff",borderRadius:10,padding:"1px 7px",fontSize:10,fontWeight:700,marginLeft:8}}>{totalUnread}</span>}
+            Messages
+            {totalUnread>0&&<span style={{background:"var(--sage)",color:"#fff",borderRadius:10,padding:"1px 7px",fontSize:10,fontWeight:700,marginLeft:8}}>{totalUnread}</span>}
           </h2>
-          <input placeholder="Search conversations..." style={{width:"100%",padding:"8px 12px",borderRadius:20,border:"none",background:"var(--msg-bg)",fontSize:13,outline:"none",color:"var(--ink)"}}/>
+          <input placeholder="Search conversations..."
+            style={{width:"100%",padding:"8px 12px",borderRadius:20,border:"none",background:"var(--msg-bg)",fontSize:13,outline:"none",color:"var(--ink)"}}/>
         </div>
         <div style={{flex:1,overflow:"auto"}}>
           {loading&&<div style={{padding:24,textAlign:"center",color:"#aaa",fontSize:13}}>Loading...</div>}
@@ -2222,19 +2296,29 @@ function MessagesTab({newThread,user,onRequireAuth}) {
         {activeConv?(
           <>
             <div style={{background:"#fff",padding:"12px 18px",borderBottom:"1px solid #e5e7eb",display:"flex",alignItems:"center",gap:12,boxShadow:"0 1px 3px rgba(0,0,0,0.05)",flexShrink:0}}>
-              <button onClick={()=>setMobileView("list")} className="mobile-menu-btn" style={{background:"none",border:"none",color:"var(--ink)",fontSize:18,cursor:"pointer",padding:0,display:"none"}}>←</button>
-              <div style={{width:42,height:42,borderRadius:"50%",background:"var(--sage)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:16,flexShrink:0}}>{activeConv.other_name?.[0]?.toUpperCase()||"?"}</div>
+              <button onClick={()=>setMobileView("list")} className="mobile-menu-btn"
+                style={{background:"none",border:"none",color:"var(--ink)",fontSize:18,cursor:"pointer",padding:0,display:"none"}}>←</button>
+              <div style={{width:42,height:42,borderRadius:"50%",background:"var(--sage)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:16,flexShrink:0}}>
+                {activeConv.other_name?.[0]?.toUpperCase()||"?"}
+              </div>
               <div style={{flex:1}}>
                 <div style={{fontWeight:700,fontSize:15,color:"var(--ink)"}}>{activeConv.other_name}</div>
-                <div style={{fontSize:11,color:"#888"}}>{activeConv.listing?.address}{activeConv.listing?.city?", "+activeConv.listing.city:""}<span style={{marginLeft:6,background:"#e8f5e9",color:"var(--sage)",borderRadius:8,padding:"1px 6px",fontSize:10,fontWeight:600}}>Active</span></div>
+                <div style={{fontSize:11,color:"#888"}}>
+                  {activeConv.listing?.address}{activeConv.listing?.city?", "+activeConv.listing.city:""}
+                  <span style={{marginLeft:6,background:"#e8f5e9",color:"var(--sage)",borderRadius:8,padding:"1px 6px",fontSize:10,fontWeight:600}}>Active</span>
+                </div>
               </div>
             </div>
             <div style={{flex:1,overflow:"auto",padding:"16px 18px 8px",display:"flex",flexDirection:"column",gap:2,background:"var(--msg-bg)"}}>
               {messages.length===0&&(
                 <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flex:1,color:"#aaa",textAlign:"center",padding:"40px 20px"}}>
-                  <div style={{width:64,height:64,borderRadius:"50%",background:"var(--sage)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:24,marginBottom:14}}>{activeConv.other_name?.[0]?.toUpperCase()||"?"}</div>
+                  <div style={{width:64,height:64,borderRadius:"50%",background:"var(--sage)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:24,marginBottom:14}}>
+                    {activeConv.other_name?.[0]?.toUpperCase()||"?"}
+                  </div>
                   <div style={{fontSize:16,color:"var(--ink)",fontWeight:600,marginBottom:5}}>{activeConv.other_name}</div>
-                  <div style={{fontSize:12,color:"#888",lineHeight:1.6,maxWidth:280}}>Start your conversation about<br/><strong style={{color:"var(--ink)"}}>{activeConv.listing?.address}</strong></div>
+                  <div style={{fontSize:12,color:"#888",lineHeight:1.6,maxWidth:280}}>
+                    Start your conversation about<br/><strong style={{color:"var(--ink)"}}>{activeConv.listing?.address}</strong>
+                  </div>
                 </div>
               )}
               {groupedMessages.map((item,idx)=>{
@@ -2243,20 +2327,34 @@ function MessagesTab({newThread,user,onRequireAuth}) {
                     <span style={{background:"rgba(0,0,0,0.07)",color:"#666",fontSize:11,padding:"3px 12px",borderRadius:12,fontWeight:500}}>{item.label}</span>
                   </div>
                 );
-                const m=item.data;const isMe=m.user_id===user.id;
+                const m=item.data;
+                const isMe=m.user_id===user.id;
                 const prevMsg=idx>0&&groupedMessages[idx-1]?.type==="msg"?groupedMessages[idx-1].data:null;
                 const nextMsg=idx<groupedMessages.length-1&&groupedMessages[idx+1]?.type==="msg"?groupedMessages[idx+1].data:null;
                 const isFirst=!prevMsg||prevMsg.user_id!==m.user_id;
                 const isLast=!nextMsg||nextMsg.user_id!==m.user_id;
                 const showAvatar=!isMe&&isLast;
-                const br=isMe?{borderRadius:isFirst?"18px 18px 4px 18px":isLast?"18px 4px 18px 18px":"18px 4px 4px 18px"}:{borderRadius:isFirst?"18px 18px 18px 4px":isLast?"4px 18px 18px 18px":"4px 18px 18px 4px"};
+                const br=isMe
+                  ?{borderRadius:isFirst?"18px 18px 4px 18px":isLast?"18px 4px 18px 18px":"18px 4px 4px 18px"}
+                  :{borderRadius:isFirst?"18px 18px 18px 4px":isLast?"4px 18px 18px 18px":"4px 18px 18px 4px"};
                 return (
-                  <div key={m.id||idx} className="msg-bubble" style={{display:"flex",justifyContent:isMe?"flex-end":"flex-start",alignItems:"flex-end",gap:8,marginTop:isFirst?8:2}}>
-                    {!isMe&&<div style={{width:30,height:30,borderRadius:"50%",background:showAvatar?"var(--sage)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:12,flexShrink:0}}>{showAvatar?activeConv.other_name?.[0]?.toUpperCase()||"?":""}</div>}
+                  <div key={m.id||idx} className="msg-bubble"
+                    style={{display:"flex",justifyContent:isMe?"flex-end":"flex-start",alignItems:"flex-end",gap:8,marginTop:isFirst?8:2}}>
+                    {!isMe&&(
+                      <div style={{width:30,height:30,borderRadius:"50%",background:showAvatar?"var(--sage)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:12,flexShrink:0}}>
+                        {showAvatar?activeConv.other_name?.[0]?.toUpperCase()||"?":""}
+                      </div>
+                    )}
                     <div style={{maxWidth:"65%",display:"flex",flexDirection:"column",alignItems:isMe?"flex-end":"flex-start",gap:1}}>
                       {isFirst&&!isMe&&<div style={{fontSize:10,color:"#aaa",marginLeft:4,marginBottom:1}}>{activeConv.other_name}</div>}
-                      <div style={{background:isMe?"var(--sage)":"#ffffff",color:isMe?"#fff":"var(--ink)",...br,padding:"9px 14px",fontSize:14,lineHeight:1.5,boxShadow:"0 1px 2px rgba(0,0,0,0.08)",wordBreak:"break-word"}}>{m.body}</div>
-                      {isLast&&<div style={{fontSize:10,color:"#bbb",margin:isMe?"0 4px 0 0":"0 0 0 4px"}}>{formatTime(m.created_at)}{isMe&&<span style={{marginLeft:3}}>{m.read?"✓✓":"✓"}</span>}</div>}
+                      <div style={{background:isMe?"var(--sage)":"#ffffff",color:isMe?"#fff":"var(--ink)",...br,padding:"9px 14px",fontSize:14,lineHeight:1.5,boxShadow:"0 1px 2px rgba(0,0,0,0.08)",wordBreak:"break-word"}}>
+                        {m.body}
+                      </div>
+                      {isLast&&(
+                        <div style={{fontSize:10,color:"#bbb",margin:isMe?"0 4px 0 0":"0 0 0 4px"}}>
+                          {formatTime(m.created_at)}{isMe&&<span style={{marginLeft:3}}>{m.read?"✓✓":"✓"}</span>}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -2267,7 +2365,8 @@ function MessagesTab({newThread,user,onRequireAuth}) {
               <div style={{flex:1,background:"var(--msg-bg)",borderRadius:24,padding:"10px 16px",display:"flex",alignItems:"flex-end",gap:8,border:"1.5px solid transparent",transition:"border-color 0.2s"}}
                 onFocusCapture={e=>e.currentTarget.style.borderColor="var(--sage)"}
                 onBlurCapture={e=>e.currentTarget.style.borderColor="transparent"}>
-                <textarea ref={inputRef} value={input} onChange={e=>setInput(e.target.value)} onKeyDown={handleKey} placeholder="Aa" rows={1}
+                <textarea ref={inputRef} value={input} onChange={e=>setInput(e.target.value)} onKeyDown={handleKey}
+                  placeholder="Aa" rows={1}
                   style={{flex:1,background:"none",border:"none",outline:"none",resize:"none",fontSize:15,lineHeight:1.5,color:"var(--ink)",fontFamily:"inherit",maxHeight:120,overflowY:"auto"}}/>
               </div>
               <button onClick={send} disabled={sending||!input.trim()}
@@ -2305,7 +2404,7 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
   const preBuilt=form.year_built&&Number(form.year_built)<1978;
 
   useEffect(()=>{
-    if(user)setForm(f=>({...f,seller_name:user.user_metadata?.full_name||"",seller_email:user.email||""}));
+    if(user) setForm(f=>({...f,seller_name:user.user_metadata?.full_name||"",seller_email:user.email||""}));
   },[user]);
 
   if(!user) return (
@@ -2323,7 +2422,7 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
       const text=await callClaude([{role:"user",content:"You are a real estate valuation expert. Return ONLY valid JSON, no markdown. Property: "+(valForm.address||"Unknown")+", Type: "+valForm.type+", Beds: "+valForm.beds+", Baths: "+valForm.baths+", SqFt: "+valForm.sqft+", Year: "+valForm.year+", Condition: "+valForm.condition+". Return: {\"low\":number,\"mid\":number,\"high\":number,\"pricePerSqft\":number,\"summary\":\"2-3 sentences\",\"tips\":[\"tip1\",\"tip2\",\"tip3\"]}"}]);
       setValResult(JSON.parse(text.replace(/```json|```/g,"").trim()));
     }catch{
-      setValResult({low:380000,mid:435000,high:490000,pricePerSqft:241,summary:"Based on your inputs, this property sits in a competitive range.",tips:["Stage key rooms before listing","Price at mid-range to attract multiple offers","Disclose all known issues upfront"]});
+      setValResult({low:250000,mid:300000,high:350000,pricePerSqft:167,summary:"Based on your inputs, this property sits in a competitive range for the Michigan market.",tips:["Stage key rooms before listing","Price at mid-range to attract multiple offers","Disclose all known issues upfront"]});
     }
     setValLoading(false);
   };
@@ -2337,6 +2436,8 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
   };
 
   const publish=async()=>{
+    if(!form.address||!form.city||!form.state||!form.zip){setError("Please fill in the complete address.");return;}
+    if(!form.price){setError("Please enter an asking price.");return;}
     setSubmitting(true);setError(null);
     try{
       const ok=await refreshSession();
@@ -2352,8 +2453,8 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
       }
       const{data:newListing,error:e}=await sb.from("listings").insert([{
         address:form.address,city:form.city,state:form.state,zip:form.zip,
-        price:Number(form.price),beds:Number(form.beds),baths:Number(form.baths),
-        sqft:Number(form.sqft),type:form.type,description:form.description,
+        price:Number(form.price),beds:Number(form.beds)||0,baths:Number(form.baths)||0,
+        sqft:Number(form.sqft)||0,type:form.type,description:form.description,
         year_built:form.year_built?Number(form.year_built):null,
         seller_name:form.seller_name,seller_email:form.seller_email,seller_phone:form.seller_phone,
         photos:photoUrls,tags:[],user_id:user.id,sold:false,views:0,
@@ -2367,7 +2468,8 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
 
   const reset=()=>{
     setSubmitted(false);setStep(1);setPhotos([]);setError(null);setMode("home");
-    setForm({address:"",city:"",state:"",zip:"",price:"",beds:"",baths:"",sqft:"",year_built:"",type:"Single Family",description:"",seller_name:user?.user_metadata?.full_name||"",seller_email:user?.email||"",seller_phone:""});
+    setForm({address:"",city:"",state:"",zip:"",price:"",beds:"",baths:"",sqft:"",year_built:"",type:"Single Family",description:"",
+      seller_name:user?.user_metadata?.full_name||"",seller_email:user?.email||"",seller_phone:""});
   };
 
   if(mode==="home") return (
@@ -2375,7 +2477,8 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
       <h2 style={{fontSize:28,fontWeight:700,marginBottom:5,color:"var(--ink)"}}>Sell Your Home</h2>
       <p style={{color:"#666",fontSize:13,marginBottom:24,lineHeight:1.6}}>Skip the agent fees. Connect directly with buyers and keep more of your money.</p>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:13,marginBottom:20}}>
-        <div onClick={()=>setMode("value")} style={{background:"var(--card)",border:"2px solid var(--warm)",borderRadius:14,padding:"24px 20px",cursor:"pointer",textAlign:"center",transition:"all 0.2s"}}
+        <div onClick={()=>setMode("value")}
+          style={{background:"var(--card)",border:"2px solid var(--warm)",borderRadius:14,padding:"24px 20px",cursor:"pointer",textAlign:"center",transition:"all 0.2s"}}
           onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--gold)";e.currentTarget.style.transform="translateY(-2px)";}}
           onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--warm)";e.currentTarget.style.transform="none";}}>
           <div style={{fontSize:38,marginBottom:11}}>💰</div>
@@ -2383,7 +2486,8 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
           <div style={{fontSize:12,color:"#666",lineHeight:1.6}}>Instant AI-powered estimate before you list.</div>
           <div style={{marginTop:10,color:"var(--gold)",fontSize:12,fontWeight:600}}>Free Estimate →</div>
         </div>
-        <div onClick={()=>setMode("list")} style={{background:"var(--sage)",border:"2px solid var(--sage)",borderRadius:14,padding:"24px 20px",cursor:"pointer",textAlign:"center",transition:"all 0.2s"}}
+        <div onClick={()=>setMode("list")}
+          style={{background:"var(--sage)",border:"2px solid var(--sage)",borderRadius:14,padding:"24px 20px",cursor:"pointer",textAlign:"center",transition:"all 0.2s"}}
           onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 24px rgba(74,103,65,0.3)";}}
           onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="none";}}>
           <div style={{fontSize:38,marginBottom:11}}>🏡</div>
@@ -2425,7 +2529,8 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
               </select>
             </div>
           </div>
-          <button onClick={estimate} disabled={valLoading} style={{background:valLoading?"#aaa":"var(--rust)",color:"#fff",border:"none",borderRadius:10,padding:"11px",fontSize:13,cursor:valLoading?"default":"pointer",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:7}}>
+          <button onClick={estimate} disabled={valLoading}
+            style={{background:valLoading?"#aaa":"var(--rust)",color:"#fff",border:"none",borderRadius:10,padding:"11px",fontSize:13,cursor:valLoading?"default":"pointer",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:7}}>
             {valLoading?<><Spinner size={14}/>  Analyzing...</>:"Get My Home Value"}
           </button>
         </div>
@@ -2453,7 +2558,9 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
               </div>
             ))}
           </div>
-          <button onClick={()=>setMode("list")} style={{width:"100%",background:"var(--sage)",color:"#fff",border:"none",borderRadius:10,padding:"12px",fontSize:13,cursor:"pointer",fontWeight:600}}>Ready to List? Start My Listing →</button>
+          <button onClick={()=>setMode("list")} style={{width:"100%",background:"var(--sage)",color:"#fff",border:"none",borderRadius:10,padding:"12px",fontSize:13,cursor:"pointer",fontWeight:600}}>
+            Ready to List? Start My Listing →
+          </button>
         </div>
       )}
     </div>
@@ -2496,10 +2603,10 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr",gap:9}}>
             <div><label style={lbl}>Beds</label><input style={inp} type="number" value={form.beds} onChange={e=>update("beds",e.target.value)} placeholder="3"/></div>
             <div><label style={lbl}>Baths</label><input style={inp} type="number" value={form.baths} onChange={e=>update("baths",e.target.value)} placeholder="2"/></div>
-            <div><label style={lbl}>Sq Ft</label><input style={inp} type="number" value={form.sqft} onChange={e=>update("sqft",e.target.value)} placeholder="1800"/></div>
+            <div><label style={lbl}>Sq Ft</label><input style={inp} type="number" value={form.sqft} onChange={e=>update("sqft",e.target.value)} placeholder="1500"/></div>
             <div>
               <label style={lbl}>Year Built</label>
-              <input style={inp} type="number" value={form.year_built} onChange={e=>update("year_built",e.target.value)} placeholder="1995"/>
+              <input style={inp} type="number" value={form.year_built} onChange={e=>update("year_built",e.target.value)} placeholder="1990"/>
             </div>
             <div><label style={lbl}>Type</label>
               <select style={{...inp,cursor:"pointer"}} value={form.type} onChange={e=>update("type",e.target.value)}>
@@ -2512,13 +2619,18 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
               ⚠️ Homes built before 1978 require a Lead Paint Disclosure — you'll generate this as part of the transaction process.
             </div>
           )}
-          <button onClick={()=>{if(!form.address||!form.city||!form.state||!form.zip){alert("Please fill in the complete address.");return;}setStep(2);}} style={{background:"var(--gold)",color:"#fff",border:"none",borderRadius:10,padding:"11px",fontSize:13,cursor:"pointer",fontWeight:600}}>Continue</button>
+          <button onClick={()=>{if(!form.address||!form.city||!form.state||!form.zip){setError("Please fill in the complete address.");return;}setError(null);setStep(2);}}
+            style={{background:"var(--gold)",color:"#fff",border:"none",borderRadius:10,padding:"11px",fontSize:13,cursor:"pointer",fontWeight:600}}>
+            Continue
+          </button>
+          {error&&<div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:8,padding:"8px 12px",color:"var(--rust)",fontSize:12}}>{error}</div>}
         </div>
       )}
 
       {step===2&&(
         <div style={{display:"flex",flexDirection:"column",gap:13}}>
-          <label htmlFor="photo-upload" style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",border:"2px dashed var(--warm)",borderRadius:11,padding:"24px 16px",cursor:"pointer",background:"var(--cream)"}}>
+          <label htmlFor="photo-upload"
+            style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",border:"2px dashed var(--warm)",borderRadius:11,padding:"24px 16px",cursor:"pointer",background:"var(--cream)"}}>
             <span style={{fontSize:28,marginBottom:6}}>📷</span>
             <span style={{fontWeight:600,fontSize:13,marginBottom:2,color:"var(--ink)"}}>Click to upload photos</span>
             <span style={{fontSize:11,color:"#888"}}>JPG, PNG, WEBP · Multiple allowed · First photo is cover</span>
@@ -2530,7 +2642,8 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
                 <div key={i} style={{position:"relative",borderRadius:8,overflow:"hidden",aspectRatio:"4/3"}}>
                   <img src={p.preview} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
                   {i===0&&<div style={{position:"absolute",bottom:2,left:2,background:"var(--gold)",color:"#fff",fontSize:7,padding:"1px 5px",borderRadius:4,fontWeight:700}}>COVER</div>}
-                  <button onClick={()=>setPhotos(prev=>prev.filter((_,j)=>j!==i))} style={{position:"absolute",top:3,right:3,background:"rgba(0,0,0,0.6)",color:"#fff",border:"none",borderRadius:"50%",width:18,height:18,cursor:"pointer",fontSize:10}}>✕</button>
+                  <button onClick={()=>setPhotos(prev=>prev.filter((_,j)=>j!==i))}
+                    style={{position:"absolute",top:3,right:3,background:"rgba(0,0,0,0.6)",color:"#fff",border:"none",borderRadius:"50%",width:18,height:18,cursor:"pointer",fontSize:10}}>✕</button>
                 </div>
               ))}
             </div>
@@ -2545,11 +2658,12 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
       {step===3&&(
         <div style={{display:"flex",flexDirection:"column",gap:13}}>
           <div><label style={lbl}>Asking Price</label><input style={inp} type="number" value={form.price} onChange={e=>update("price",e.target.value)} placeholder="299000"/></div>
-          <div><label style={lbl}>Description</label><textarea style={{...inp,minHeight:90,resize:"vertical"}} value={form.description} onChange={e=>update("description",e.target.value)} placeholder="Describe your home — highlights, updates, neighborhood..."/></div>
+          <div><label style={lbl}>Description</label><textarea style={{...inp,minHeight:90,resize:"vertical"}} value={form.description} onChange={e=>update("description",e.target.value)} placeholder="Describe your home — highlights, recent updates, neighborhood..."/></div>
           <div style={{display:"flex",gap:7}}>
             <button onClick={()=>setStep(2)} style={{flex:1,background:"none",border:"1.5px solid var(--warm)",borderRadius:10,padding:"10px",fontSize:12,cursor:"pointer",color:"var(--ink)"}}>Back</button>
-            <button onClick={()=>setStep(4)} style={{flex:2,background:"var(--gold)",color:"#fff",border:"none",borderRadius:10,padding:"10px",fontSize:12,cursor:"pointer",fontWeight:600}}>Continue</button>
+            <button onClick={()=>{if(!form.price){setError("Please enter an asking price.");return;}setError(null);setStep(4);}} style={{flex:2,background:"var(--gold)",color:"#fff",border:"none",borderRadius:10,padding:"10px",fontSize:12,cursor:"pointer",fontWeight:600}}>Continue</button>
           </div>
+          {error&&<div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:8,padding:"8px 12px",color:"var(--rust)",fontSize:12}}>{error}</div>}
         </div>
       )}
 
@@ -2558,11 +2672,14 @@ function SellTab({user,onRequireAuth,onListingPublished}) {
           <div><label style={lbl}>Your Name</label><input style={inp} value={form.seller_name} onChange={e=>update("seller_name",e.target.value)} placeholder="Jane Smith"/></div>
           <div><label style={lbl}>Email</label><input style={inp} type="email" value={form.seller_email} onChange={e=>update("seller_email",e.target.value)}/></div>
           <div><label style={lbl}>Phone</label><input style={inp} type="tel" value={form.seller_phone} onChange={e=>update("seller_phone",e.target.value)} placeholder="(555) 123-4567"/></div>
-          <div style={{background:"var(--warm)",borderRadius:7,padding:"8px 12px",fontSize:11,color:"#555"}}>Your contact info is only shared with buyers who make an offer.</div>
+          <div style={{background:"var(--warm)",borderRadius:7,padding:"8px 12px",fontSize:11,color:"#555"}}>
+            Your contact info is only shared with buyers who make an offer.
+          </div>
           {error&&<div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:8,padding:"8px 12px",color:"var(--rust)",fontSize:12}}>{error}</div>}
           <div style={{display:"flex",gap:7}}>
             <button onClick={()=>setStep(3)} style={{flex:1,background:"none",border:"1.5px solid var(--warm)",borderRadius:10,padding:"10px",fontSize:12,cursor:"pointer",color:"var(--ink)"}}>Back</button>
-            <button onClick={publish} disabled={submitting} style={{flex:2,background:submitting?"#aaa":"var(--sage)",color:"#fff",border:"none",borderRadius:10,padding:"10px",fontSize:12,cursor:"pointer",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:7}}>
+            <button onClick={publish} disabled={submitting}
+              style={{flex:2,background:submitting?"#aaa":"var(--sage)",color:"#fff",border:"none",borderRadius:10,padding:"10px",fontSize:12,cursor:"pointer",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:7}}>
               {submitting?<Spinner size={13}/>:"Publish Listing 🚀"}
             </button>
           </div>
@@ -2588,7 +2705,8 @@ function ProfileDropdown({user,onLogout,onRequireAuth,setTab}) {
 
   return (
     <div ref={ref} style={{position:"relative"}}>
-      <button onClick={()=>setOpen(!open)} style={{background:open?"rgba(255,255,255,0.12)":"none",border:"1px solid "+(open?"rgba(255,255,255,0.25)":"transparent"),color:"rgba(255,255,255,0.85)",borderRadius:8,padding:"5px 13px",fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",gap:6,transition:"all 0.15s"}}>
+      <button onClick={()=>setOpen(!open)}
+        style={{background:open?"rgba(255,255,255,0.12)":"none",border:"1px solid "+(open?"rgba(255,255,255,0.25)":"transparent"),color:"rgba(255,255,255,0.85)",borderRadius:8,padding:"5px 13px",fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",gap:6,transition:"all 0.15s"}}>
         <div style={{width:22,height:22,borderRadius:"50%",background:"var(--gold)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700,fontSize:10}}>
           {(user.user_metadata?.full_name||user.email||"?")[0].toUpperCase()}
         </div>
@@ -2661,13 +2779,17 @@ export default function App() {
   useEffect(()=>{
     if(!user){setOfferUnread(0);setMsgUnread(0);setSavedIds(new Set());return;}
     const load=async()=>{
-      const{count:oc}=await sb.from("notifications").select("id",{count:"exact"}).eq("user_id",user.id).eq("read",false);
-      const{count:mc}=await sb.from("direct_messages").select("id",{count:"exact"}).eq("recipient_id",user.id).eq("read",false);
-      setOfferUnread(oc||0);setMsgUnread(mc||0);
+      try{
+        const{count:oc}=await sb.from("notifications").select("id",{count:"exact"}).eq("user_id",user.id).eq("read",false);
+        const{count:mc}=await sb.from("direct_messages").select("id",{count:"exact"}).eq("recipient_id",user.id).eq("read",false);
+        setOfferUnread(oc||0);setMsgUnread(mc||0);
+      }catch(e){console.error("Badge load error:",e);}
     };
     const loadSaved=async()=>{
-      const{data}=await sb.from("saved_listings").select("listing_id").eq("user_id",user.id);
-      setSavedIds(new Set((data||[]).map(s=>s.listing_id)));
+      try{
+        const{data}=await sb.from("saved_listings").select("listing_id").eq("user_id",user.id);
+        setSavedIds(new Set((data||[]).map(s=>s.listing_id)));
+      }catch(e){console.error("Saved load error:",e);}
     };
     load();loadSaved();
     const sub=sb.channel("badges-"+user.id)
@@ -2680,13 +2802,15 @@ export default function App() {
 
   const toggleSave=async listingId=>{
     if(!user){setShowAuth(true);return;}
-    if(savedIds.has(listingId)){
-      await sb.from("saved_listings").delete().eq("user_id",user.id).eq("listing_id",listingId);
-      setSavedIds(prev=>{const n=new Set(prev);n.delete(listingId);return n;});
-    } else {
-      await sb.from("saved_listings").insert([{user_id:user.id,listing_id:listingId}]);
-      setSavedIds(prev=>new Set([...prev,listingId]));
-    }
+    try{
+      if(savedIds.has(listingId)){
+        await sb.from("saved_listings").delete().eq("user_id",user.id).eq("listing_id",listingId);
+        setSavedIds(prev=>{const n=new Set(prev);n.delete(listingId);return n;});
+      } else {
+        await sb.from("saved_listings").insert([{user_id:user.id,listing_id:listingId}]);
+        setSavedIds(prev=>new Set([...prev,listingId]));
+      }
+    }catch(e){console.error("Toggle save error:",e);}
   };
 
   const handleMessage=listing=>{
@@ -2725,7 +2849,8 @@ export default function App() {
           <div style={{width:1,height:16,background:"rgba(255,255,255,0.15)",margin:"0 5px"}}/>
           <ProfileDropdown user={user} onLogout={handleLogout} onRequireAuth={()=>setShowAuth(true)} setTab={setTab}/>
         </div>
-        <button className="mobile-menu-btn" onClick={()=>setMobileMenuOpen(!mobileMenuOpen)} style={{background:"none",border:"none",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center"}}>
+        <button className="mobile-menu-btn" onClick={()=>setMobileMenuOpen(!mobileMenuOpen)}
+          style={{background:"none",border:"none",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center"}}>
           {mobileMenuOpen?"✕":"☰"}
         </button>
       </header>
@@ -2750,8 +2875,12 @@ export default function App() {
 
       {tab==="Browse"&&(
         <div style={{background:"linear-gradient(135deg,var(--ink) 0%,#3d2b0f 60%,var(--rust) 100%)",color:"#fff",padding:"40px 22px 48px",textAlign:"center"}}>
-          <div className="hero-title" style={{fontSize:38,fontWeight:700,lineHeight:1.15,marginBottom:10}}>Buy and Sell Your Home.<br/>Keep More of Your Money.</div>
-          <p style={{fontSize:13,color:"rgba(255,255,255,0.65)",maxWidth:380,margin:"0 auto 20px",lineHeight:1.7}}>Connect directly with buyers and sellers. Save the 5–6% commission — up to $30,000 on a $500k home.</p>
+          <div className="hero-title" style={{fontSize:38,fontWeight:700,lineHeight:1.15,marginBottom:10}}>
+            Buy and Sell Your Home.<br/>Keep More of Your Money.
+          </div>
+          <p style={{fontSize:13,color:"rgba(255,255,255,0.65)",maxWidth:380,margin:"0 auto 20px",lineHeight:1.7}}>
+            Connect directly with buyers and sellers. Save the 5–6% commission — up to $30,000 on a $500k home.
+          </p>
           <div style={{display:"flex",gap:9,justifyContent:"center",flexWrap:"wrap"}}>
             <button onClick={()=>user?setTab("Sell"):setShowAuth(true)} style={{background:"var(--gold)",color:"#fff",border:"none",borderRadius:11,padding:"11px 22px",fontSize:13,cursor:"pointer",fontWeight:700}}>List My Home</button>
             <button onClick={()=>document.getElementById("browse-start")?.scrollIntoView({behavior:"smooth"})} style={{background:"rgba(255,255,255,0.1)",color:"#fff",border:"1px solid rgba(255,255,255,0.25)",borderRadius:11,padding:"11px 22px",fontSize:13,cursor:"pointer"}}>Browse Homes</button>
@@ -2775,10 +2904,10 @@ export default function App() {
         )}
       </div>
 
-      {tab==="Sell"&&<SellTab user={user} onRequireAuth={()=>setShowAuth(true)} onListingPublished={()=>setBrowseRefreshKey(k=>k+1)}/>}
+      {tab==="Sell"&&<SellTab user={user} onRequireAuth={()=>setShowAuth(true)} onListingPublished={()=>{setBrowseRefreshKey(k=>k+1);}}/>}
       {tab==="Offers"&&<OffersTab user={user} onRequireAuth={()=>setShowAuth(true)}/>}
       {tab==="Messages"&&<MessagesTab newThread={messageThread} user={user} onRequireAuth={()=>setShowAuth(true)}/>}
-      {tab==="Dashboard"&&<DashboardTab user={user} onRequireAuth={()=>setShowAuth(true)} onNavigate={setTab} savedIds={savedIds} onToggleSave={toggleSave} onMessage={handleMessage} onOffer={l=>setOfferListing(l)}/>}
+      {tab==="Dashboard"&&<DashboardTab user={user} onRequireAuth={()=>setShowAuth(true)} onNavigate={setTab} savedIds={savedIds} onToggleSave={toggleSave}/>}
       {tab==="Privacy"&&<LegalTab section="privacy"/>}
       {tab==="Terms"&&<LegalTab section="terms"/>}
 
