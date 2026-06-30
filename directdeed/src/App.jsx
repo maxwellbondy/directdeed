@@ -42,7 +42,7 @@ const styles = `
 
 const TRANSACTION_STEPS = [
   { id:1,  key:"offer",               label:"Offer",           icon:"📋", owner:"seller", desc:"Seller reviews and responds to the offer", buyerAction:"Your offer has been submitted. Waiting for the seller to respond.", sellerAction:"Review the offer below. You may accept, counter, or decline.", relatedDocs:["Purchase & Sale Agreement","Counteroffer Addendum"] },
-  { id:2,  key:"disclosures",         label:"Disclosures",     icon:"📝", owner:"seller", desc:"Seller provides required property disclosures to buyer", buyerAction:"The seller is preparing required disclosures. Review them carefully before proceeding with your inspection.", sellerAction:"You are required to disclose known property conditions to the buyer. Generate and upload the disclosures below.", relatedDocs:["Property Disclosure Statement","Lead Paint Disclosure"], requiresDoc:true },
+  { id:2,  key:"disclosures",         label:"Disclosures",     icon:"📝", owner:"seller", desc:"Seller provides required property disclosures to buyer", buyerAction:"The seller is preparing required disclosures. Review them carefully before proceeding with your inspection.", sellerAction:"You are required to disclose known property conditions to the buyer. Fill out the disclosure form below.", relatedDocs:["Lead Paint Disclosure"], requiresDoc:true },
   { id:3,  key:"preapproval",         label:"Pre-Approval",    icon:"🏦", owner:"buyer",  desc:"Buyer provides proof of financing or funds", buyerAction:"Upload your mortgage pre-approval letter OR proof of funds. Required to advance.", sellerAction:"Waiting for buyer to upload pre-approval or proof of funds.", relatedDocs:[], requiresDoc:true },
   { id:4,  key:"earnest",             label:"Earnest Money",   icon:"💰", owner:"buyer",  desc:"Buyer deposits earnest money with escrow agent", buyerAction:"Deposit earnest money with a licensed title company. Upload your deposit receipt to advance.", sellerAction:"Waiting for buyer to deposit earnest money and upload confirmation.", relatedDocs:["Earnest Money Agreement"], requiresDoc:true },
   { id:5,  key:"inspection",          label:"Inspection",      icon:"🔍", owner:"buyer",  desc:"Buyer completes home inspection", buyerAction:"Schedule a licensed home inspector. Review the seller's disclosures before your inspection. Upload the inspection report to advance.", sellerAction:"Waiting for buyer to complete inspection and upload the report.", relatedDocs:["Inspection Contingency Waiver"], requiresDoc:true },
@@ -54,11 +54,47 @@ const TRANSACTION_STEPS = [
   { id:11, key:"closing",             label:"Closing",         icon:"🎉", owner:"both",   desc:"Both parties sign and complete the transaction", buyerAction:"Sign the closing documents below. Both parties must sign to complete.", sellerAction:"Sign the closing documents below. Both parties must sign to complete.", relatedDocs:["Purchase & Sale Agreement"] },
 ];
 
+const APPLIANCE_ITEMS = [
+  ["range_oven","Range/Oven"],["dishwasher","Dishwasher"],["refrigerator","Refrigerator"],
+  ["hood_fan","Hood/Fan"],["disposal","Disposal"],["electrical","Electrical System"],
+  ["garage_door","Garage Door Opener & Remote"],["alarm","Alarm System"],["intercom","Intercom"],
+  ["central_vacuum","Central Vacuum"],["attic_fan","Attic Fan"],["microwave","Microwave"],
+  ["trash_compactor","Trash Compactor"],["ceiling_fan","Ceiling Fan"],["sauna_hot_tub","Sauna/Hot Tub"],
+  ["water_heater","Water Heater"],["plumbing","Plumbing System"],["sump_pump","Sump Pump"],
+  ["water_softener","Water Softener"],["well_pump","Well/Pump"],["sprinkler","Sprinkler System"],
+  ["septic","Septic Tank"],["furnace","Furnace/Heating System"],["central_air","Central Air"],
+  ["exhaust_fans","Exhaust Fan(s)"],["tv_antenna","TV Antenna/Rotor & Controls"],
+];
+
+const CONDITION_ITEMS = [
+  ["basement_water","Basement/crawl space: evidence of water?"],
+  ["insulation","Insulation: any known problems?"],
+  ["roof_leaks","Roof: any known leaks?"],
+  ["structural","Structural/foundation: any known movement, settling, or cracks?"],
+  ["asbestos","Presence of asbestos?"],
+  ["infestation","History of infestation (termites, carpenter ants, etc.)?"],
+  ["flooding","Flooding, drainage, or grading problems?"],
+  ["zoning","Zoning violations or nonconforming uses?"],
+  ["lawsuits","Lawsuits affecting the property?"],
+  ["encroachments","Encroachments, easements, or shared driveway/wall?"],
+  ["unpermitted_work","Room additions, structural changes, or repairs made without permits?"],
+  ["soil","Settling, soil, or earth movement problems?"],
+];
+
+const ENVIRONMENTAL_ITEMS = [
+  ["mold","Known mold or mildew problems?"],
+  ["radon","Known radon gas, testing, or mitigation?"],
+  ["storage_tanks","Underground storage tanks (current or former)?"],
+  ["farm_nearby","Farm or farm operation in the vicinity?"],
+  ["hoa","HOA, condo fees, or association dues?"],
+  ["litigation","Pending or past litigation regarding the property?"],
+];
+
 async function verifyOfferColumns() {
   try {
-    const cols=["step_disclosures_doc","step_preapproval_doc","step_earnest_doc","step_inspection_doc","step_appraisal_doc","step_financing_doc","step_title_doc","step_closing_buyer_signed","step_closing_seller_signed","counter_price","counter_closing_date","counter_message"];
+    const cols=["step_disclosures_doc","step_preapproval_doc","step_earnest_doc","step_inspection_doc","step_appraisal_doc","step_financing_doc","step_title_doc","step_closing_buyer_signed","step_closing_seller_signed","counter_price","counter_closing_date","counter_message","disclosure_data","disclosure_signed_at"];
     const{error}=await sb.from("offers").select(cols.join(",")).limit(1);
-    if(error) console.warn("Some offer columns may be missing. Run migrations in Supabase SQL editor.");
+    if(error) console.warn("Some offer columns may be missing. Check Supabase SQL editor.",error.message);
   } catch(e){ console.warn("Column check:",e.message); }
 }
 
@@ -123,7 +159,6 @@ function getContractPrompt(name,offer) {
     "Purchase & Sale Agreement":`Generate a complete residential Purchase and Sale Agreement. ${base} Sections: 1)Parties 2)Price 3)Earnest 4)Financing Contingency 5)Inspection Contingency 6)Appraisal Contingency 7)Title 8)Closing 9)Possession 10)Inclusions 11)Condition 12)Costs 13)Default 14)Disputes 15)Entire Agreement. Signature blocks. Plain English. No markdown.`,
     "Counteroffer Addendum":`Generate a Counteroffer Addendum. ${base} Include reference to original offer, modified terms, expiration, unchanged terms, signatures. No markdown.`,
     "Earnest Money Agreement":`Generate an Earnest Money Agreement. ${base} Include deposit amount, escrow holder, deadline, return conditions, forfeiture, dispute resolution, signatures. No markdown.`,
-    "Property Disclosure Statement":`Generate a Michigan Seller's Disclosure Statement. ${base} Cover all required Michigan disclosure categories: structural, roof, foundation, water/plumbing, electrical, HVAC, environmental hazards, pest/termite, HOA, legal issues, unpermitted work, flood zone, known defects. Yes/No/Unknown checkboxes. Seller certification. Signature blocks. Plain English. No markdown.`,
     "Lead Paint Disclosure":`Generate a Lead-Based Paint Disclosure per 42 USC 4852d. ${base} Federally required for homes built before 1978. Include: seller disclosure of known lead paint, records and reports, EPA pamphlet acknowledgment, buyer's 10-day inspection right, signatures from all parties. Plain English. No markdown.`,
     "Inspection Contingency Waiver":`Generate an Inspection Contingency Waiver. ${base} Buyer voluntarily waives inspection contingency, as-is acknowledgment, no warranties, risks acknowledged, other contract terms remain, signatures. Plain English. No markdown.`,
     "As-Is Addendum":`Generate an As-Is Addendum. ${base} As-is sale, no warranties, no repairs, buyer acknowledgment, survivability clause, signatures. Plain English. No markdown.`,
@@ -155,6 +190,19 @@ function Logo({size=1}) {
   );
 }
 
+function YesNoUnknown({value,onChange}) {
+  const opts=[["yes","Yes"],["no","No"],["unknown","Unknown"]];
+  return (
+    <div style={{display:"flex",gap:5}}>
+      {opts.map(([v,l])=>(
+        <button key={v} onClick={()=>onChange(v)}
+          style={{flex:1,padding:"6px 8px",borderRadius:6,border:"1.5px solid "+(value===v?"var(--gold)":"var(--warm)"),background:value===v?"var(--gold)":"#fff",color:value===v?"#fff":"#666",fontSize:11,fontWeight:value===v?700:400,cursor:"pointer"}}>
+          {l}
+        </button>
+      ))}
+    </div>
+  );
+}
 function PasswordResetModal({onClose}) {
   const [password,setPassword]=useState("");
   const [confirm,setConfirm]=useState("");
@@ -277,7 +325,7 @@ function AuthModal({onClose,onAuth}) {
       <div style={{background:"var(--card)",borderRadius:24,maxWidth:420,width:"100%",overflow:"hidden",boxShadow:"0 24px 80px rgba(0,0,0,0.3)"}} onClick={e=>e.stopPropagation()}>
         <div style={{background:"var(--ink)",padding:"26px 30px 20px",textAlign:"center",position:"relative"}}>
           <button onClick={onClose} style={{position:"absolute",top:14,right:14,background:"rgba(255,255,255,0.1)",border:"none",color:"#fff",borderRadius:"50%",width:26,height:26,cursor:"pointer",fontSize:12}}>✕</button>
-          <div style={{display:"flex",justifyContent:"center",marginBottom:8}}><Logo scale={0.85}/></div>
+          <div style={{display:"flex",justifyContent:"center",marginBottom:8}}><Logo size={0.85}/></div>
           <div style={{fontSize:13,color:"rgba(255,255,255,0.5)",marginTop:4}}>{mode==="login"?"Sign in to continue":"Keep more of your money — sell directly"}</div>
         </div>
         <div style={{display:"flex",borderBottom:"1px solid var(--warm)"}}>
@@ -768,7 +816,6 @@ function ListingModal({listing,onClose,onMessage,onOffer,user,saved,onToggleSave
     </div>
   );
 }
-
 function BrowseTab({onMessage,onOffer,user,deepLinkListingId,onClearDeepLink,savedIds,onToggleSave,refreshKey,onViewOffer}) {
   const [listings,setListings]=useState([]);
   const [loading,setLoading]=useState(true);
@@ -1361,6 +1408,206 @@ function DocGenerator({templateName,offer,onClose}) {
   );
 }
 
+function DisclosureFormModal({offer,user,onClose,onSaved}) {
+  const [step,setStep]=useState(1);
+  const [appliances,setAppliances]=useState(()=>{
+    const init={};
+    APPLIANCE_ITEMS.forEach(([k])=>init[k]="unknown");
+    return offer.disclosure_data?.appliances||init;
+  });
+  const [conditions,setConditions]=useState(()=>{
+    const init={};
+    CONDITION_ITEMS.forEach(([k])=>init[k]={answer:"unknown",explain:""});
+    return offer.disclosure_data?.conditions||init;
+  });
+  const [environmental,setEnvironmental]=useState(()=>{
+    const init={};
+    ENVIRONMENTAL_ITEMS.forEach(([k])=>init[k]={answer:"unknown",explain:""});
+    return offer.disclosure_data?.environmental||init;
+  });
+  const [signature,setSignature]=useState(null);
+  const [submitting,setSubmitting]=useState(false);
+  const [error,setError]=useState(null);
+  const preBuilt=offer.listings?.year_built&&Number(offer.listings.year_built)<1978;
+
+  const updateCondition=(key,field,val)=>setConditions(prev=>({...prev,[key]:{...prev[key],[field]:val}}));
+  const updateEnv=(key,field,val)=>setEnvironmental(prev=>({...prev,[key]:{...prev[key],[field]:val}}));
+
+  const submit=async()=>{
+    if(!signature){setError("Please sign before submitting.");return;}
+    setSubmitting(true);setError(null);
+    try{
+      const disclosureData={appliances,conditions,environmental,signed:true};
+
+      const summaryText=Object.entries(conditions).filter(([,v])=>v.answer==="yes")
+        .map(([k,v])=>{const label=CONDITION_ITEMS.find(c=>c[0]===k)?.[1]||k;return label+": "+(v.explain||"No explanation provided.");}).join("\n");
+      const envSummaryText=Object.entries(environmental).filter(([,v])=>v.answer==="yes")
+        .map(([k,v])=>{const label=ENVIRONMENTAL_ITEMS.find(c=>c[0]===k)?.[1]||k;return label+": "+(v.explain||"No explanation provided.");}).join("\n");
+      const applianceText=Object.entries(appliances).map(([k,v])=>{
+        const label=APPLIANCE_ITEMS.find(a=>a[0]===k)?.[1]||k;return label+": "+(v==="yes"?"Working":v==="no"?"Not working/Not included":"Unknown");
+      }).join("\n");
+
+      const l=offer.listings||{};
+      const prompt=`Generate a complete Michigan Seller's Disclosure Statement in plain English, formatted as a real document, no markdown. Property: ${l.address}, ${l.city}, ${l.state} ${l.zip}. Built: ${l.year_built||"unknown"}. Seller: ${l.seller_name}. Buyer: ${offer.buyer_name}.
+
+Appliance/system status:
+${applianceText}
+
+Known issues disclosed by seller (answered yes):
+${summaryText||"None disclosed."}
+
+Environmental/legal issues disclosed by seller (answered yes):
+${envSummaryText||"None disclosed."}
+
+Include the standard Michigan disclosure statement legal language (purpose of statement, not a warranty, buyer's right to terminate within 72 hours), structured into clear sections matching the categories above, and a signature block for seller and buyer with today's date.`;
+
+      const docText=await callClaude([{role:"user",content:prompt}],2000);
+
+      const ok=await refreshSession();
+      if(!ok) throw new Error("Session expired. Please log in again.");
+      const blob=new Blob([docText],{type:"text/plain"});
+      const path="offers/"+offer.id+"/disclosure-"+Date.now()+".txt";
+      const{error:upErr}=await sb.storage.from("property-photos").upload(path,blob,{contentType:"text/plain"});
+      if(upErr) throw new Error("Upload failed: "+upErr.message);
+      const{data:{publicUrl}}=sb.storage.from("property-photos").getPublicUrl(path);
+
+      const updates={disclosure_data:disclosureData,disclosure_signed_at:new Date().toISOString(),step_disclosures_doc:publicUrl};
+      const{error:updateErr}=await sb.from("offers").update(updates).eq("id",offer.id);
+      if(updateErr) throw new Error(updateErr.message);
+
+      onSaved({...offer,...updates});
+      onClose();
+    }catch(e){setError(e.message);}
+    setSubmitting(false);
+  };
+
+  const sectionLabel={fontSize:11,fontWeight:600,color:"var(--ink)",marginBottom:8};
+  const stepNames=["Appliances","Conditions","Environmental","Review & Sign"];
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(26,18,8,0.6)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={onClose}>
+      <div style={{background:"var(--card)",borderRadius:18,maxWidth:560,width:"100%",maxHeight:"88vh",overflow:"auto",boxShadow:"0 24px 80px rgba(0,0,0,0.3)"}} onClick={e=>e.stopPropagation()}>
+        <div style={{background:"var(--ink)",padding:"16px 20px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:2}}>
+          <div style={{fontSize:15,fontWeight:700,color:"#fff"}}>Property Disclosure Statement</div>
+          <button onClick={onClose} style={{background:"rgba(255,255,255,0.1)",border:"none",color:"#fff",borderRadius:"50%",width:24,height:24,cursor:"pointer",fontSize:11}}>✕</button>
+        </div>
+        <div style={{display:"flex",gap:4,padding:"14px 20px 0"}}>
+          {stepNames.map((s,i)=>(
+            <div key={i} style={{flex:1,textAlign:"center"}}>
+              <div style={{width:18,height:18,borderRadius:"50%",background:step>i+1?"var(--sage)":step===i+1?"var(--gold)":"var(--warm)",color:step>=i+1?"#fff":"#aaa",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 3px",fontSize:8,fontWeight:700}}>{step>i+1?"✓":i+1}</div>
+              <div style={{fontSize:8,color:step===i+1?"var(--gold)":"#aaa"}}>{s}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{padding:"16px 20px 20px"}}>
+          {step===1&&(
+            <div>
+              <div style={{background:"var(--cream)",border:"1px solid var(--warm)",borderRadius:8,padding:"9px 12px",fontSize:11,color:"#555",marginBottom:13}}>
+                Mark each item as working, not working/not included, or unknown.
+              </div>
+              <div style={sectionLabel}>Appliances, Systems & Services</div>
+              <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:16}}>
+                {APPLIANCE_ITEMS.map(([key,label])=>(
+                  <div key={key} style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10}}>
+                    <div style={{fontSize:11,color:"var(--ink)",flex:1}}>{label}</div>
+                    <div style={{width:170}}>
+                      <YesNoUnknown value={appliances[key]} onChange={v=>setAppliances(prev=>({...prev,[key]:v}))}/>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button onClick={()=>setStep(2)} style={{width:"100%",background:"var(--gold)",color:"#fff",border:"none",borderRadius:9,padding:"11px",fontSize:13,cursor:"pointer",fontWeight:600}}>Continue</button>
+            </div>
+          )}
+
+          {step===2&&(
+            <div>
+              <div style={{background:"var(--cream)",border:"1px solid var(--warm)",borderRadius:8,padding:"9px 12px",fontSize:11,color:"#555",marginBottom:13}}>
+                If you answer "Yes" to any item, please explain. You are legally required to disclose known issues.
+              </div>
+              <div style={sectionLabel}>Property Conditions & Improvements</div>
+              <div style={{display:"flex",flexDirection:"column",gap:11,marginBottom:16}}>
+                {CONDITION_ITEMS.map(([key,label])=>(
+                  <div key={key} style={{background:"#fff",border:"1px solid var(--warm)",borderRadius:8,padding:"10px 12px"}}>
+                    <div style={{fontSize:11,color:"var(--ink)",marginBottom:6,fontWeight:500}}>{label}</div>
+                    <YesNoUnknown value={conditions[key].answer} onChange={v=>updateCondition(key,"answer",v)}/>
+                    {conditions[key].answer==="yes"&&(
+                      <textarea value={conditions[key].explain} onChange={e=>updateCondition(key,"explain",e.target.value)}
+                        placeholder="Please explain..."
+                        style={{width:"100%",marginTop:7,padding:"7px 10px",borderRadius:6,border:"1.5px solid var(--warm)",fontSize:11,outline:"none",minHeight:44,resize:"vertical",fontFamily:"inherit",color:"var(--ink)"}}/>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div style={{display:"flex",gap:7}}>
+                <button onClick={()=>setStep(1)} style={{flex:1,background:"none",border:"1.5px solid var(--warm)",borderRadius:9,padding:"10px",fontSize:12,cursor:"pointer",color:"var(--ink)"}}>Back</button>
+                <button onClick={()=>setStep(3)} style={{flex:2,background:"var(--gold)",color:"#fff",border:"none",borderRadius:9,padding:"10px",fontSize:12,cursor:"pointer",fontWeight:600}}>Continue</button>
+              </div>
+            </div>
+          )}
+
+          {step===3&&(
+            <div>
+              {preBuilt&&(
+                <div style={{background:"#fff8f0",border:"1px solid #fcd",borderRadius:8,padding:"9px 12px",fontSize:11,color:"var(--rust)",marginBottom:13}}>
+                  ⚠️ This home was built before 1978 — you'll generate a separate Lead Paint Disclosure after this form.
+                </div>
+              )}
+              <div style={sectionLabel}>Environmental & Legal</div>
+              <div style={{display:"flex",flexDirection:"column",gap:11,marginBottom:16}}>
+                {ENVIRONMENTAL_ITEMS.map(([key,label])=>(
+                  <div key={key} style={{background:"#fff",border:"1px solid var(--warm)",borderRadius:8,padding:"10px 12px"}}>
+                    <div style={{fontSize:11,color:"var(--ink)",marginBottom:6,fontWeight:500}}>{label}</div>
+                    <YesNoUnknown value={environmental[key].answer} onChange={v=>updateEnv(key,"answer",v)}/>
+                    {environmental[key].answer==="yes"&&(
+                      <textarea value={environmental[key].explain} onChange={e=>updateEnv(key,"explain",e.target.value)}
+                        placeholder="Please explain..."
+                        style={{width:"100%",marginTop:7,padding:"7px 10px",borderRadius:6,border:"1.5px solid var(--warm)",fontSize:11,outline:"none",minHeight:44,resize:"vertical",fontFamily:"inherit",color:"var(--ink)"}}/>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div style={{display:"flex",gap:7}}>
+                <button onClick={()=>setStep(2)} style={{flex:1,background:"none",border:"1.5px solid var(--warm)",borderRadius:9,padding:"10px",fontSize:12,cursor:"pointer",color:"var(--ink)"}}>Back</button>
+                <button onClick={()=>setStep(4)} style={{flex:2,background:"var(--gold)",color:"#fff",border:"none",borderRadius:9,padding:"10px",fontSize:12,cursor:"pointer",fontWeight:600}}>Continue to Review</button>
+              </div>
+            </div>
+          )}
+
+          {step===4&&(
+            <div>
+              <div style={sectionLabel}>Review Your Answers</div>
+              <div style={{background:"var(--cream)",border:"1px solid var(--warm)",borderRadius:9,padding:"12px 14px",marginBottom:14,fontSize:11,color:"#444",lineHeight:1.8,maxHeight:200,overflow:"auto"}}>
+                {[...CONDITION_ITEMS,...ENVIRONMENTAL_ITEMS].filter(([k])=>conditions[k]?.answer==="yes"||environmental[k]?.answer==="yes").length===0?(
+                  <div>No known issues were disclosed. All items marked No or Unknown.</div>
+                ):(
+                  <>
+                    <div style={{fontWeight:700,marginBottom:4}}>Disclosed Issues:</div>
+                    {CONDITION_ITEMS.filter(([k])=>conditions[k].answer==="yes").map(([k,l])=><div key={k}>• {l}: {conditions[k].explain||"(no explanation given)"}</div>)}
+                    {ENVIRONMENTAL_ITEMS.filter(([k])=>environmental[k].answer==="yes").map(([k,l])=><div key={k}>• {l}: {environmental[k].explain||"(no explanation given)"}</div>)}
+                  </>
+                )}
+              </div>
+              <div style={sectionLabel}>Seller Signature</div>
+              <SignaturePad onSign={dataUrl=>setSignature(dataUrl)}/>
+              {signature&&<div style={{fontSize:11,color:"var(--sage)",marginTop:6}}>✓ Signature captured</div>}
+              {error&&<div style={{background:"#fff5f5",border:"1px solid #fcc",borderRadius:8,padding:"9px 12px",color:"var(--rust)",fontSize:12,marginTop:10}}>{error}</div>}
+              <div style={{display:"flex",gap:7,marginTop:14}}>
+                <button onClick={()=>setStep(3)} style={{flex:1,background:"none",border:"1.5px solid var(--warm)",borderRadius:9,padding:"10px",fontSize:12,cursor:"pointer",color:"var(--ink)"}}>Back</button>
+                <button onClick={submit} disabled={submitting}
+                  style={{flex:2,background:submitting?"#aaa":"var(--sage)",color:"#fff",border:"none",borderRadius:9,padding:"10px",fontSize:12,cursor:"pointer",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:7}}>
+                  {submitting?<><Spinner size={13}/> Generating document...</>:"Submit Disclosure"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function OfferMessages({offer,user}) {
   const [msgs,setMsgs]=useState([]);
   const [input,setInput]=useState("");
@@ -1483,7 +1730,6 @@ function OfferMessages({offer,user}) {
     </div>
   );
 }
-
 function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
   const isSeller=user?.id===offer.seller_id;
   const isBuyer=user?.id===offer.buyer_id;
@@ -1498,11 +1744,17 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
   const [sellerSigned,setSellerSigned]=useState(false);
   const [showCounter,setShowCounter]=useState(false);
   const [activeDoc,setActiveDoc]=useState(null);
+  const [showDisclosureForm,setShowDisclosureForm]=useState(false);
   const [counterForm,setCounterForm]=useState({counter_price:"",counter_closing_date:"",counter_message:""});
   const inp={width:"100%",padding:"8px 12px",borderRadius:8,border:"1.5px solid var(--warm)",background:"#fff",fontSize:12,outline:"none",color:"var(--ink)"};
   const needsDoc=!!step.requiresDoc&&isMyTurn;
-  const canAdvance=!needsDoc||!!uploadedFile;
   const preBuilt=offer.listings?.year_built&&Number(offer.listings.year_built)<1978;
+
+  // For the disclosures step, completion is based on having a submitted disclosure form OR an uploaded file
+  const hasDisclosureSubmitted=!!offer.disclosure_data?.signed;
+  const canAdvance=step.key==="disclosures"
+    ? (hasDisclosureSubmitted||!!uploadedFile)
+    : (!needsDoc||!!uploadedFile);
 
   const uploadDoc=async file=>{
     setUploading(true);
@@ -1528,16 +1780,22 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
       const nextIndex=Math.min(offer.step_index+1,TRANSACTION_STEPS.length);
       const nextStep=TRANSACTION_STEPS[nextIndex-1];
       const updates={step_index:nextIndex,step:nextStep?.key||"closing"};
-      if(uploadedFile) updates["step_"+step.key+"_doc"]=uploadedFile;
-      const{error}=await sb.from("offers").update(updates).eq("id",offer.id);
-      if(!error){
-        const otherId=isSeller?offer.buyer_id:offer.seller_id;
-        const otherEmail=isSeller?offer.buyer_email:offer.listings?.seller_email;
-        await sendNotification(otherId,step.label+" complete. Next: "+nextStep?.label,"offers");
-        await sendEmail(otherEmail,"📋 Transaction Update: "+step.label+" Complete — DirectDeed",
-          emailTemplate(step.label+" has been completed",`Next step: <strong>${nextStep?.label}</strong>.<br/>Property: ${offer.listings?.address||""}<br/><br/>Log in to continue.`,"View Transaction"));
-        onUpdate({...offer,...updates});
+      // Only set the doc column from manual upload if disclosures wasn't already handled by the form
+      if(uploadedFile&&!(step.key==="disclosures"&&hasDisclosureSubmitted)){
+        updates["step_"+step.key+"_doc"]=uploadedFile;
       }
+      const{error}=await sb.from("offers").update(updates).eq("id",offer.id);
+      if(error){
+        console.error("Advance update error:",error);
+        setLoading(false);
+        return;
+      }
+      const otherId=isSeller?offer.buyer_id:offer.seller_id;
+      const otherEmail=isSeller?offer.buyer_email:offer.listings?.seller_email;
+      await sendNotification(otherId,step.label+" complete. Next: "+nextStep?.label,"offers");
+      await sendEmail(otherEmail,"📋 Transaction Update: "+step.label+" Complete — DirectDeed",
+        emailTemplate(step.label+" has been completed",`Next step: <strong>${nextStep?.label}</strong>.<br/>Property: ${offer.listings?.address||""}<br/><br/>Log in to continue.`,"View Transaction"));
+      onUpdate({...offer,...updates});
     }catch(e){console.error("Advance error:",e);}
     setLoading(false);
   };
@@ -1555,12 +1813,14 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
           status==="accepted"?"✅ Your offer was accepted! — DirectDeed":"❌ Offer declined — DirectDeed",
           emailTemplate(status==="accepted"?"Your offer was accepted!":"Your offer was declined",
             status==="accepted"
-              ?`Your offer on <strong>${offer.listings?.address}</strong> was accepted.<br/>Next: The seller will provide required property disclosures.`
+              ?`Your offer on <strong>${offer.listings?.address}</strong> was accepted.<br/>Next: The seller will fill out the required property disclosure form.`
               :`Your offer on <strong>${offer.listings?.address}</strong> was declined.`,
             status==="accepted"?"Continue Transaction":"Browse More Homes"));
         onUpdate({...offer,...updates});
+      } else {
+        console.error("Respond error:",error);
       }
-    }catch(e){console.error("Respond error:",e);}
+    }catch(e){console.error("Respond exception:",e);}
     setLoading(false);
   };
 
@@ -1587,9 +1847,9 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
       const updates={status:"accepted",offer_price:offer.counter_price||offer.offer_price,closing_date:offer.counter_closing_date||offer.closing_date,step:"disclosures",step_index:2,counter_price:null,counter_closing_date:null,counter_message:null};
       const{error}=await sb.from("offers").update(updates).eq("id",offer.id);
       if(!error){
-        await sendNotification(offer.seller_id,"Buyer accepted your counter. Next: provide property disclosures.","offers");
+        await sendNotification(offer.seller_id,"Buyer accepted your counter. Next: fill out property disclosure form.","offers");
         await sendEmail(offer.listings?.seller_email,"✅ Counter accepted — DirectDeed",
-          emailTemplate("The buyer accepted your counteroffer!",`Buyer accepted your counter on <strong>${offer.listings?.address}</strong>.<br/>Next: Please provide the required property disclosures.`,"View Transaction"));
+          emailTemplate("The buyer accepted your counteroffer!",`Buyer accepted your counter on <strong>${offer.listings?.address}</strong>.<br/>Next: Please fill out the property disclosure form.`,"View Transaction"));
         onUpdate({...offer,...updates});
       }
     }catch(e){console.error("Accept counter error:",e);}
@@ -1668,6 +1928,11 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
   return (
     <div style={{background:"var(--card)",border:"2px solid var(--gold)",borderRadius:12,padding:"15px",marginBottom:9,animation:"fadeIn 0.3s ease"}}>
       {activeDoc&&<DocGenerator templateName={activeDoc} offer={offer} onClose={()=>setActiveDoc(null)}/>}
+      {showDisclosureForm&&(
+        <DisclosureFormModal offer={offer} user={user}
+          onClose={()=>setShowDisclosureForm(false)}
+          onSaved={updated=>{onUpdate(updated);}}/>
+      )}
       <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:10}}>
         <span style={{fontSize:20}}>{step.icon}</span>
         <div style={{flex:1}}>
@@ -1683,37 +1948,42 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
         {isBuyer?step.buyerAction:step.sellerAction}
       </div>
 
-      {/* DISCLOSURES STEP */}
+      {/* DISCLOSURES STEP — seller fills out structured form */}
       {step.key==="disclosures"&&isSeller&&(
         <div style={{display:"flex",flexDirection:"column",gap:9,marginBottom:10}}>
-          <div style={{background:"#f0f6ff",border:"1px solid #90c0f0",borderRadius:9,padding:"12px 14px",fontSize:12,color:"#1d4ed8",lineHeight:1.8}}>
-            <strong>📝 Required Disclosures</strong><br/>
-            You are legally required to disclose known property conditions. Generate each document, review it, then upload the completed disclosures below.
-          </div>
-          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-            <button onClick={()=>setActiveDoc("Property Disclosure Statement")}
-              style={{background:"var(--warm)",border:"1px solid var(--gold)",borderRadius:8,padding:"8px 12px",fontSize:11,cursor:"pointer",color:"var(--ink)",fontWeight:600}}>
-              📋 Generate Property Disclosure
-            </button>
-            {preBuilt&&(
-              <button onClick={()=>setActiveDoc("Lead Paint Disclosure")}
-                style={{background:"#fff8f0",border:"1px solid var(--rust)",borderRadius:8,padding:"8px 12px",fontSize:11,cursor:"pointer",color:"var(--rust)",fontWeight:600}}>
-                ⚠️ Generate Lead Paint Disclosure
+          {!hasDisclosureSubmitted?(
+            <>
+              <div style={{background:"#f0f6ff",border:"1px solid #90c0f0",borderRadius:9,padding:"12px 14px",fontSize:12,color:"#1d4ed8",lineHeight:1.8}}>
+                <strong>📝 Required Disclosures</strong><br/>
+                You are legally required to disclose known property conditions. Fill out the form below — it covers appliances, property conditions, and environmental factors.
+              </div>
+              <button onClick={()=>setShowDisclosureForm(true)}
+                style={{background:"var(--gold)",color:"#fff",border:"none",borderRadius:9,padding:"11px",fontSize:13,cursor:"pointer",fontWeight:600}}>
+                📝 Fill Out Disclosure Form
               </button>
-            )}
-          </div>
-          {preBuilt&&(
-            <div style={{background:"#fff8f0",border:"1px solid #fcd",borderRadius:8,padding:"9px 12px",fontSize:11,color:"var(--rust)"}}>
-              This home was built before 1978 — a Lead-Based Paint Disclosure is federally required.
+            </>
+          ):(
+            <div style={{background:"#f0fff4",border:"1px solid #9ae6b4",borderRadius:9,padding:"11px 14px"}}>
+              <div style={{fontSize:12,fontWeight:600,color:"var(--sage)",marginBottom:5}}>✓ Disclosure form submitted</div>
+              {offer.step_disclosures_doc&&<a href={offer.step_disclosures_doc} target="_blank" rel="noopener noreferrer" style={{color:"var(--gold)",fontSize:12,textDecoration:"underline"}}>View Disclosure Document ↗</a>}
+              <div>
+                <button onClick={()=>setShowDisclosureForm(true)} style={{background:"none",border:"none",color:"var(--gold)",fontSize:11,cursor:"pointer",marginTop:6,padding:0,textDecoration:"underline"}}>Edit disclosure form</button>
+              </div>
             </div>
+          )}
+          {preBuilt&&(
+            <button onClick={()=>setActiveDoc("Lead Paint Disclosure")}
+              style={{background:"#fff8f0",border:"1px solid var(--rust)",borderRadius:8,padding:"8px 12px",fontSize:11,cursor:"pointer",color:"var(--rust)",fontWeight:600}}>
+              ⚠️ Generate Lead Paint Disclosure
+            </button>
           )}
         </div>
       )}
-      {step.key==="disclosures"&&isBuyer&&offer.step_disclosures_doc&&(
+      {step.key==="disclosures"&&isBuyer&&hasDisclosureSubmitted&&(
         <div style={{background:"#f0fff4",border:"1px solid #9ae6b4",borderRadius:9,padding:"11px 14px",marginBottom:10}}>
           <div style={{fontSize:12,fontWeight:600,color:"var(--sage)",marginBottom:5}}>✓ Seller disclosures available</div>
-          <a href={offer.step_disclosures_doc} target="_blank" rel="noopener noreferrer" style={{color:"var(--gold)",fontSize:12,textDecoration:"underline"}}>View Disclosure Documents ↗</a>
-          <div style={{fontSize:11,color:"#555",marginTop:5}}>Review these carefully before proceeding with your inspection.</div>
+          {offer.step_disclosures_doc&&<a href={offer.step_disclosures_doc} target="_blank" rel="noopener noreferrer" style={{color:"var(--gold)",fontSize:12,textDecoration:"underline"}}>View Disclosure Document ↗</a>}
+          <div style={{fontSize:11,color:"#555",marginTop:5}}>Review this carefully before proceeding with your inspection.</div>
         </div>
       )}
 
@@ -1870,8 +2140,8 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
         </div>
       )}
 
-      {/* GENERIC UPLOAD for non-special steps */}
-      {step.key!=="offer"&&step.key!=="closing"&&isMyTurn&&(
+      {/* GENERIC UPLOAD for non-special steps (disclosures has its own form above, so excluded here) */}
+      {step.key!=="offer"&&step.key!=="closing"&&step.key!=="disclosures"&&isMyTurn&&(
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
           <label style={{display:"flex",alignItems:"center",gap:8,border:"1.5px dashed "+(uploadedFile?"var(--sage)":needsDoc?"var(--gold)":"var(--warm)"),borderRadius:9,padding:"9px 12px",cursor:"pointer",background:uploadedFile?"#f0fff4":"#fff"}}>
             <span style={{fontSize:16}}>📎</span>
@@ -1883,7 +2153,7 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
             </div>
             <input type="file" style={{display:"none"}} onChange={e=>e.target.files[0]&&uploadDoc(e.target.files[0])}/>
           </label>
-          {step.key!=="disclosures"&&step.relatedDocs?.length>0&&(
+          {step.relatedDocs?.length>0&&(
             <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
               {step.relatedDocs.map(d=><button key={d} onClick={()=>setActiveDoc(d)} style={{background:"var(--warm)",border:"none",borderRadius:6,padding:"4px 8px",fontSize:10,cursor:"pointer",color:"var(--ink)"}}>📋 {d}</button>)}
             </div>
@@ -1895,6 +2165,15 @@ function StepCard({step,offer,user,onUpdate,isExpanded,onToggle}) {
           </button>
         </div>
       )}
+
+      {/* DISCLOSURES — seller's own advance button, shown after form is submitted */}
+      {step.key==="disclosures"&&isSeller&&hasDisclosureSubmitted&&(
+        <button onClick={advance} disabled={loading}
+          style={{width:"100%",marginTop:4,background:loading?"#aaa":"var(--sage)",color:"#fff",border:"none",borderRadius:9,padding:"11px",fontSize:13,cursor:loading?"default":"pointer",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:7}}>
+          {loading?<Spinner/>:"Mark Complete & Continue →"}
+        </button>
+      )}
+
       {step.key!=="offer"&&step.key!=="closing"&&!isMyTurn&&(
         <div style={{background:"var(--cream)",borderRadius:7,padding:"10px",fontSize:12,color:"#555",textAlign:"center",border:"1px solid var(--warm)"}}>
           Waiting for {step.owner==="buyer"?"buyer":"seller"} to complete this step...
@@ -2000,7 +2279,6 @@ function OffersTab({user,onRequireAuth}) {
           </div>
         </div>
 
-        {/* Step progress tracker */}
         <div style={{overflowX:"auto",marginBottom:14,paddingBottom:3}}>
           <div style={{display:"flex",minWidth:600}}>
             {TRANSACTION_STEPS.map((s,i)=>(
